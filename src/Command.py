@@ -1,19 +1,13 @@
-import re
-regex = re.compile(r"^(:(?P<prefix>[^ ]+) +)?(?P<command>[^ ]+)( *(?P<argument> .+))?")
+import Parse
 
 PREFIX = "n: "
 
+#I'll work out how these two work once you get the framework in :)
+def on_public(pfx, args):
+    pass 
 
-def on_public(string):
-    p = _parse(string)
-
-def on_private(string):
-    p = _parse(string)
-
-def _parse(string):
-    parsed = regex.search(string)
-    return parsed
+def on_private(pfx, args):
+    pass
     
-    
-def _execute_command():
+def _execute_command(pfx,args):
     pass
