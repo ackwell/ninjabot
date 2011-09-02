@@ -10,4 +10,23 @@ def on_private(pfx, args):
     pass
     
 def _execute_command(pfx,args):
-    pass
+    
+    #will need to fix this later (most likely)
+    cmd = args[1].split()
+    
+    if len(cmd) > 0:
+        try: #to import the module
+            mod = reload(__import__(cmd[0].lower()))
+        except:
+            pass #NOTIFY user "Could not import module %s" % cmd[0]
+            return;
+        
+        try:
+            mod.execute()#ill add in the args later
+        except Exception, err:
+            pass #NOTIFY err
+            return;
+    else:
+        pass #NOTIFY "No command specified."
+            
+        
