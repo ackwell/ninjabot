@@ -1,3 +1,5 @@
+#This is something i just whipped up incase it was needed, feel free to delete
+
 def parse_msg(s):
     """
     Breaks a message from an IRC server into its prefix, command, and arguments.
