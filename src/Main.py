@@ -12,7 +12,7 @@ import threading
 # maybe move to a config file in the future
 USERNAME = 'NCSSBot'
 REALNAME = 'NCSSBot'
-DEFAULT_CHANNEL = '#ncssbottest'
+DEFAULT_CHANNEL = '#ncss_challenge'
 SERVER_HOST = 'roddenberry.freenode.net' # brisbane server
 SERVER_PORT = 6667
 QUIT_MESSAGE = 'Goodbye!'
@@ -74,7 +74,9 @@ class Message:
 			raise Exception('One or more required properties were not set on the Message object')
 
 class SocketListener(threading.Thread):
-	def __init__(self):
+	def __init__(self, gui=None):
+		self.gui = gui #If we are running through the GUI or not
+		
 		# Initialise the socket and connect
 		# Also set the socket to non-blocking, so if there is no data to
 		# read, the .recv() operation will not hang
@@ -114,6 +116,11 @@ class SocketListener(threading.Thread):
 			if read_buffer.endswith('\r\n'):
 				msg = read_buffer[:-2]
 				read_buffer = ''
+				
+				if self.gui:
+					self.gui.Log(msg)
+				else:
+					print msg
 				
 				# Firstly, check for ping
 				m = re.match(r'^PING :(.+)$', msg)

@@ -1,5 +1,3 @@
-import Parse
-
 PREFIX = "n: "
 
 #I'll work out how these two work once you get the framework in :)
@@ -16,7 +14,9 @@ def _execute_command(pfx,args):
     
     if len(cmd) > 0:
         try: #to import the module
-            mod = reload(__import__(cmd[0].lower()))
+            mod = __import__(cmd[0].lower())
+            if mod.reload:
+                mod = reload(mod)
         except:
             pass #NOTIFY user "Could not import module %s" % cmd[0]
             return;
