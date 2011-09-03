@@ -43,8 +43,6 @@ class MainInterface(Frame):
         self.inp_field.bind("<Return>", self.EnterPressed)
         
         #Set up the Bot's framework
-        self.SL = SocketListener(self)
-        #self.SL.start()
     
     def EnterPressed(self, event):
         self.SendPressed()
@@ -66,11 +64,33 @@ class MainInterface(Frame):
         self.log.insert(END, msg)
         self.log['state'] = DISABLED
         self.log.yview(END)
+    
+    def checkLog(self):
+        if len(SL.LOG)>0: #if there is somthing to grab
+            for msg in SL.LOG:
+                self.Log(msg)
+            SL.LOG = []
 
-
-
+def update():
+    gui.checkLog()
+    
+    #loop back every 1 seconf
+    gui.after(1000, update)
+    
+    
 #If run as main app, start up the GUI
 if __name__ == "__main__":
+    
     gui = MainInterface()
     
+    SL = SocketListener(True)
+    SL.start()
+    
+    #start the update loop
+    gui.after(1000,update())
+    
+    #and start the GUI loop
     gui.mainloop()
+    
+    #Whn the GUI is closed, kill the SocketListener
+    SL.stop()

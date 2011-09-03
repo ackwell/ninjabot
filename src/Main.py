@@ -74,8 +74,12 @@ class Message:
 			raise Exception('One or more required properties were not set on the Message object')
 
 class SocketListener(threading.Thread):
-	def __init__(self, gui=None):
-		self.gui = gui #If we are running through the GUI or not
+	#List used to store logs when GUI is being used
+	#GUI checks this list every second
+	LOG = []
+	
+	def __init__(self, gui = False):
+		self.gui = gui
 		
 		# Initialise the socket and connect
 		# Also set the socket to non-blocking, so if there is no data to
@@ -117,8 +121,8 @@ class SocketListener(threading.Thread):
 				msg = read_buffer[:-2]
 				read_buffer = ''
 				
-				if self.gui:
-					self.gui.Log(msg)
+				if self.gui: #if running through GUI, log it ready to be polled
+					self.LOG.append(msg)
 				else:
 					print msg
 				
