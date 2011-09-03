@@ -11,8 +11,8 @@ import threading
 # constants are here temporarily
 # maybe move to a config file in the future
 USERNAME = 'NCSSBot'
-REALNAME = 'NCSSBot'
-DEFAULT_CHANNEL = '#ncss_challenge'
+REALNAME = 'NCSSBot-RN'
+DEFAULT_CHANNEL = '#ncsstest'
 SERVER_HOST = 'roddenberry.freenode.net' # brisbane server
 SERVER_PORT = 6667
 QUIT_MESSAGE = 'Goodbye!'

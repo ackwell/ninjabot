@@ -1,5 +1,38 @@
 from Tkinter import * #@UnusedWildImport
-from Main import SocketListener
+from Main import * #@UnusedImport
+from Parse import * #@UnusedWildImport
+
+#Formatting
+DEFAULT = {
+"state":DISABLED,
+"bg":"#DDDDDD",
+"width":1,
+"height":1,
+"wrap":WORD,
+"font":"courier 10"
+}
+
+NOTICE = {
+"foreground":"#E50000"
+}
+
+PRIVATE = {
+"foreground":"#0000E5"
+}
+
+JOIN = {
+"foreground":"#2A8C2A"
+}
+
+PART = {
+"foreground":"#66361F"
+}
+
+QUIT = PART
+
+MODE = {
+"foreground":"#80267F"
+}
 
 class MainInterface(Frame):
     
@@ -14,7 +47,7 @@ class MainInterface(Frame):
         self.inp_frame = Frame(self)
         
         #TK-Text: Widget for logging
-        self.log = Text(self.log_frame, state=DISABLED, width=1, height=1, bg="#DDDDDD", wrap=NONE)
+        self.log = Text(self.log_frame, DEFAULT)
         
         #TK-Scrollbar for Text widget
         self.log_scroll = Scrollbar(self.log_frame)
@@ -42,7 +75,13 @@ class MainInterface(Frame):
         #Bind enter to do same job as the send button
         self.inp_field.bind("<Return>", self.EnterPressed)
         
-        #Set up the Bot's framework
+        #Set up the the formatting tags:
+        self.log.tag_configure("private", PRIVATE)
+        self.log.tag_configure("notice", NOTICE)
+        self.log.tag_configure("join", JOIN)
+        self.log.tag_configure("part", PART)
+        self.log.tag_configure("quit", QUIT)
+        self.log.tag_configure("mode", MODE)
     
     def EnterPressed(self, event):
         self.SendPressed()
@@ -58,12 +97,47 @@ class MainInterface(Frame):
     
     def Log(self, msg): #this will need some srs modification
         #numlines = self.log.index('end - 1 line').split('.')[0]
-        self.log["state"] = NORMAL
-        if self.log.index('end-1c')!='1.0':
-            self.log.insert(END, '\n')
-        self.log.insert(END, msg)
-        self.log['state'] = DISABLED
-        self.log.yview(END)
+        self.log["state"] = NORMAL #enable edting
+        
+        #parse the message
+        p = parse_msg(msg)
+        
+        if self.log.index('end-1c')!='1.0' and not p["cmd"].isdigit():
+            self.log.insert(END, '\n') #insert a new line
+        
+        
+        nick = get_nick(p["pfx"])
+        print p
+        if p["cmd"] == "PRIVMSG": #channel/PM
+            if p["args"][0] == USERNAME: #Private message
+                self.log.insert(END, " "*(16-len(nick))+">")
+                self.log.insert(END, nick, "private")
+                self.log.insert(END, "<: ")
+                
+            else: #Channel message
+                self.log.insert(END, nick.rjust(18)+": ")
+            self.log.insert(END, p["args"][-1])
+        
+        elif p["cmd"] == "NOTICE":
+            self.log.insert(END, " "*(16-len(nick))+"-")
+            self.log.insert(END, nick, "notice")
+            self.log.insert(END, "-: ")
+            self.log.insert(END, p["args"][-1])
+        
+        elif p["cmd"] == "JOIN":
+            self.log.insert(END, " *-* "+nick+" has joined "+p["args"][0], "join")
+        
+        elif p["cmd"] == "PART":
+            self.log.insert(END, " *-* "+nick+" has left "+p["args"][0]+" ("+p["args"][-1]+")", "part")
+            
+        elif p["cmd"] == "QUIT":
+            self.log.insert(END, " *-* "+nick+" has quit ("+p["args"][-1]+")", "quit")
+        
+        elif p["cmd"] == "MODE":
+            self.log.insert(END, " *-* "+nick+" has set mode "+p["args"][-1]+" on "+p["args"][0], "mode")
+        
+        self.log['state'] = DISABLED #disable editing
+        self.log.yview(END) #scroll down
     
     def checkLog(self):
         if len(SL.LOG)>0: #if there is somthing to grab
@@ -74,7 +148,7 @@ class MainInterface(Frame):
 def update():
     gui.checkLog()
     
-    #loop back every 1 seconf
+    #loop back every 1 second
     gui.after(1000, update)
     
     
