@@ -1,5 +1,5 @@
 from Tkinter import * #@UnusedWildImport
-from Main import * #@UnusedImport
+from Main import * #@UnusedWildImport
 from Parse import * #@UnusedWildImport
 
 #Formatting
@@ -12,33 +12,44 @@ DEFAULT = {
 "font":"courier 10"
 }
 
-NOTICE = {
+STYLES = {
+
+"NOTICE": {
 "foreground":"#E50000"
-}
+},
 
-PRIVATE = {
+"PRIVMSG": { #this is only used for /msg
 "foreground":"#0000E5"
-}
+},
 
-JOIN = {
+"JOIN": {
 "foreground":"#2A8C2A"
-}
+},
 
-PART = {
+"PART": {
 "foreground":"#66361F"
+},
+
+"QUIT": {
+"foreground":"#66361F"
+},
+
+"MODE": {
+"foreground":"#80267F"
+},
+
+"NICK": {
+"foreground":"#007F7F"
 }
 
-QUIT = PART
-
-MODE = {
-"foreground":"#80267F"
 }
 
 class MainInterface(Frame):
     
     def __init__(self):
         #Init main frame
-        Frame.__init__(self, bg="#CCCCCC")
+        Frame.__init__(self, bg="#CCCCCC", width=640, height=480)
+        self.pack_propagate(0)
         self.pack(expand=YES, fill=BOTH)
         self.master.title("NCSSBot GUI")
     
@@ -76,12 +87,10 @@ class MainInterface(Frame):
         self.inp_field.bind("<Return>", self.EnterPressed)
         
         #Set up the the formatting tags:
-        self.log.tag_configure("private", PRIVATE)
-        self.log.tag_configure("notice", NOTICE)
-        self.log.tag_configure("join", JOIN)
-        self.log.tag_configure("part", PART)
-        self.log.tag_configure("quit", QUIT)
-        self.log.tag_configure("mode", MODE)
+        #self.log.tag_configure("private", PRIVATE)
+        
+        for key, value in STYLES.items():
+            self.log.tag_configure(key, value)
     
     def EnterPressed(self, event):
         self.SendPressed()
@@ -111,7 +120,7 @@ class MainInterface(Frame):
         if p["cmd"] == "PRIVMSG": #channel/PM
             if p["args"][0] == USERNAME: #Private message
                 self.log.insert(END, " "*(16-len(nick))+">")
-                self.log.insert(END, nick, "private")
+                self.log.insert(END, nick, p["cmd"])
                 self.log.insert(END, "<: ")
                 
             else: #Channel message
@@ -120,21 +129,24 @@ class MainInterface(Frame):
         
         elif p["cmd"] == "NOTICE":
             self.log.insert(END, " "*(16-len(nick))+"-")
-            self.log.insert(END, nick, "notice")
+            self.log.insert(END, nick, p["cmd"])
             self.log.insert(END, "-: ")
             self.log.insert(END, p["args"][-1])
         
         elif p["cmd"] == "JOIN":
-            self.log.insert(END, " *-* "+nick+" has joined "+p["args"][0], "join")
+            self.log.insert(END, " *-* "+nick+" has joined "+p["args"][0], p["cmd"])
         
         elif p["cmd"] == "PART":
-            self.log.insert(END, " *-* "+nick+" has left "+p["args"][0]+" ("+p["args"][-1]+")", "part")
+            self.log.insert(END, " *-* "+nick+" has left "+p["args"][0]+" ("+p["args"][-1]+")", p["cmd"])
             
         elif p["cmd"] == "QUIT":
-            self.log.insert(END, " *-* "+nick+" has quit ("+p["args"][-1]+")", "quit")
+            self.log.insert(END, " *-* "+nick+" has quit ("+p["args"][-1]+")", p["cmd"])
         
         elif p["cmd"] == "MODE":
-            self.log.insert(END, " *-* "+nick+" has set mode "+p["args"][-1]+" on "+p["args"][0], "mode")
+            self.log.insert(END, " *-* "+nick+" has set mode "+p["args"][-1]+" on "+p["args"][0], p["cmd"])
+        
+        elif p["cmd"] == "NICK":
+            self.log.insert(END, " *-* "+nick+" has changed nick to "+p["args"][0], p["cmd"])
         
         self.log['state'] = DISABLED #disable editing
         self.log.yview(END) #scroll down
