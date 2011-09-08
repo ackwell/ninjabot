@@ -6,70 +6,90 @@ I'll start putting together the module system, ill put some more details in here
 
 import re
 import socket
+import sys
 import threading
+
+from Interface import *
 
 # constants are here temporarily
 # maybe move to a config file in the future
 USERNAME = 'NCSSBot'
 REALNAME = 'NCSSBot-RN'
-DEFAULT_CHANNEL = '#ncss_challenge'
+DEFAULT_CHANNEL = '#ncsstest'
 SERVER_HOST = 'roddenberry.freenode.net' # brisbane server
 SERVER_PORT = 6667
 QUIT_MESSAGE = 'Goodbye!'
 
 class Message:
-	UNKNOWN = 0
+	OTHER = 0
 	CHANNEL = 1
 	PRIVATE = 2
-	NOTICE = 3
+
+	PRIVMSG = 'PRIVMSG'
+	NOTICE = 'NOTICE'
+	JOIN = 'JOIN'
+	PART = 'PART'
+	QUIT = 'QUIT'
+	MODE = 'MODE'
+	NICK = 'NICK'
 	
-	def __init__(self, message):
+	def __init__(self, message=None):
 		if message:
-			m = re.match(r'^:(.+?)!([^ ]*) (PRIVMSG|NOTICE) ^([^ ]+) :(.+)$', message)
-			if m:
-				sender, host, command, destination, body = m.groups()
-				
-				# find what type of message was sent
-				if command == 'PRIVMSG':
-					if destination.startswith('#'):
-						self.type = Message.CHANNEL
-					else:
-						self.type = Message.PRIVATE
-				else:
-					self.type = Message.NOTICE
-				
-				# since the message class is used to both send and receive,
-				# the 'user' property should probably be enough to store the
-				# details of the other party, whether it's who we received the
-				# message from or who we're sending it to
-				self.room = destination # either the channel, or the sender if it's a private message
-				self.nick = sender # stores the sender's nick
-				self.host = host # the sender's host
-				
-				# and don't forget to store the body of the message!
-				self.body = body
+			prefix = ''
+			trailing = []
+
+			if message[0] == ':':
+				prefix, message = message[1:].split(' ', 1)
+			
+			if message.find(' :') != -1:
+				message, trailing = message.split(' :', 1)
+				args = message.split()
+				args.append(trailing)
 			else:
-				# you can't parse an invalid message!!
-				raise Exception('Invalid message format.')
+				args = message.split()
+			
+			self.command = args.pop(0)
+
+			if '!' in prefix:
+				self.nick, userhost = prefix.split('!', 2)
+				if '@' in userhost:
+					self.user, self.host = userhost.split('@', 2)
+				else:
+					self.user = userhost
+					self.host = ''
+			else:
+				self.nick = prefix
+				self.user = ''
+				self.host = ''
+			
+			if len(args) == 2:
+				self.channel, self.body = args
+			elif len(args) == 1:
+				self.channel = args[0]
+				self.body = ''
+			else:
+				self.channel = ''
+				self.body = ''
+
+			if self.command == 'PRIVMSG' and self.channel.startswith('#'):
+				self.type = Message.CHANNEL
+			elif self.command == 'PRIVMSG':
+				self.type = Message.PRIVATE
+			else:
+				self.type = Message.OTHER
 		else:
 			# no message provided? that's fine!
 			# initialise all the vars!
-			self.type = Message.UNKNOWN
-			self.room = ''
+			self.type = Message.OTHER
+			self.command = ''
+			self.channel = ''
 			self.nick = ''
 			self.host = ''
 			self.body = ''
 			
 	def __str__(self):
 		try:
-			if self.type == Message.CHANNEL:
-				return 'PRIVMSG %s :%s\r\n' % (self.room, self.body)
-			elif self.type == Message.PRIVATE:
-				return 'PRIVMSG %s :%s\r\n' % (self.nick, self.body)
-			elif self.type == Message.NOTICE:
-				return 'NOTICE %s :%s\r\n' % (self.nick, self.body)
-			else:
-				raise Exception('Cannot generate a message string for an unknown type.')
+			return '%s %s :%s\r\n' % (self.command, self.channel, self.body)
 		except NameError:
 			raise Exception('One or more required properties were not set on the Message object')
 
@@ -121,17 +141,23 @@ class SocketListener(threading.Thread):
 				msg = read_buffer[:-2]
 				read_buffer = ''
 				
-				if self.gui: #if running through GUI, log it ready to be polled
-					self.LOG.append(msg)
-				else:
-					print msg
+				#if self.gui: #if running through GUI, log it ready to be polled
+				#	self.LOG.append(msg)
+				#else:
+				#	print msg
 				
 				# Firstly, check for ping
 				m = re.match(r'^PING :(.+)$', msg)
 				if m:
 					self.send('PONG :%s\r\n' % m.group(1))
 				else:
-					pass
+					# Create message object
+					try:
+						msg_obj = Message(msg)
+						self.controller.incoming_message(msg_obj)
+					except Exception as e:#Exception as e:
+						print e, msg
+
 		
 		# Once we are told to stop, send the quit message, close the socket,
 		# and end the thread
@@ -154,28 +180,52 @@ class SocketListener(threading.Thread):
 		# write buffer
 		self.send(str(msg))
 
+class Controller:
+	def __init__(self, sl, gui):
+		# Give ourselves a reference to the SocketListener & GUI
+		self.sl = sl
+		self.gui = gui
+
+		# And give our own reference to them
+		self.sl.controller = self
+		self.gui.controller = self
+
+		self._should_die = False
+	
+	def begin(self):
+		# Start the SocketListener
+		self.sl.start()
+		self.gui.mainloop()
+
+		self.sl.stop()
+
+	def incoming_message(self, msg):
+		# Received message object from the sl
+		# Parse it and display it in the gui
+		self.gui.display_message(msg)
+	
+	def outgoing_message(self, msg):
+		# Received message object
+		# Send it through the sl and to the gui for displaying
+		self.sl.send_message(msg)
+		self.gui.display_message(msg)
+	
+	def die(self):
+		self.sl.stop()
+		quit()
+
 if __name__ == '__main__':
-	th = SocketListener()
-	th.start()
-	while 1:
-		try:
-			s = raw_input('>')
-			# For the moment, simply send a message 's' to the channel
-			msg = Message(None)
-			msg.type = Message.CHANNEL
-			msg.room = DEFAULT_CHANNEL
-			msg.body = s
-			# send the message
-			th.send_message(msg)
-		except KeyboardInterrupt:
-			break
+	if len(sys.argv) > 1:
+		args = sys.argv[1:]
+	else:
+		args = []
 	
-	print
-	print 'Waiting for socket thread to terminate... (^C again to force)'
-	
-	try:
-		th.stop()
-	except KeyboardInterrupt:
-		print
-		print 'Forcing termination...'
-		exit(0)
+	graphical = not ('nogui' in args)
+
+	sl = SocketListener()
+
+	gui = MainInterface(graphical=graphical)
+
+	controller = Controller(sl, gui)
+
+	controller.begin()
