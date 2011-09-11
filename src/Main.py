@@ -190,25 +190,30 @@ class Controller:
 		self.sl.controller = self
 		self.gui.controller = self
 
+		#initiate the buffer that the GUI will poll for updates
+		self.buffer = [];
+
 		self._should_die = False
 	
 	def begin(self):
 		# Start the SocketListener
 		self.sl.start()
-		self.gui.mainloop()
+		#self.gui.mainloop()
+		self.gui.startloop()
 
 		self.sl.stop()
 
 	def incoming_message(self, msg):
 		# Received message object from the sl
 		# Parse it and display it in the gui
-		self.gui.display_message(msg)
+		self.buffer.append(msg) #add the message to the buffer
 	
 	def outgoing_message(self, msg):
 		# Received message object
 		# Send it through the sl and to the gui for displaying
 		self.sl.send_message(msg)
-		self.gui.display_message(msg)
+
+		self.buffer.append(msg) #add the message to the buffer
 	
 	def die(self):
 		self.sl.stop()

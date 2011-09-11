@@ -117,61 +117,75 @@ class MainInterface(Frame):
                 self.controller.outgoing_message(msg)
         
     
-    def display_message(self, msg):
-        if self.graphical:
-            #this will need some srs modification
-            #numlines = self.log.index('end - 1 line').split('.')[0]
-            self.log['state'] = NORMAL #enable edting
-            
-            if self.log.index('end-1c')!='1.0' and not msg.command.isdigit():
-                self.log.insert(END, '\n') #insert a new line
-            
-            if msg.command == Message.PRIVMSG:
-                if msg.type == Message.CHANNEL:
-                    self.log.insert(END, msg.nick.rjust(18) + ': ')
-                elif msg.type == Message.PRIVATE:
-                    self.log.insert(END, ' '*(16-len(msg.nick)) + '>')
+    def display_messages(self):
+        buff = self.controller.buffer;
+        if len(buff) < 1:
+            return;
+        for msg in buff:
+            if self.graphical:
+                self.log['state'] = NORMAL #enable edting
+                
+                if self.log.index('end-1c')!='1.0' and not msg.command.isdigit():
+                    self.log.insert(END, '\n') #insert a new line
+                
+                if msg.command == Message.PRIVMSG:
+                    if msg.type == Message.CHANNEL:
+                        self.log.insert(END, msg.nick.rjust(18) + ': ')
+                    elif msg.type == Message.PRIVATE:
+                        self.log.insert(END, ' '*(16-len(msg.nick)) + '>')
+                        self.log.insert(END, msg.nick, msg.command)
+                        self.log.insert(END, '<: ')
+                    self.log.insert(END, msg.body)
+                elif msg.command == Message.NOTICE:
+                    self.log.insert(END, ' '*(16-len(msg.nick)) + '-')
                     self.log.insert(END, msg.nick, msg.command)
-                    self.log.insert(END, '<: ')
-                self.log.insert(END, msg.body)
-            elif msg.command == Message.NOTICE:
-                self.log.insert(END, ' '*(16-len(msg.nick)) + '-')
-                self.log.insert(END, msg.nick, msg.command)
-                self.log.insert(END, '-: ')
-                self.log.insert(END, msg.body)
-            elif msg.command == Message.JOIN:
-                self.log.insert(END, " *-* "+msg.nick+" has joined "+msg.channel, msg.command)
-            elif msg.command == Message.PART:
-                self.log.insert(END, " *-* "+msg.nick+" has left "+msg.channel+" ("+msg.body+")", msg.command)
-            elif msg.command == Message.QUIT:
-                self.log.insert(END, " *-* "+msg.nick+" has quit ("+msg.body+")", msg.command)
-            elif msg.command == Message.MODE:
-                self.log.insert(END, " *-* "+msg.nick+" has set mode "+msg.body+" on "+msg.channel, msg.command)
-            elif msg.command == Message.NICK:
-                self.log.insert(END, " *-* "+msg.nick+" has changed nick to "+msg.body, msg.command)
+                    self.log.insert(END, '-: ')
+                    self.log.insert(END, msg.body)
+                elif msg.command == Message.JOIN:
+                    self.log.insert(END, " *-* "+msg.nick+" has joined "+msg.channel, msg.command)
+                elif msg.command == Message.PART:
+                    self.log.insert(END, " *-* "+msg.nick+" has left "+msg.channel+" ("+msg.body+")", msg.command)
+                elif msg.command == Message.QUIT:
+                    self.log.insert(END, " *-* "+msg.nick+" has quit ("+msg.body+")", msg.command)
+                elif msg.command == Message.MODE:
+                    self.log.insert(END, " *-* "+msg.nick+" has set mode "+msg.body+" on "+msg.channel, msg.command)
+                elif msg.command == Message.NICK:
+                    self.log.insert(END, " *-* "+msg.nick+" has changed nick to "+msg.body, msg.command)
 
-            self.log['state'] = DISABLED #disable editing
-            self.log.yview(END) #scroll down
-        else:
-            if msg.command == Message.PRIVMSG:
-                print msg.channel + ' <' + msg.nick + '>: ' + msg.body
-            elif msg.command == Message.NOTICE:
-                print 'NOTICE <' + msg.nick + '>: ' + msg.body
-            elif msg.command == Message.JOIN:
-                print ' *-* ' + msg.nick + ' has joined ' + msg.channel
-            elif msg.command == Message.PART:
-                print ' *-* ' + msg.nick + ' has left ' + msg.channel + ' (' + msg.body + ')'
-            elif msg.command == Message.QUIT:
-                print ' *-* ' + msg.nick + ' has quit ' + msg.channel + ' (' + msg.body + ')'
-            elif msg.command == Message.MODE:
-                print ' *-* ' + msg.nick + ' has set mode ' + msg.body + ' on ' + msg.channel
-            elif msg.command == Message.NICK:
-                print ' *-* ' + msg.nick + ' has changed nick to ' + msg.body
+                self.log['state'] = DISABLED #disable editing
+                self.log.yview(END) #scroll down
+            else:
+                if msg.command == Message.PRIVMSG:
+                    print msg.channel + ' <' + msg.nick + '>: ' + msg.body
+                elif msg.command == Message.NOTICE:
+                    print 'NOTICE <' + msg.nick + '>: ' + msg.body
+                elif msg.command == Message.JOIN:
+                    print ' *-* ' + msg.nick + ' has joined ' + msg.channel
+                elif msg.command == Message.PART:
+                    print ' *-* ' + msg.nick + ' has left ' + msg.channel + ' (' + msg.body + ')'
+                elif msg.command == Message.QUIT:
+                    print ' *-* ' + msg.nick + ' has quit ' + msg.channel + ' (' + msg.body + ')'
+                elif msg.command == Message.MODE:
+                    print ' *-* ' + msg.nick + ' has set mode ' + msg.body + ' on ' + msg.channel
+                elif msg.command == Message.NICK:
+                    print ' *-* ' + msg.nick + ' has changed nick to ' + msg.body
+        #clear the buffer
+        self.controller.buffer = []
 
     
-    def mainloop(self):
+    def clock(self):
+        self.display_messages();
+
+        self.after(500, self.clock)
+
+    #def mainloop(self):
+    def startloop(self):
         if self.graphical:
-            Frame.mainloop(self)
+            #initiate the buffer check
+            self.after(500, self.clock);
+
+            #start the loop
+            self.mainloop();
         else:
             # run the text interface
             # use /quit to exit
