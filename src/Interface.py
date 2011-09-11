@@ -131,24 +131,32 @@ class MainInterface(Frame):
                 if msg.command == Message.PRIVMSG:
                     if msg.type == Message.CHANNEL:
                         self.log.insert(END, msg.nick.rjust(18) + ': ')
+
                     elif msg.type == Message.PRIVATE:
                         self.log.insert(END, ' '*(16-len(msg.nick)) + '>')
                         self.log.insert(END, msg.nick, msg.command)
                         self.log.insert(END, '<: ')
+
                     self.log.insert(END, msg.body)
+
                 elif msg.command == Message.NOTICE:
                     self.log.insert(END, ' '*(16-len(msg.nick)) + '-')
                     self.log.insert(END, msg.nick, msg.command)
                     self.log.insert(END, '-: ')
                     self.log.insert(END, msg.body)
+
                 elif msg.command == Message.JOIN:
-                    self.log.insert(END, " *-* "+msg.nick+" has joined "+msg.channel, msg.command)
+                    self.log.insert(END, " *-* "+msg.nick+" has joined "+msg.body, msg.command)
+
                 elif msg.command == Message.PART:
                     self.log.insert(END, " *-* "+msg.nick+" has left "+msg.channel+" ("+msg.body+")", msg.command)
+
                 elif msg.command == Message.QUIT:
                     self.log.insert(END, " *-* "+msg.nick+" has quit ("+msg.body+")", msg.command)
+
                 elif msg.command == Message.MODE:
                     self.log.insert(END, " *-* "+msg.nick+" has set mode "+msg.body+" on "+msg.channel, msg.command)
+
                 elif msg.command == Message.NICK:
                     self.log.insert(END, " *-* "+msg.nick+" has changed nick to "+msg.body, msg.command)
 
@@ -160,7 +168,7 @@ class MainInterface(Frame):
                 elif msg.command == Message.NOTICE:
                     print 'NOTICE <' + msg.nick + '>: ' + msg.body
                 elif msg.command == Message.JOIN:
-                    print ' *-* ' + msg.nick + ' has joined ' + msg.channel
+                    print ' *-* ' + msg.nick + ' has joined ' + msg.body
                 elif msg.command == Message.PART:
                     print ' *-* ' + msg.nick + ' has left ' + msg.channel + ' (' + msg.body + ')'
                 elif msg.command == Message.QUIT:
