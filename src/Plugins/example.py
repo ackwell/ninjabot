@@ -21,5 +21,7 @@ class Plugin:
 	# Trigger responses can be defined by creating a function named trigger_<name>, where
 	# <name> is an arbitary string. The trigger can then be called over IRC by the prefix
 	# set in the PluginHandler (I really need to make a config file -_-), followed by <name>
+	# For triggers, msg has an additional property 'args', which is a dictonary of the
+	# arguments passed to it
 	def trigger_example(self, msg):
 		self.controller.privmsg(msg.channel, 'This is an example command response')

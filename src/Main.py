@@ -289,6 +289,7 @@ class PluginHandler:
 			msg.body = msg.body[len(self.prefix):]
 			args = msg.body.split()
 			command = args.pop(0)
+			msg.args = args
 			if command in self.triggers:
 				self.triggers[command](msg)
 			else:
