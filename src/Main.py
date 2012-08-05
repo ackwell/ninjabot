@@ -119,8 +119,8 @@ class SocketListener(threading.Thread):
 		# read, the .recv() operation will not hang
 		self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self._sock.connect((SERVER_HOST, SERVER_PORT))
-		self._sock.setblocking(False)
-		
+		self._sock.settimeout(0.1)
+
 		# Initialise some vars
 		self._stop = False
 		self._stopped = False
