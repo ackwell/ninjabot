@@ -3,18 +3,16 @@ import socket
 import sys
 import threading
 import os
+import ConfigParser
 
 from Interface import *
 from importlib import import_module
 
 # constants are here temporarily
 # maybe move to a config file in the future
-USERNAME = 'NCSSBot'
-REALNAME = 'NCSSBot-RN'
-DEFAULT_CHANNEL = '#HuxBot'
-SERVER_HOST = 'irc.rizon.net'
-SERVER_PORT = 6667
-QUIT_MESSAGE = 'Goodbye!'
+
+CONFIG = ConfigParser.RawConfigParser()
+CONFIG.read('settings.cfg')
 
 class Message:
 	OTHER = 0
@@ -118,7 +116,7 @@ class SocketListener(threading.Thread):
 		# Also set the socket to non-blocking, so if there is no data to
 		# read, the .recv() operation will not hang
 		self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self._sock.connect((SERVER_HOST, SERVER_PORT))
+		self._sock.connect((CONFIG.get('server', 'host'), CONFIG.getint('server', 'port')))
 		self._sock.settimeout(0.1)
 
 		# Initialise some vars
@@ -131,9 +129,9 @@ class SocketListener(threading.Thread):
 	
 	def run(self):
 		# Send our love to the server
-		self._sock.send('NICK %s\r\n' % USERNAME)
-		self._sock.send('USER %s 0 * :%s\r\n' % (USERNAME, REALNAME))
-		self._sock.send('JOIN :%s\r\n' % DEFAULT_CHANNEL)
+		self._sock.send('NICK %s\r\n' % CONFIG.get('config', 'nick'))
+		self._sock.send('USER %s 0 * :%s\r\n' % (CONFIG.get('config', 'nick'), CONFIG.get('config', 'realname')))
+		self._sock.send('JOIN :%s\r\n' % CONFIG.get('server', 'channel'))
 		
 		# Initialise the read buffer
 		read_buffer = ''
@@ -169,7 +167,7 @@ class SocketListener(threading.Thread):
 		
 		# Once we are told to stop, send the quit message, close the socket,
 		# and end the thread
-		self._sock.send('QUIT :%s\r\n' % QUIT_MESSAGE)
+		self._sock.send('QUIT :%s\r\n' % CONFIG.get('config', 'quit-message'))
 		self._sock.close()
 		self._stopped = True
 	
@@ -255,7 +253,7 @@ class Controller:
 
 class PluginHandler:
 	def __init__(self, controller):
-		self.prefix = '^'
+		self.prefix = CONFIG.get('config', 'trigger-prefix')
 
 		self.controller = controller
 

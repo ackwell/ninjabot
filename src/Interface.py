@@ -54,7 +54,7 @@ class MainInterface(Frame):
 			Frame.__init__(self, bg="#CCCCCC", width=640, height=480)
 			self.pack_propagate(0)
 			self.pack(expand=YES, fill=BOTH)
-			self.master.title("NCSSBot GUI (controller-dev)")
+			self.master.title("NCSSBot GUI")
 		
 			#TK-Frame: To relieve packing order nightmares
 			self.log_frame = Frame(self)
