@@ -47,7 +47,6 @@ class Message:
 			
 			#get command, channel, body
 			self.command = args.pop(0)
-			print " ".join(args)
 			if len(args) == 1:
 				self.channel = ""
 				self.body = " ".join(args)
@@ -138,8 +137,7 @@ class SocketListener(threading.Thread):
 		while not self._stop:
 			# Write bytes as needed
 			while len(self._write_buffer) > 0:
-				self._sock.send(self._write_buffer[0])
-				del self._write_buffer[0]
+				self._sock.send(self._write_buffer.pop(0))
 			
 			# Read bytes as needed
 			try:
@@ -197,7 +195,7 @@ class Controller:
 		self.gui.controller = self
 
 		#initiate the plugin system
-		self.plugin = PluginHandler(self)
+		self.plugins = PluginHandler(self)
 
 		#initiate the buffer that the GUI will poll for updates
 		self.buffer = [];
@@ -215,7 +213,7 @@ class Controller:
 	def incoming_message(self, msg):
 		# Received message object from the sl
 		# Parse it and display it in the gui
-		msg = self.plugin.on_incoming(msg)
+		msg = self.plugins.on_incoming(msg)
 
 		self.buffer.append(msg) #add the message to the buffer
 	
@@ -224,7 +222,7 @@ class Controller:
 		# Send it through the sl and to the gui for displaying
 
 		# run messages through the plugin sys
-		msg = self.plugin.on_outgoing(msg)
+		msg = self.plugins.on_outgoing(msg)
 
 		self.sl.send_message(msg)
 		self.buffer.append(msg) #add the message to the buffer

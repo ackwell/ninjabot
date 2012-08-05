@@ -24,4 +24,5 @@ class Plugin:
 	# For triggers, msg has an additional property 'args', which is a dictonary of the
 	# arguments passed to it
 	def trigger_example(self, msg):
+		"This docstring will be displayed by the help function"
 		self.controller.privmsg(msg.channel, 'This is an example command response')
