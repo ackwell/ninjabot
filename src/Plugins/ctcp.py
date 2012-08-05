@@ -17,6 +17,3 @@ class Plugin:
 			self.controller.notice(msg.nick, SOURCE)
 
 		return msg
-
-	def trigger_test(self, msg):
-		self.controller.privmsg(msg.channel, 'This is a test message.')
