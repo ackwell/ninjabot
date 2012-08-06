@@ -13,7 +13,6 @@ from importlib import import_module
 # maybe move to a config file in the future
 
 CONFIG = ConfigParser.RawConfigParser()
-CONFIG.read('settings.cfg')
 
 class Message:
 	OTHER = 0
@@ -358,6 +357,11 @@ if __name__ == '__main__':
 		args = []
 	
 	graphical = not ('nogui' in args)
+
+	if '-s' in args:
+		CONFIG.read(args[args.index('-s')+1])
+	else:
+		CONFIG.read('settings.cfg')
 
 	sl = SocketListener()
 
