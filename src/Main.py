@@ -4,6 +4,7 @@ import sys
 import threading
 import os
 import ConfigParser
+import kronos
 
 from Interface import *
 from importlib import import_module
@@ -245,6 +246,7 @@ class Controller:
 	
 	def die(self):
 		self.sl.stop()
+		self.plugins.scheduler.stop()
 		quit()
 
 
@@ -252,8 +254,9 @@ class Controller:
 class PluginHandler:
 	def __init__(self, controller):
 		self.prefix = CONFIG.get('config', 'trigger-prefix')
-
 		self.controller = controller
+		self.scheduler = kronos.ThreadedScheduler()
+		self.scheduler.start()
 
 		self.register()
 
@@ -268,13 +271,17 @@ class PluginHandler:
 			if f.endswith('.py'):
 				l.append(f[:-3])
 
-		for m in l:
-			try: m = import_module('Plugins.'+m).Plugin(self.controller)
+		for mod in l:
+			try: m = import_module('Plugins.'+mod).Plugin(self.controller)
 			except AttributeError: continue
 			for func in dir(m):
-				r = re.match(r'trigger_(.+)', func)
-				if r:
-					self.triggers[r.groups(1)[0]] = getattr(m, func)
+				r1 = re.match(r'trigger_(.+)', func)
+				r2 = re.match(r'timer_([0-9]+)', func)
+				if r1:
+					self.triggers[r1.groups(1)[0]] = getattr(m, func)
+				elif r2:
+					t = int(r2.groups(1)[0])
+					self.scheduler.add_interval_task(getattr(m, func), mod+func, t, t, kronos.method.threaded, [CONFIG.get('server', 'channel')], None)
 				elif func == 'on_incoming':
 					self.incoming.append(getattr(m, func))
 				elif func == 'on_outgoing':

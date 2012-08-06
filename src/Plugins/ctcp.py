@@ -12,8 +12,19 @@ class Plugin:
 		command = args.pop(0).lower()
 
 		if command == 'version':
+			msg.body += 'Recieved CTCP VERSION from '+msg.nick
+			msg.nick = '*'
+			msg.ctcp = ''
 			self.controller.notice(msg.nick, VERSION+('GUI' if self.controller.gui.graphical else 'CLI')+' Mode')
 		elif command == 'source':
+			msg.body += 'Recieved CTCP SOURCE from '+msg.nick
+			msg.nick = '*'
+			msg.ctcp = ''
 			self.controller.notice(msg.nick, SOURCE)
+
+		elif command == 'action':
+			msg.body = msg.nick+' '+' '.join(args)
+			msg.nick = '*'
+			msg.ctcp = ''
 
 		return msg
