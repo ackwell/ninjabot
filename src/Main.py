@@ -255,15 +255,26 @@ class PluginHandler:
 	def __init__(self, controller):
 		self.prefix = CONFIG.get('config', 'trigger-prefix')
 		self.controller = controller
+
 		self.scheduler = kronos.ThreadedScheduler()
 		self.scheduler.start()
+		self.timers = []
 
 		self.register()
 
-	def register(self):
+	def register(self, msg=None):
+		"Reloads all plugins."
+
 		self.triggers = {}
 		self.incoming = []
 		self.outgoing = []
+
+		self.triggers['reload'] = self.register
+
+		# Cancel the scheduler jobs
+		for timer in self.timers:
+			self.scheduler.cancel(timer)
+		self.timers = []
 
 		l = []
 		#get a list of plugins
@@ -272,8 +283,11 @@ class PluginHandler:
 				l.append(f[:-3])
 
 		for mod in l:
-			try: m = import_module('Plugins.'+mod).Plugin(self.controller)
+			try: m = reload(import_module('Plugins.'+mod)).Plugin(self.controller) #So much haxx here
 			except AttributeError: continue
+			if 'active' in dir(m):
+				if not getattr(m, 'active'): continue
+
 			for func in dir(m):
 				r1 = re.match(r'trigger_(.+)', func)
 				r2 = re.match(r'timer_([0-9]+)', func)
@@ -281,11 +295,14 @@ class PluginHandler:
 					self.triggers[r1.groups(1)[0]] = getattr(m, func)
 				elif r2:
 					t = int(r2.groups(1)[0])
-					self.scheduler.add_interval_task(getattr(m, func), mod+func, t, t, kronos.method.threaded, [CONFIG.get('server', 'channel')], None)
+					timer = self.scheduler.add_interval_task(getattr(m, func), mod+func, 0, t, kronos.method.threaded, [CONFIG.get('server', 'channel')], None)
+					self.timers.append(timer)
 				elif func == 'on_incoming':
 					self.incoming.append(getattr(m, func))
 				elif func == 'on_outgoing':
 					self.outgoing.append(getattr(m, func))
+
+		self.scheduler.start()
 
 	def on_incoming(self, msg):
 		if msg.body.startswith(self.prefix):

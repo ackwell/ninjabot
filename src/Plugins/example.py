@@ -1,6 +1,9 @@
 # This is an example plugin.
 
 class Plugin:
+	# Whether or not the plugin should be loaded. If not specified, assumed to be True
+	active = False
+
 	# This is the init for the plugin. All plugins are initiated when the bot is booted up.
 	# If/when I implement a reload function, plugins would be re-initiated when reloaded.
 	# It's probably a good idea to store a reference to the controller here, you'll need it
@@ -32,3 +35,4 @@ class Plugin:
 	# multiple channels....)
 	def timer_10(self, channel):
 		print 'Example of a timed function, executed every 10 seconds. channel =', channel
+		self.controller.privmsg(channel, 'test')
