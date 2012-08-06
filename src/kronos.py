@@ -260,7 +260,8 @@ class Scheduler:
     if sys.version_info>=(2,6):
         # code for sched module of python 2.6+
         def _getqueuetoptime(self):
-            return self.sched._queue[0].time
+            try: return self.sched._queue[0].time
+            except IndexError: pass # Lemon haxx
         def _clearschedqueue(self):
             self.sched._queue[:] = []
     else:
