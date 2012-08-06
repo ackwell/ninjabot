@@ -8,8 +8,6 @@ class Plugin:
 	def on_incoming(self, msg):
 		if not msg.ctcp: return msg
 
-		print msg.ctcp
-
 		args = msg.ctcp.split()
 		command = args.pop(0).lower()
 

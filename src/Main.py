@@ -325,7 +325,7 @@ class PluginHandler:
 					self.outgoing.append(getattr(m, func))
 
 		if msg:
-			self.contoller.notice(msg.nick, "Reloaded sucessfully.")
+			self.controller.notice(msg.nick, "Reloaded sucessfully.")
 
 	def on_incoming(self, msg):
 		if msg.body.startswith(self.prefix):
