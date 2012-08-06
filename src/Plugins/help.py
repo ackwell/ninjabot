@@ -4,7 +4,7 @@ class Plugin:
 
 	def trigger_help(self, msg):
 		"Usage: help [trigger]. Lists avaliable triggers. If trigger is specified, will print help for that trigger (if avaliable)."
-		
+
 		prefix = self.c.plugins.prefix
 		if len(msg.args) == 0:
 			self.c.notice(msg.nick, 'Avaliable triggers:')

@@ -30,9 +30,6 @@ class Plugin:
 		self.controller.privmsg(msg.channel, 'This is an example command response')
 
 	# A timed function, defined by creating a function named timer_<time>, where <time> is
-	# how often you want the function to be called (in seconds). The channel prarater passed
-	# will be the channel the bot is running on. (...should probably add ability to join
-	# multiple channels....)
-	def timer_10(self, channel):
-		print 'Example of a timed function, executed every 10 seconds. channel =', channel
-		self.controller.privmsg(channel, 'test')
+	# how often you want the function to be called (in seconds).
+	def timer_10(self):
+		print 'Example of a timed function, executed every 10 seconds. channels =', self.controller.channels

@@ -195,6 +195,9 @@ class Controller:
 		self.sl.controller = self
 		self.gui.controller = self
 
+		# List of channels we are on
+		self.channels = [CONFIG.get('server', 'channel')]
+
 		#initiate the plugin system
 		self.plugins = PluginHandler(self)
 
@@ -228,6 +231,9 @@ class Controller:
 		self.sl.send_message(msg)
 		self.buffer.append(msg) #add the message to the buffer
 
+	def is_admin(self, nick):
+		return True if nick in CONFIG.get('config', 'admins').split() else False
+
 	def notice(self, target, message, ctcp=''):
 		msg = Message()
 		msg.command = Message.NOTICE
@@ -242,6 +248,18 @@ class Controller:
 		msg.channel = target
 		msg.body = message
 		msg.ctcp = ctcp
+		self.outgoing_message(msg)
+
+	def join(self, channel):
+		msg = Message()
+		msg.command = Message.JOIN
+		msg.body = channel
+		self.outgoing_message(msg)
+
+	def part(self, channel):
+		msg = Message()
+		msg.command = Message.PART
+		msg.body = channel
 		self.outgoing_message(msg)
 	
 	def die(self):
@@ -263,7 +281,11 @@ class PluginHandler:
 		self.register()
 
 	def register(self, msg=None):
-		"Reloads all plugins."
+		"Reloads all plugins. Admin only."
+
+		if msg and not self.controller.is_admin(msg.nick):
+			self.controller.notice(msg.nick, "You are not permitted to use this command.")
+			return
 
 		self.triggers = {}
 		self.incoming = []
@@ -295,14 +317,15 @@ class PluginHandler:
 					self.triggers[r1.groups(1)[0]] = getattr(m, func)
 				elif r2:
 					t = int(r2.groups(1)[0])
-					timer = self.scheduler.add_interval_task(getattr(m, func), mod+func, 0, t, kronos.method.threaded, [CONFIG.get('server', 'channel')], None)
+					timer = self.scheduler.add_interval_task(getattr(m, func), mod+func, 0, t, kronos.method.threaded, [], None)
 					self.timers.append(timer)
 				elif func == 'on_incoming':
 					self.incoming.append(getattr(m, func))
 				elif func == 'on_outgoing':
 					self.outgoing.append(getattr(m, func))
 
-		self.scheduler.start()
+		if msg:
+			self.contoller.notice(msg.nick, "Reloaded sucessfully.")
 
 	def on_incoming(self, msg):
 		if msg.body.startswith(self.prefix):
@@ -316,12 +339,14 @@ class PluginHandler:
 				self.controller.notice(msg.nick, command+' is not a valid command.')
 		else:
 			for func in self.incoming:
-				msg = func(msg)
+				t_msg = func(msg)
+				if t_msg: msg = t_msg
 		return msg
 
 	def on_outgoing(self, msg):
 		for func in self.incoming:
-				msg = func(msg)
+				t_msg = func(msg)
+				if t_msg: msg = t_msg
 		return msg
 
 
