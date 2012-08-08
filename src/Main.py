@@ -3,16 +3,15 @@ import socket
 import sys
 import threading
 import os
-import ConfigParser
+import json
 import kronos
+import unicodedata
 
 from Interface import *
 from importlib import import_module
 
 # constants are here temporarily
 # maybe move to a config file in the future
-
-CONFIG = ConfigParser.RawConfigParser()
 
 class Message:
 	OTHER = 0
@@ -108,14 +107,14 @@ class SocketListener(threading.Thread):
 	#GUI checks this list every second
 	LOG = []
 	
-	def __init__(self, gui = False):
-		self.gui = gui
+	def __init__(self, config):
+		self.config = config
 		
 		# Initialise the socket and connect
 		# Also set the socket to non-blocking, so if there is no data to
 		# read, the .recv() operation will not hang
 		self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self._sock.connect((CONFIG.get('server', 'host'), CONFIG.getint('server', 'port')))
+		self._sock.connect((self.config['server']['host'], self.config['server']['port']))
 		self._sock.settimeout(0.1)
 
 		# Initialise some vars
@@ -128,9 +127,9 @@ class SocketListener(threading.Thread):
 	
 	def run(self):
 		# Send our love to the server
-		self._sock.send('NICK %s\r\n' % CONFIG.get('config', 'nick'))
-		self._sock.send('USER %s 0 * :%s\r\n' % (CONFIG.get('config', 'nick'), CONFIG.get('config', 'realname')))
-		self._sock.send('JOIN :%s\r\n' % CONFIG.get('server', 'channel'))
+		self._sock.send('NICK %s\r\n' % self.config['config']['nick'])
+		self._sock.send('USER %s 0 * :%s\r\n' % (self.config['config']['nick'], self.config['config']['realname']))
+		self._sock.send('JOIN :%s\r\n' % self.config['server']['channel'])
 		
 		# Initialise the read buffer
 		read_buffer = ''
@@ -161,11 +160,13 @@ class SocketListener(threading.Thread):
 						self.controller.incoming_message(msg_obj)
 					except Exception as e:#Exception as e:
 						print e, msg
+					#msg_obj = Message(msg)
+					#self.controller.incoming_message(msg_obj)
 
 		
 		# Once we are told to stop, send the quit message, close the socket,
 		# and end the thread
-		self._sock.send('QUIT :%s\r\n' % CONFIG.get('config', 'quit-message'))
+		self._sock.send('QUIT :%s\r\n' % self.config['config']['quit-message'])
 		self._sock.close()
 		self._stopped = True
 	
@@ -182,26 +183,29 @@ class SocketListener(threading.Thread):
 	def send_message(self, msg):
 		# Add the string representation of the Message object to the
 		# write buffer
-		self.send(str(msg))
+		self.send(msg.__str__().encode('utf-8','ignore'))
 
 class Controller:
-	def __init__(self, sl, gui):
+	def __init__(self, sl, gui, config):
 		# Give ourselves a reference to the SocketListener & GUI
 		self.sl = sl
 		self.gui = gui
+		self.config = config
 
 		# And give our own reference to them
 		self.sl.controller = self
 		self.gui.controller = self
 
 		# List of channels we are on
-		self.channels = [CONFIG.get('server', 'channel')]
+		self.channels = [self.config['server']['channel']]
 
 		#initiate the plugin system
 		self.plugins = PluginHandler(self)
 
 		#initiate the buffer that the GUI will poll for updates
 		self.buffer = [];
+
+
 
 		self._should_die = False
 	
@@ -231,7 +235,7 @@ class Controller:
 		self.buffer.append(msg) #add the message to the buffer
 
 	def is_admin(self, nick):
-		return True if nick in CONFIG.get('config', 'admins').split() else False
+		return True if nick in self.config['config']['admins'].split() else False
 
 	def notice(self, target, message, ctcp=''):
 		msg = Message()
@@ -270,8 +274,8 @@ class Controller:
 
 class PluginHandler:
 	def __init__(self, controller):
-		self.prefix = CONFIG.get('config', 'trigger-prefix')
 		self.controller = controller
+		self.prefix = self.controller.config['config']['trigger-prefix']
 
 		self.scheduler = kronos.ThreadedScheduler()
 		self.scheduler.start()
@@ -304,10 +308,13 @@ class PluginHandler:
 				l.append(f[:-3])
 
 		for mod in l:
-			try: m = reload(import_module('Plugins.'+mod)).Plugin(self.controller) #So much haxx here
+			try: m = reload(import_module('Plugins.'+mod)).Plugin #So much haxx here
 			except AttributeError: continue
+
 			if 'active' in dir(m):
 				if not getattr(m, 'active'): continue
+
+			m = m(self.controller)
 
 			for func in dir(m):
 				r1 = re.match(r'trigger_(.+)', func)
@@ -359,14 +366,16 @@ if __name__ == '__main__':
 	graphical = not ('nogui' in args)
 
 	if '-s' in args:
-		CONFIG.read(args[args.index('-s')+1])
+		config_filename = args[args.index('-c')+1]
 	else:
-		CONFIG.read('settings.cfg')
+		config_filename = os.path.join(os.path.expanduser('~'), '.ncssbot_config')
 
-	sl = SocketListener()
+	config = json.loads(open(config_filename, 'rU').read())
+
+	sl = SocketListener(config)
 
 	gui = MainInterface(graphical=graphical)
 
-	controller = Controller(sl, gui)
+	controller = Controller(sl, gui, config)
 
 	controller.begin()

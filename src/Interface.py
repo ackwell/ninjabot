@@ -111,8 +111,8 @@ class MainInterface(Frame):
 				msg = Message()
 				msg.type = Message.CHANNEL
 				msg.command = Message.PRIVMSG
-				msg.channel = CONFIG.get('server', 'channel')
-				msg.nick = CONFIG.get('config', 'nick')
+				msg.channel = self.controller.config['server']['channel']
+				msg.nick = self.controller.config['config']['nick']
 				msg.body = data
 				self.controller.outgoing_message(msg)
 		
