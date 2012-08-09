@@ -10,14 +10,16 @@ class Plugin:
 		self.c = controller
 		self.useragent = 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.60 Safari/537.1'
 
+
 	def sizeof_fmt(self, num):
 		for x in ['bytes','KB','MB','GB','TB']:
 			if num < 1024.0:
 				return "%3.1f%s" % (num, x)
 			num /= 1024.0
 
+
 	def on_incoming(self, msg):
-		if not msg.type == 1: return
+		if not msg.type == msg.CHANNEL: return
 
 		urls = re.findall(r'\(?\bhttps?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]', msg.body)
 		for url in urls:
@@ -34,6 +36,7 @@ class Plugin:
 			else:
 				message = '%s: %s (%s)' % (re.search(r'/([^/]+)$', url).groups(1)[0], head.getheader('content-type'), self.sizeof_fmt(int(head.getheader('content-length'))))
 			self.c.privmsg(msg.channel, message)
+
 
 	def trigger_w(self, msg):
 		"Usage: w <search term>. Prints a short description of the corresponding wikipedia article."
@@ -93,6 +96,7 @@ class Plugin:
 			self.tag2string(entry.find('p', 'description')),
 			"www.youtube.com"+entry.find('a', 'yt-uix-contextlink')['href'],)
 		self.c.privmsg(msg.channel, message)
+
 
 	def trigger_ud(self, msg):
 		"Usage: ud <search term>. Prints first UrbanDictionary result."
