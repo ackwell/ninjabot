@@ -11,7 +11,7 @@ def get_short(longUrl, config):
     #Google only accetps it as a JSON header
     data = {
             "longUrl":longUrl,
-            "key":config[googl]["api-key"]
+            "key":config["googl"]["api-key"]
             }
     jdata = json.dumps(data)
     req = Request("https://www.googleapis.com/urlshortener/v1/url",jdata,{'content-type': 'application/json'})
