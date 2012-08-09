@@ -65,6 +65,7 @@ class Plugin:
 		if not entry:
 			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
 			return
+			
 		print googl
 		message = "\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
 			self.tag2string(entry.find('a','l')),
