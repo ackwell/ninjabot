@@ -1,0 +1,34 @@
+// By default, the bot will look for a config file like this in the current user's home directory.
+// Alternative files can be specified by passing their location to the -c command line flag
+
+{
+	"config":
+	{
+		"nick": "NCSSBot",
+		"realname": "NCSSBot",
+		"quit-message": "Quitting...",
+		"trigger-prefix": "@",
+		"admins": "AdminNickname adminNickname2"
+	},
+
+	"server":
+	{
+		"host": "irc.your.server",
+		"port": 6667,
+		"channel": "#your_channel"
+	},
+
+	//Only aplicable for NCSS nerds >:D
+	"ncss":
+	{
+		"cookie": "put your session ID here",
+		"course": 37,
+		"channel": "##ncss_challenge"
+	},
+
+	//GooGL url shortner
+	"googl":
+	{
+		"api-key": "Google API key"
+	}
+}
