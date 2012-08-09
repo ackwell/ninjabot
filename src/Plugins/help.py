@@ -8,7 +8,7 @@ class Plugin:
 		prefix = self.c.plugins.prefix
 		if len(msg.args) == 0:
 			self.c.notice(msg.nick, 'Avaliable triggers:')
-			self.c.notice(msg.nick, prefix+(', '+prefix).join(self.c.plugins.triggers.keys()))
+			self.c.notice(msg.nick, prefix+(', '+prefix).join(sorted(self.c.plugins.triggers.keys())))
 			self.c.notice(msg.nick, 'For further info, type '+prefix+'help <trigger>')
 		else:
 			doc = self.c.plugins.triggers[msg.args[0].lstrip(prefix)].__doc__

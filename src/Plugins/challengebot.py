@@ -44,7 +44,7 @@ class Plugin:
 					# generate delta
 					added, updated = ncss.generate_forum_delta(old_threads, new_threads)
 
-					if added != 0 or updated != 0:
+					if added > 0 or updated != 0:
 						# compile a message
 						statuses = list()
 						if added > 0:

@@ -1,4 +1,5 @@
 from apis.BeautifulSoup import BeautifulSoup as bs, BeautifulStoneSoup as bss, Tag
+from apis import googl
 from urlparse import urlparse
 import re
 import urllib, urllib2
@@ -7,6 +8,7 @@ import httplib
 class Plugin:
 	def __init__(self, controller):
 		self.c = controller
+		self.useragent = 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.60 Safari/537.1'
 
 	def sizeof_fmt(self, num):
 		for x in ['bytes','KB','MB','GB','TB']:
@@ -47,7 +49,7 @@ class Plugin:
 			index = 1 if 'may refer to:' in resp.descriptionTag.string else 0
 			self.c.privmsg(msg.channel, resp.findAll('description')[index].string)
 		else:
-			self.c.privmsg(msg.channel, 'No articles were found.')
+			self.c.privmsg(msg.channel, '%s: No articles were found.'%' '.join(msg.args))
 		
 
 	def trigger_g(self, msg):
@@ -57,15 +59,39 @@ class Plugin:
 			return
 
 		url = "https://www.google.com.au/search?q=%s" % (urllib.quote_plus(' '.join(msg.args)),)
-		req = urllib2.Request(url, None, {'User-agent':'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.60 Safari/537.1'})
+		req = urllib2.Request(url, None, {'User-agent':self.useragent})
 		entry = bs(urllib2.urlopen(req), convertEntities=bs.HTML_ENTITIES).find('div', 'vsc')
 
-		r = r'<.+?>'
-		message = "%s: %s" % (
-			re.sub(r,'',self.tag2string(entry.find('a','l'))),
-			re.sub(r,'',self.tag2string(entry.find('span','st'))),)
+		if not entry:
+			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
+			return
+		print googl
+		message = "\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
+			self.tag2string(entry.find('a','l')),
+			self.tag2string(entry.find('span','st')),
+			googl.get_short(entry.find('a', 'l')['href'], self.c.config),)
 		self.c.privmsg(msg.channel, message)
 
+
+	def trigger_yt(self, msg):
+		"Usage: yt <searchterm>. Prints title and link to first youtube result."
+		if len(msg.args) == 0:
+			self.c.notice(msg.nick, "Please specify a search term")
+			return
+
+		url = "http://www.youtube.com/results?search_query=%s" % (urllib.quote_plus(' '.join(msg.args)),)
+		req = urllib2.Request(url, None, {'User-agent':self.useragent})
+		entry = bs(urllib2.urlopen(req), convertEntities=bs.HTML_ENTITIES).find('div', 'yt-lockup-content')
+
+		if not entry:
+			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
+			return
+
+		message = "\002You\0030,4Tube\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
+			entry.find('a', 'yt-uix-contextlink').string,
+			self.tag2string(entry.find('p', 'description')),
+			"www.youtube.com"+entry.find('a', 'yt-uix-contextlink')['href'],)
+		self.c.privmsg(msg.channel, message)
 
 	def trigger_ud(self, msg):
 		"Usage: ud <search term>. Prints first UrbanDictionary result."
@@ -74,7 +100,7 @@ class Plugin:
 		soup = bs(urllib2.urlopen(url), convertEntities=bs.HTML_ENTITIES)
 		word = soup.find('td', 'word')
 		if not word:
-			self.c.privmsg(msg.channel, 'No entries were found.')
+			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
 			return
 
 		word = self.tag2string(word).strip()
@@ -93,6 +119,5 @@ class Plugin:
 			return ret
 		else:
 			return tag.string
-
 
 
