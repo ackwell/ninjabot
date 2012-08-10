@@ -2,6 +2,7 @@ import re
 import socket
 import sys
 import threading
+import traceback
 import os
 import json
 import kronos
@@ -159,7 +160,9 @@ class SocketListener(threading.Thread):
 						msg_obj = Message(msg)
 						self.controller.incoming_message(msg_obj)
 					except Exception as e:#Exception as e:
-						print e, msg
+						#print e, msg
+						traceback.print_exc()
+						print
 					#msg_obj = Message(msg)
 					#self.controller.incoming_message(msg_obj)
 
