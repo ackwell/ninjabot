@@ -369,7 +369,7 @@ if __name__ == '__main__':
 	graphical = not ('nogui' in args)
 
 	if '-s' in args:
-		config_filename = args[args.index('-c')+1]
+		config_filename = args[args.index('-s')+1]
 	else:
 		config_filename = os.path.join(os.path.expanduser('~'), '.ncssbot_config')
 
