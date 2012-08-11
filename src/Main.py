@@ -1,7 +1,9 @@
 import re
 import socket
+import subprocess
 import sys
 import threading
+import time
 import traceback
 import os
 import json
@@ -120,7 +122,7 @@ class SocketListener(threading.Thread):
 
         # Initialise some vars
         self._stop = False
-        self._stopped = False
+        self.exit_status = 0
         self._write_buffer = []
 
         # Initialise the superclass
@@ -166,18 +168,27 @@ class SocketListener(threading.Thread):
                     #msg_obj = Message(msg)
                     #self.controller.incoming_message(msg_obj)
 
-
         # Once we are told to stop, send the quit message, close the socket,
         # and end the thread
+        print 'Sending quit message'
         self._sock.send('QUIT :%s\r\n' % self.config['config']['quit-message'])
+        print 'Closing socket'
         self._sock.close()
-        self._stopped = True
+
+        # kill plugin handler
+        print 'Stopping plugins'
+        self.controller.plugins.scheduler.stop()
+        # kill the gui
+        print 'Stopping GUI with exit status %d' % self.exit_status
+        self.controller.gui.stop(self.exit_status)
+        # socket thread finished
+        print 'Socket thread finished'
 
     def stop(self):
         # Set the stop variable to true and wait for the thread to finish
         # doing whatever it is it's doing
+        print 'Setting stop flag'
         self._stop = True
-        while not self._stopped: pass
 
     def send(self, data):
         # Add a line to the write buffer
@@ -269,11 +280,15 @@ class Controller:
         self.outgoing_message(msg)
 
     def die(self):
+        print 'Beginning shutdown'
+        self.sl.exit_status = 0
         self.sl.stop()
-        self.plugins.scheduler.stop()
-        quit()
 
-
+    def restart(self, msg):
+        if self.is_admin(msg.nick):
+            print 'Beginning restart'
+            self.sl.exit_status = 1
+            self.sl.stop()
 
 class PluginHandler:
     def __init__(self, controller):
@@ -298,6 +313,7 @@ class PluginHandler:
         self.outgoing = []
 
         self.triggers['reload'] = self.register
+        self.triggers['restart'] = self.controller.restart
 
         # Cancel the scheduler jobs
         for timer in self.timers:
@@ -343,6 +359,7 @@ class PluginHandler:
             command = args.pop(0)
             msg.args = args
             if command in self.triggers:
+                print command
                 self.triggers[command](msg)
             else:
                 self.controller.notice(msg.nick, command+' is not a valid command.')
@@ -358,15 +375,36 @@ class PluginHandler:
                 if t_msg: msg = t_msg
         return msg
 
-
-
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         args = sys.argv[1:]
     else:
         args = []
 
+    if 'wrapped' not in args:
+        # launch wrapper
+        print 'NCSSBot wrapper up and running!'
+        while True:
+            print 'Starting instance...'
+            print
+            process_args = [sys.executable] + sys.argv + ['wrapped']
+            process = subprocess.Popen(process_args, shell=False)
+            try:
+                status = process.wait()
+            except KeyboardInterrupt:
+                process.kill()
+                status = 0
+
+            if status != 1:
+                print
+                print 'Goodbye!'
+                quit()
+            else:
+                print
+                print 'Restarting NCSSBot'
+
     graphical = not ('nogui' in args)
+    print 'NCSSBot started in %s mode' % ('graphical' if graphical else 'text')
 
     if '-s' in args:
         config_filename = args[args.index('-s')+1]

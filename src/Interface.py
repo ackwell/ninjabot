@@ -1,6 +1,8 @@
 from Tkinter import * #@UnusedWildImport
 from Main import * #@UnusedWildImport
 
+import time
+
 #Formatting
 DEFAULT = {
 "state":DISABLED,
@@ -48,6 +50,8 @@ class MainInterface(Frame):
     def __init__(self, graphical=True):
         self.controller = None
         self.graphical = graphical
+        self.should_stop = False
+        self.exit_status = 0
 
         if self.graphical:
             #Init main frame
@@ -188,7 +192,18 @@ class MainInterface(Frame):
 
         self.after(500, self.clock)
 
-    #def mainloop(self):
+    def stop(self, status):
+        self.should_stop = True
+        self.exit_status = status
+        try:
+            self.destroy()
+        except:
+            pass
+        try:
+            self.quit()
+        except:
+            pass
+
     def startloop(self):
         if self.graphical:
             #initiate the buffer check
@@ -197,17 +212,14 @@ class MainInterface(Frame):
             #start the loop
             self.mainloop()
         else:
-            # run the text interface
-            # use /quit to exit
-
-            while True:
+            while not self.should_stop:
                 try:
-                    s = raw_input()
-                    self.SendMsg(s)
+                    time.sleep(1)
                 except KeyboardInterrupt:
                     break
 
-
+        print 'Exiting on GUI thread with status %d' % self.exit_status
+        sys.exit(self.exit_status)
 
 #If run as main app, start up the GUI
 if __name__ == "__main__":
