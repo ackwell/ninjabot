@@ -42,10 +42,6 @@ class Plugin:
 		self.topcolour = ''
 		self.topnumber = -1
 
-
-	def help(self, msg):
-		pass
-
 	def trigger_uno(self, msg):
 		"\002\0034U\0033N\0032O\0038!\003:\002 Uno for IRC. For detailed help, run `uno help`"
 
@@ -54,12 +50,27 @@ class Plugin:
 			return
 
 		command = msg.args.pop(0)
-		if command in dir(self) and not command.startswith('_'):
-			getattr(self, command)(msg)
+		if 'uno_'+command in dir(self):
+			getattr(self, 'uno_'+command)(msg)
 		else:
 			self.c.notice(msg.nick, "The command '%s' does not exist. Check `%suno help` for avalable commands."%(command, self.c.plugins.prefix))
 
-	def start(self, msg):
+	def uno_help(self, msg):
+		"Prints the help text. Further command help can be displayed by specifng a command."
+		if len(msg.args) == 0:
+			self.c.notice(msg.nick, '%s is an IRC implementation of the popular card game of the same name.'%self.uno)
+			com = ''
+			for d in dir(self):
+				if d.startswith('uno_'):
+					com += '%s%s '%(self.c.plugins.prefix, d.split('_')[1])
+			self.c.notice(msg.nick, 'Avaliable commands are: %s.'%com)
+			self.c.notice(msg.nick, 'For more information, run `%suno help <command>`.'%self.c.plugins.prefix)
+		else:
+			try: self.c.notice(msg.nick, getattr(self, 'uno_'+msg.args[0]).__doc__)
+			except AttributeError: self.c.notice(msg.nick, "That command does not exist. For a list of commands, run %suno help."%self.c.plugins.prefix)
+
+	def uno_start(self, msg):
+		"Starts a game of UNO!"
 		# Can't-play conditions...
 		if not self.timer == 0 and not self.mode:
 			self.c.notice(msg.nick, "%s is on cooldown. %s minutes to go..."%(self.uno, self.timer))
@@ -72,12 +83,13 @@ class Plugin:
 		self.start_player = msg.nick
 		self.channel = msg.channel
 		self.c.privmsg(self.channel, "New game of %s starting! Type `%suno join` to join the fun! Game will start in about 2 minutes..."%(self.uno, self.c.plugins.prefix))
-		self.join(msg)
+		self.uno_join(msg)
 		self.timer = 2
 
-	def stop(self, msg):
+	def uno_stop(self, msg):
+		"Stops the current game of UNO!. Only ops+ and the start player can stop a game."
 		if not (self.c.is_op(msg.nick, False) or msg.nick == self.start_player):
-			self.c.notice(msg.nick, "Only bot admins and the start player can stop a game.")
+			self.c.notice(msg.nick, "Only ops+ and the start player can stop a game.")
 			return
 		elif self.mode == self.INACTIVE:
 			self.c.notice(msg.nick, "There is no game of %s in progress."%self.uno)
@@ -85,7 +97,8 @@ class Plugin:
 
 		self._reset()
 
-	def join(self, msg):
+	def uno_join(self, msg):
+		"Join a running game of uno. Only avaliable during the joining phase."
 		if msg.channel != self.channel:
 			self.c.notice(msg.nick, "Please join %s to join the game of %s."%(self.channel, self.uno))
 			return
@@ -107,7 +120,8 @@ class Plugin:
 		if len(self.players) == 10:
 			self.c.privmsg(self.channel, "The game is full! Get ready to play %s!"%self.uno)
 
-	def leave(self, msg):
+	def uno_leave(self, msg):
+		"Leave the game. You cannot leave mid-game."
 		if self.mode == self.PLAYING:
 			self.c.notice(msg.nick, "You can't leave during a game!")
 			return
@@ -141,7 +155,8 @@ class Plugin:
 		'b':'Blue',
 		'y':'Yellow'
 	}
-	def play(self, msg):
+	def uno_play(self, msg):
+		"Play a card. syntax is `play <colour> <card>. For wilds, specify a colour they should become."
 		if not self.mode == self.PLAYING:
 			self.c.notice(msg.nick, "There's no game of %s currently in progress!"%uself.uno)
 			return
@@ -201,14 +216,17 @@ class Plugin:
 		self._discard(card)
 		self._begin_turn()
 
-	def hand(self, msg):
+	def uno_hand(self, msg):
+		"Displays your current hand."
 		if not msg.nick in self.players:
 			self.c.notice(msg.nick, "You are not playing!")
 			return
 
-		self.c.notice(msg.nick, "Your hand: %s"%self._render_hand(player))
+		self.c.notice(msg.nick, "Your hand: %s"%self._render_hand(msg.nick))
 
-	def pickup(self, msg):
+	def uno_draw(self, msg): "Draw a card from the deck.";self.uno_pickup(msg)
+	def uno_pickup(self, msg):
+		"Draw a card from the deck."
 		if not self.players[self.current_player] == msg.nick:
 			self.c.notice(msg.nick, "It's not your turn!")
 			return
@@ -231,9 +249,14 @@ class Plugin:
 			if self.mode == self.JOINING:
 				self._begin()
 
-	def skip(self, msg):
+	def uno_skip(self, msg):
+		"Can be used to skip join and new game cooldowns."
+		if self.mode == self.INACTIVE and timer > 0:
+			if self.c.is_op(msg.nick):
+				self.timer = 0
+			return
 		if not (self.c.is_op(msg.nick, False) or msg.nick == self.start_player):
-			self.c.notice(msg.nick, "Only bot admins and the start player can stop a game.")
+			self.c.notice(msg.nick, "Only bot ops+ and the start player can skip.")
 			return
 		if self.mode != self.JOINING:
 			self.c.notice(msg.nick, "This command can only be used in the player signup stage.")
@@ -248,10 +271,6 @@ class Plugin:
 		self.mode = self.PLAYING
 		self._set_up()
 
-
-
-#### The game starts here! ####
-# (all that stuff above is player management and stuff)
 	def _reset(self, CD=True):
 		self.players = []
 		self.start_player = ''
