@@ -142,6 +142,9 @@ class Plugin:
 		'y':'Yellow'
 	}
 	def play(self, msg):
+		if not self.mode == self.PLAYING:
+			self.c.notice(msg.nick, "There's no game of %s currently in progress!"%uself.uno)
+			return
 		if not self.players[self.current_player] == msg.nick:
 			self.c.notice(msg.nick, "It's not your turn!")
 			return
@@ -177,6 +180,7 @@ class Plugin:
 
 		if ctype == 'W4' and colour in [i[0] for i in self.hands[msg.nick]]:
 			self.c.notice(msg.nick, "Wild Draw Four cards can only be placed when you do not have a card the same colour as the pile.")
+			return
 
 		self.hands[msg.nick].remove(card)
 
@@ -197,10 +201,17 @@ class Plugin:
 		self._discard(card)
 		self._begin_turn()
 
+	def hand(self, msg):
+		if not msg.nick in self.players:
+			self.c.notice(msg.nick, "You are not playing!")
+			return
+
+		self.c.notice(msg.nick, "Your hand: %s"%self._render_hand(player))
 
 	def pickup(self, msg):
 		if not self.players[self.current_player] == msg.nick:
 			self.c.notice(msg.nick, "It's not your turn!")
+			return
 		self._draw_card(msg.nick)
 		self._begin_turn()
 
@@ -315,6 +326,7 @@ class Plugin:
 				self._skip = 1
 			else:
 				self.direction = -self.direction
+				self.c.privmsg(self.channel, "Direction of play was reversed!")
 		elif card_type == 'S':
 			self._skip = 1
 		elif card_type == 'D':
