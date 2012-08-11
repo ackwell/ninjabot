@@ -4,12 +4,10 @@
 from apis import git
 import time
 
-GIT_PATH = '../.git'
-
 class Plugin:
     def __init__(self, controller):
         self.controller = controller
-        self.git = git.Git(GIT_PATH)
+        self.git = git.Git()
 
     def trigger_gitpull(self, msg):
         if self.controller.is_admin(msg.nick):
