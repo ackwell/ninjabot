@@ -76,7 +76,7 @@ class Plugin:
 		self.timer = 2
 
 	def stop(self, msg):
-		if not (self.c.is_admin(msg.nick) or msg.nick == self.start_player):
+		if not (self.c.is_op(msg.nick, False) or msg.nick == self.start_player):
 			self.c.notice(msg.nick, "Only bot admins and the start player can stop a game.")
 			return
 		elif self.mode == self.INACTIVE:
@@ -232,7 +232,7 @@ class Plugin:
 				self._begin()
 
 	def skip(self, msg):
-		if not (self.c.is_admin(msg.nick) or msg.nick == self.start_player):
+		if not (self.c.is_op(msg.nick, False) or msg.nick == self.start_player):
 			self.c.notice(msg.nick, "Only bot admins and the start player can stop a game.")
 			return
 		if self.mode != self.JOINING:

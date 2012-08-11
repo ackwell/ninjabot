@@ -13,9 +13,6 @@ import unicodedata
 from Interface import *
 from importlib import import_module
 
-# constants are here temporarily
-# maybe move to a config file in the future
-
 class Message:
     OTHER = 0
     CHANNEL = 1
@@ -32,7 +29,7 @@ class Message:
     def __init__(self, message=None):
         if message:
             prefix = ''
-            trailing = []
+            trailing = ''
 
             if not message:
                 raise Exception("Empty line.")
@@ -51,10 +48,9 @@ class Message:
             self.command = args.pop(0)
             if len(args) == 1:
                 self.channel = ""
-                self.body = " ".join(args)
             else:
                 self.channel = args.pop(0)
-                self.body = " ".join(args)
+            self.body = trailing if trailing else " ".join(args)
 
             #split the prefix
             if '!' in prefix:
@@ -159,6 +155,7 @@ class SocketListener(threading.Thread):
                 else:
                     # Create message object
                     try:
+                        #print msg
                         msg_obj = Message(msg)
                         self.controller.incoming_message(msg_obj)
                     except Exception as e:#Exception as e:
@@ -210,15 +207,15 @@ class Controller:
         self.sl.controller = self
         self.gui.controller = self
 
-        # List of channels we are on
-        self.channels = [self.config['server']['channel']]
-
         #initiate the plugin system
         self.plugins = PluginHandler(self)
 
         #initiate the buffer that the GUI will poll for updates
         self.buffer = []
 
+        self.admins = []
+        self.ops = []
+        self.voiced = []
 
 
         self._should_die = False
@@ -248,8 +245,20 @@ class Controller:
         self.sl.send_message(msg)
         self.buffer.append(msg) #add the message to the buffer
 
-    def is_admin(self, nick):
-        return True if nick in self.config['config']['admins'].split() else False
+    def is_admin(self, nick, announce=True):
+        r = True if nick in self.admins else False
+        if not r and announce: self.notice(nick, "Only admins can use that command")
+        return r
+
+    def is_op(self, nick, announce=True):
+        r = True if nick in self.ops or nick in self.admins else False
+        if not r and announce: self.notice(nick, "Only ops and admins can use that command")
+        return r
+
+    def is_voiced(self, nick, announce=True):
+        r = True if nick in self.voiced or nick in self.ops or nick in self.admins else False
+        if not r and announce: self.notice(nick, "Only voiced users, ops and admins can use that command")
+        return r
 
     def notice(self, target, message, ctcp=''):
         msg = Message()
@@ -305,7 +314,6 @@ class PluginHandler:
         "Reloads all plugins. Admin only."
 
         if msg and not self.controller.is_admin(msg.nick):
-            self.controller.notice(msg.nick, "You are not permitted to use this command.")
             return
 
         self.triggers = {}
