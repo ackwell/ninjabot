@@ -16,7 +16,7 @@ def write(string, config):
     u = urlopen(url,urlencode(args)).read()
     return u
 
-def read(self, url):
+def read(url):
     """
     Read content of given pastebin URL
     Returns string of content
