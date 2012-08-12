@@ -371,7 +371,6 @@ class PluginHandler:
             command = args.pop(0)
             msg.args = args
             if command in self.triggers:
-                print command
                 self.triggers[command](msg)
             else:
                 self.controller.notice(msg.nick, command+' is not a valid command.')

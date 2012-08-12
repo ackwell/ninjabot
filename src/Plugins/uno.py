@@ -32,6 +32,7 @@ class Plugin:
 		self.turn = 0
 
 		self.current_player = 0
+		self.last_player = 0
 		self.players = []
 		self.start_player = ''
 		self.channel = ''
@@ -153,7 +154,7 @@ class Plugin:
 		self._remove(msg.nick)
 
 	def _remove(self, nick):
-		next = True if self.players[self.current_player] == nick else False
+		next = True if self.mode == self.PLAYING and self.players[self.current_player] == nick else False
 		self.players.remove(nick)
 		if self.mode == self.PLAYING:
 			self.c.privmsg(self.channel, "Their hand was %s. It has been shuffled into the deck."%self._render_hand(nick))
@@ -357,12 +358,16 @@ class Plugin:
 
 		self.turn += 1
 		player = self.players[self.current_player]
-		self.c.privmsg(self.channel, "Turn %s: %s's turn."%(self.turn, player))
+		if self.direction == 1:
+			turns = "%s->\002%s\002->%s"%(self.players[self.last_player], self.players[self.current_player], self._next_player(True))
+		else:
+			turns = "%s<-\002%s\002<-%s"%(self._next_player(True), self.players[self.current_player], self.players[self.last_player])
+		self.c.privmsg(self.channel, "Turn %s: %s"%(self.turn, turns))
 		self.c.privmsg(self.channel, "Top card: %s"%self._render_card(self.discard[-1]))
 		self.c.notice(player, "Your hand: %s"%self._render_hand(player))
 
 	def _next_player(self, get=False):
-		if get: temp = self.current_player
+		self.last_player = self.current_player
 		self.current_player += self.direction
 		if self.current_player < 0:
 			self.current_player += len(self.players)
@@ -370,7 +375,7 @@ class Plugin:
 			self.current_player -= len(self.players)
 		if get:
 			num = self.current_player
-			self.current_player = temp
+			self.current_player = self.last_player
 			return num
 
 
@@ -402,6 +407,7 @@ class Plugin:
 				random.shuffle(self.deck)
 				self.c.privmsg(self.channel, "Discard pile shuffled and added to deck.")
 			self.hands[player].append(self.deck.pop())
+		if not silent: self.c.notice(player, "Your hand: %s."%self._render_hand(player))
 
 	def _render_hand(self, player):
 		out = ''

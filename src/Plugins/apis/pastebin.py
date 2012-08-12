@@ -22,7 +22,7 @@ def read(url):
     Returns string of content
     """
     
-    m = re.search(r'pastebin.com/([A-Za-z0-9]+$)', url)
+    m = re.search(r'pastebin\.com/([A-Za-z0-9]+$)', url)
     if m:
         url = "http://pastebin.com/raw.php?i=" + m.group(1)
         message = urlopen(url).read()

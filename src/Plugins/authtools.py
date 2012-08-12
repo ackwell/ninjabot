@@ -39,7 +39,6 @@ class Plugin:
 			elif msg.body in self.c.admins:
 				self.c.admins.remove(msg.body)
 				self.c.notice(msg.body, "Nickname change detected. Please reauth.")
-			print self.c.admins
 
 
 
