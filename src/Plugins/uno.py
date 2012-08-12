@@ -49,7 +49,7 @@ class Plugin:
 			self.c.notice(msg.nick, "Please specify an UNO command. Check `%suno help` for avaliable commands."%self.c.plugins.prefix)
 			return
 
-		command = msg.args.pop(0)
+		command = msg.args.pop(0).lower()
 		if 'uno_'+command in dir(self):
 			getattr(self, 'uno_'+command)(msg)
 		else:
@@ -121,16 +121,46 @@ class Plugin:
 			self.c.privmsg(self.channel, "The game is full! Get ready to play %s!"%self.uno)
 
 	def uno_leave(self, msg):
-		"Leave the game. You cannot leave mid-game."
-		if self.mode == self.PLAYING:
-			self.c.notice(msg.nick, "You can't leave during a game!")
-			return
+		"Leave the game."
+		if self.mode == self.PLAYING 
+			if len(msg.args) == 0:
+				self.c.notice(msg.nick, "Please confirm you wish to leave with `%suno leave confirm`."%self.c.plugins.prefix)
+				return
+			elif msg.args[0].lower() != 'confirm':
+				return
 		elif msg.nick not in self.players:
 			self.c.notice(msg.nick, "You can't leave something you havn't joined!")
 			return
 
-		self.players.remove(msg.nick)
 		self.c.privmsg(self.channel, "%s has left the game."%msg.nick)
+		self._remove(msg.nick)
+
+	def uno_kick(self, msg):
+		"Kicks a player from the game."
+		if not self.c.is_op(msg.nick):
+			return
+		elif self.mode != self.PLAYING:
+			self.c.notice(msg.nick, "There is no game in progress.")
+			return
+		elif len(msg.args) == 0:
+			self.c.notice(msg.nick, "Please specify a person to kick.")
+			return
+		elif msg.args[0] not in self.players:
+			self.c.notice(msg.nick, "There is no player with that nick.")
+			return
+
+		self.c.privmsg(self.channel, "%s has kicked %s from the game."%(msg.nick, args[0]))
+		self._remove(msg.nick)
+
+	def _remove(self, nick):
+		self.players.remove(nick)
+		if self.mode == self.PLAYING:
+			self.c.privmsg(self.channel, "Their hand was %s. It has been shuffled into the deck."%self._render_hand(nick))
+			for card in self.hands[nick]:
+				self.deck.insert(random.randint(0, len(self.deck)), card)
+
+			del self.hands[nick]
+
 
 	CARD_MAP = {
 		'draw':'D',
@@ -193,7 +223,7 @@ class Plugin:
 			self.c.notice(msg.nick, "That card cannot be placed.")
 			return
 
-		if ctype == 'W4' and colour in [i[0] for i in self.hands[msg.nick]]:
+		if ctype == 'W4' and self.topcolour in [i[0] for i in self.hands[msg.nick]]:
 			self.c.notice(msg.nick, "Wild Draw Four cards can only be placed when you do not have a card the same colour as the pile.")
 			return
 
@@ -248,6 +278,9 @@ class Plugin:
 
 			if self.mode == self.JOINING:
 				self._begin()
+
+			if self.mode == self.INACTIVE:
+				self.c.privmsg(self.channel, "Cooldown complete! %s is ready to play!"%self.uno)
 
 	def uno_skip(self, msg):
 		"Can be used to skip join and new game cooldowns."
