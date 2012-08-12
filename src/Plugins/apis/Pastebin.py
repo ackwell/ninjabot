@@ -1,6 +1,4 @@
 from urllib import urlopen, urlencode
-from ApiSettings import PASTEBIN
-
 import re
 
 def write(string, config):

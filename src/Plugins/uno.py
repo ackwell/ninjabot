@@ -122,7 +122,7 @@ class Plugin:
 
 	def uno_leave(self, msg):
 		"Leave the game."
-		if self.mode == self.PLAYING 
+		if self.mode == self.PLAYING:
 			if len(msg.args) == 0:
 				self.c.notice(msg.nick, "Please confirm you wish to leave with `%suno leave confirm`."%self.c.plugins.prefix)
 				return

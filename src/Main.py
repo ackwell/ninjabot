@@ -160,8 +160,9 @@ class SocketListener(threading.Thread):
                         self.controller.incoming_message(msg_obj)
                     except Exception as e:#Exception as e:
                         #print e, msg
-                        traceback.print_exc()
-                        print
+                        error = traceback.format_exc()
+                        print error
+                        self.controller.errors.append(error)
                     #msg_obj = Message(msg)
                     #self.controller.incoming_message(msg_obj)
 
@@ -217,6 +218,7 @@ class Controller:
         self.ops = []
         self.voiced = []
 
+        self.errors = []
 
         self._should_die = False
 
