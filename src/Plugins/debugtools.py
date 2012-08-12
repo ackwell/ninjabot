@@ -5,6 +5,7 @@ class Plugin:
 		self.c = controller
 
 	def trigger_error(self, msg):
+		"Pastebins the latest latest error message. If an index is specified, will return that error instead."
 		if not self.c.is_admin(msg.nick): return
 
 		if len(msg.args) == 0:

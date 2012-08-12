@@ -149,10 +149,11 @@ class Plugin:
 			self.c.notice(msg.nick, "There is no player with that nick.")
 			return
 
-		self.c.privmsg(self.channel, "%s has kicked %s from the game."%(msg.nick, args[0]))
+		self.c.privmsg(self.channel, "%s has kicked %s from the game."%(msg.nick, msg.args[0]))
 		self._remove(msg.nick)
 
 	def _remove(self, nick):
+		next = True if self.players[self.current_player] == nick else False
 		self.players.remove(nick)
 		if self.mode == self.PLAYING:
 			self.c.privmsg(self.channel, "Their hand was %s. It has been shuffled into the deck."%self._render_hand(nick))
@@ -160,6 +161,8 @@ class Plugin:
 				self.deck.insert(random.randint(0, len(self.deck)), card)
 
 			del self.hands[nick]
+		if next:
+			self._begin_turn()
 
 
 	CARD_MAP = {
@@ -273,7 +276,7 @@ class Plugin:
 			elif self.mode == self.INACTIVE:
 				if self.timer == 5 or self.timer == 1:
 					self.c.privmsg(self.channel, "%s cooldown: %s minute%s remaining."%(self.uno, self.timer, 's' if self.timer > 1 else ''))
-		else:
+		elif self.timer == 1:
 			self.timer = 0
 
 			if self.mode == self.JOINING:
