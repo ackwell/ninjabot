@@ -163,6 +163,7 @@ class SocketListener(threading.Thread):
                         error = traceback.format_exc()
                         print error
                         self.controller.errors.append(error)
+                        self.controller.privmsg(self.config['server']['channel'], "An error occured. Please ask an admin to check error log %i."%(len(self.controller.errors)-1))
                     #msg_obj = Message(msg)
                     #self.controller.incoming_message(msg_obj)
 
@@ -233,6 +234,7 @@ class Controller:
     def incoming_message(self, msg):
         # Received message object from the sl
         # Parse it and display it in the gui
+        msg.body = unicode(msg.body, 'utf-8', 'ignore')
         msg = self.plugins.on_incoming(msg)
 
         self.buffer.append(msg) #add the message to the buffer

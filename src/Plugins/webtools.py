@@ -32,7 +32,11 @@ class Plugin:
 			head = conn.getresponse()
 
 			if 'text/html' in head.getheader('content-type'):
-				message = 'Title: '+bs(urllib.urlopen(url), convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
+				try:
+					message = 'Title: '+bs(urllib.urlopen(url), convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
+				except TypeError: #Seems sometimes returns text/html even when it's a pic.
+					print "Ignoring BeautifulSoup Error (webtools.py line 36)."
+					return
 			else:
 				message = '%s: %s (%s)' % (re.search(r'/([^/]+)$', url).groups(1)[0], head.getheader('content-type'), self.sizeof_fmt(int(head.getheader('content-length'))))
 			self.c.privmsg(msg.channel, message)
