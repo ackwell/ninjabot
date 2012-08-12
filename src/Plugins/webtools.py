@@ -5,6 +5,9 @@ import re
 import urllib, urllib2
 import httplib
 
+#I'm silencing all errors from webtools' autochecker, simply because there are so many that could pop up.
+#/me is lazy
+
 class Plugin:
 	def __init__(self, controller):
 		self.c = controller
@@ -21,25 +24,31 @@ class Plugin:
 	def on_incoming(self, msg):
 		if not msg.type == msg.CHANNEL: return
 
-		urls = re.findall(r'\(?\bhttps?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]', msg.body)
-		for url in urls:
-			if url.startswith('(') and url.endswith(')'):
-				url = url[1:-1]
+		try:
+			urls = re.findall(r'\(?\bhttps?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]', msg.body)
+			for url in urls:
+				if url.startswith('(') and url.endswith(')'):
+					url = url[1:-1]
 
-			o = urlparse(url)
-			conn = httplib.HTTPConnection(o.netloc)
-			conn.request("HEAD", o.path)
-			head = conn.getresponse()
+				filename = re.search(r'/([^/]+)/?$', url).groups(1)[0]
+				if '.' not in filename:
+					url += ''
 
-			if 'text/html' in head.getheader('content-type'):
-				try:
+				o = urlparse(url)
+				conn = httplib.HTTPConnection(o.netloc)
+				conn.request("HEAD", o.path)
+				head = conn.getresponse()
+
+				if 'text/html' in head.getheader('content-type'):
 					message = 'Title: '+bs(urllib.urlopen(url), convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
-				except TypeError: #Seems sometimes returns text/html even when it's a pic.
-					print "Ignoring BeautifulSoup Error (webtools.py line 36)."
-					return
-			else:
-				message = '%s: %s (%s)' % (re.search(r'/([^/]+)$', url).groups(1)[0], head.getheader('content-type'), self.sizeof_fmt(int(head.getheader('content-length'))))
-			self.c.privmsg(msg.channel, message)
+				else:
+					content_type = head.getheader('content-type')
+					try: size = self.sizeof_fmt(int(head.getheader('content-length')))
+					except TypeError: size = "Unknown size"
+					message = '%s: %s (%s)' % (filename, content_type, size)
+				self.c.privmsg(msg.channel, message)
+		except:
+			pass
 
 
 	def trigger_w(self, msg):

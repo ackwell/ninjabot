@@ -52,7 +52,7 @@ class Plugin:
 
 	def trigger_deauth(self, msg):
 		"Deauths an admin, for security purposes."
-		if self.nick not in self.c.admins:
+		if msg.nick not in self.c.admins:
 			self.c.notice(msg.nick, 'You are not an admin')
 			return
 		self.c.admins.remove(msg.nick)
