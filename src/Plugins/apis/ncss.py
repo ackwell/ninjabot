@@ -49,7 +49,8 @@ class NCSS(object):
                 for group in groups:
                     students = group['students']
                     for student in students:
-                        all_students[student['Name']] = student['Score']
+                        name = student['Name'] + ' (Year %d)' % student['Year']
+                        all_students[name] = student['Score']
 
                 return all_students
             except:
