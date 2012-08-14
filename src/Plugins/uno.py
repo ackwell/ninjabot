@@ -360,9 +360,9 @@ class Plugin:
 		self.turn += 1
 		player = self.players[self.current_player]
 		if self.direction == 1:
-			turns = "%s -> \002%s\002 -> %s"%(self.players[self.last_player], self.players[self.current_player], self.players[self._next_player(True)])
+			turns = "%s ->\002 %s \002-> %s"%(self.players[self.last_player], self.players[self.current_player], self.players[self._next_player(True)])
 		else:
-			turns = "%s <- \002%s\002 <- %s"%(self.players[self._next_player(True)], self.players[self.current_player], self.players[self.last_player])
+			turns = "%s <-\002 %s \002<- %s"%(self.players[self._next_player(True)], self.players[self.current_player], self.players[self.last_player])
 		self.c.privmsg(self.channel, "Turn %s: %s"%(self.turn, turns))
 		self.c.privmsg(self.channel, "Top card: %s"%self._render_card(self.discard[-1]))
 		self.c.notice(player, "Your hand: %s"%self._render_hand(player))
