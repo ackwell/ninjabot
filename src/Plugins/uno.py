@@ -192,7 +192,7 @@ class Plugin:
 	def uno_play(self, msg):
 		"Play a card. syntax is `play <colour> <card>. For wilds, specify a colour they should become."
 		if not self.mode == self.PLAYING:
-			self.c.notice(msg.nick, "There's no game of %s currently in progress!"%uself.uno)
+			self.c.notice(msg.nick, "There's no game of %s currently in progress!"%self.uno)
 			return
 		if not self.players[self.current_player] == msg.nick:
 			self.c.notice(msg.nick, "It's not your turn!")

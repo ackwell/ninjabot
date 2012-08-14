@@ -40,6 +40,11 @@ class Plugin:
 				self.c.admins.remove(msg.body)
 				self.c.notice(msg.body, "Nickname change detected. Please reauth.")
 
+		elif msg.command == msg.JOIN:
+			if msg.nick in self.c.admins:
+				self.c.admins.remove(msg.nick)
+				self.c.notice(msg.nick, "This nick has been deauthed. Please reauth.")
+
 
 
 	def trigger_auth(self, msg):
