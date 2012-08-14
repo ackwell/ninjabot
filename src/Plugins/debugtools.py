@@ -1,8 +1,10 @@
-from apis import pastebin
+from apis import kdepaste
 
 class Plugin:
 	def __init__(self, controller):
 		self.c = controller
+
+		self.cache = {}
 
 	def trigger_error(self, msg):
 		"Pastebins the latest latest error message. If an index is specified, will return that error instead."
@@ -16,7 +18,15 @@ class Plugin:
 				self.c.notice(msg.nick, "Please specify a valid error index.")
 				return
 		try:
-			e = self.c.errors[err]
-			self.c.notice(msg.nick, "Error report: %s"%pastebin.write(e, self.c.config))
+			if err in self.cache:
+				msg = self.cache[err]
+			else:
+				msg = kdepaste.write(self.c.errors[err])
+				if err > 0:
+					cache[err] = msg
+			self.c.notice(msg.nick, "Error report: %s"%msg)
 			return
 		except IndexError: self.c.notice(msg.nick, "No error with that index exists")
+
+	def trigger_generror(self, msg):
+		raise Exception
