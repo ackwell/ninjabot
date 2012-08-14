@@ -350,6 +350,7 @@ class Plugin:
 		self.topnumber = card[1:]
 
 	def _begin_turn(self):
+		self.last_player = self.current_player
 		self._next_player()
 		while self._skip > 0:
 			self._skip -= 1
@@ -359,15 +360,15 @@ class Plugin:
 		self.turn += 1
 		player = self.players[self.current_player]
 		if self.direction == 1:
-			turns = "%s->\002%s\002->%s"%(self.players[self.last_player], self.players[self.current_player], self.players[self._next_player(True)])
+			turns = "%s -> \002%s\002 -> %s"%(self.players[self.last_player], self.players[self.current_player], self.players[self._next_player(True)])
 		else:
-			turns = "%s<-\002%s\002<-%s"%(self.players[self._next_player(True)], self.players[self.current_player], self.players[self.last_player])
+			turns = "%s <- \002%s\002 <- %s"%(self.players[self._next_player(True)], self.players[self.current_player], self.players[self.last_player])
 		self.c.privmsg(self.channel, "Turn %s: %s"%(self.turn, turns))
 		self.c.privmsg(self.channel, "Top card: %s"%self._render_card(self.discard[-1]))
 		self.c.notice(player, "Your hand: %s"%self._render_hand(player))
 
 	def _next_player(self, get=False):
-		self.last_player = self.current_player
+		temp = self.current_player
 		self.current_player += self.direction
 		if self.current_player < 0:
 			self.current_player += len(self.players)
@@ -375,7 +376,7 @@ class Plugin:
 			self.current_player -= len(self.players)
 		if get:
 			num = self.current_player
-			self.current_player = self.last_player
+			self.current_player = temp
 			return num
 
 

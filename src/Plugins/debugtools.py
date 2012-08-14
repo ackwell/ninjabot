@@ -19,14 +19,11 @@ class Plugin:
 				return
 		try:
 			if err in self.cache:
-				msg = self.cache[err]
+				m = self.cache[err]
 			else:
-				msg = kdepaste.write(self.c.errors[err])
+				m = kdepaste.write(self.c.errors[err])
 				if err > 0:
-					cache[err] = msg
-			self.c.notice(msg.nick, "Error report: %s"%msg)
+					cache[err] = m
+			self.c.notice(msg.nick, "Error report: %s"%m)
 			return
 		except IndexError: self.c.notice(msg.nick, "No error with that index exists")
-
-	def trigger_generror(self, msg):
-		raise Exception
