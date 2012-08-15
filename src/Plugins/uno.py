@@ -402,7 +402,10 @@ class Plugin:
 		if not silent: self.c.privmsg(self.channel, "%s draws %s card%s."%(player, number, 's' if number>1 else ''))
 		for i in range(number):
 			if len(self.deck) == 0:
-				self.deck = self.discard[:-1]
+				for card in self.discard[:-1]:
+					if card[1] = 'W':
+						card = 'w'+card[1:]
+					self.deck.append(card)
 				random.shuffle(self.deck)
 				self.c.privmsg(self.channel, "Discard pile shuffled and added to deck.")
 			self.hands[player].append(self.deck.pop())

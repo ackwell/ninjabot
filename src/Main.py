@@ -298,10 +298,16 @@ class Controller:
         self.sl.stop()
 
     def restart(self, msg):
+        "Restarts the bot."
         if self.is_admin(msg.nick):
             print 'Beginning restart'
             self.sl.exit_status = 1
             self.sl.stop()
+
+    def kill(self, msg):
+        "Kills the current instance."
+        if self.is_admin(msg.nick):
+            self.die()
 
 class PluginHandler:
     def __init__(self, controller):
@@ -326,6 +332,7 @@ class PluginHandler:
 
         self.triggers['reload'] = self.register
         self.triggers['restart'] = self.controller.restart
+        self.triggers['kill'] = self.controller.kill
 
         # Cancel the scheduler jobs
         for timer in self.timers:
@@ -366,6 +373,8 @@ class PluginHandler:
 
     def on_incoming(self, msg):
         if msg.body.startswith(self.prefix):
+            if len(msg.body) == len(self.prefix):
+                return msg
             msg.body = msg.body[len(self.prefix):]
             args = msg.body.split()
             command = args.pop(0)
