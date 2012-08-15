@@ -63,7 +63,8 @@ class Plugin:
 
 		if resp.textTag:
 			index = 1 if 'may refer to:' in resp.descriptionTag.string else 0
-			self.c.privmsg(msg.channel, resp.findAll('description')[index].string)
+			info = resp.findAll('description')[index].string
+			self.c.privmsg(msg.channel, "\002Wikipedia ::\002 %s"%(info))
 		else:
 			self.c.privmsg(msg.channel, '%s: No articles were found.'%' '.join(msg.args))
 		
@@ -107,7 +108,7 @@ class Plugin:
 		message = "\002You\0030,4Tube\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
 			entry.find('a', 'yt-uix-contextlink').string,
 			self.tag2string(entry.find('p', 'description')),
-			"www.youtube.com"+entry.find('a', 'yt-uix-contextlink')['href'],)
+			"http://youtu.be/"+entry.find('a', 'yt-uix-contextlink')['href'].split('=')[1],)
 		self.c.privmsg(msg.channel, message)
 
 
