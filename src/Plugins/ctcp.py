@@ -7,7 +7,7 @@ SOURCE = 'SOURCE https://github.com/AClockWorkLemon/NCSSBot'
 class Plugin:
     def __init__(self, controller):
         self.c = controller
-        self.git = git.Git(path=os.path.join(['..', '.git']))
+        self.git = git.Git(path=os.path.join(['..', '..', '.git']))
 
     def on_incoming(self, msg):
         if not msg.ctcp: return msg
