@@ -381,7 +381,7 @@ class PluginHandler:
         return msg
 
     def on_outgoing(self, msg):
-        for func in self.incoming:
+        for func in self.outgoing:
                 t_msg = func(msg)
                 if t_msg: msg = t_msg
         return msg

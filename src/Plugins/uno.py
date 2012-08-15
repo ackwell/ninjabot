@@ -302,7 +302,7 @@ class Plugin:
 
 	def _begin(self):
 		if len(self.players) < 2:
-			self.c.privmsg(self.channel, "%s needs at least 2 people to play! Game halted.")
+			self.c.privmsg(self.channel, "%s needs at least 2 people to play! Game halted."%self.uno)
 			self._reset(False)
 			return
 		self.mode = self.PLAYING
