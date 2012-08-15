@@ -17,6 +17,6 @@ class Git(object):
 
     def current_revision(self):
         try:
-            return open(os.path.join(self.path, 'refs', 'heads', 'master'), 'rU').read().strip()
+            return open(os.path.join([self.path, 'refs', 'heads', 'master']), 'rU').read().strip()
         except:
             return None
