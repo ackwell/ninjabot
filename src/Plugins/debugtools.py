@@ -23,7 +23,7 @@ class Plugin:
 			else:
 				m = kdepaste.write(self.c.errors[err])
 				if err > 0:
-					cache[err] = m
+					self.cache[err] = m
 			self.c.notice(msg.nick, "Error report: %s"%m)
 			return
 		except IndexError: self.c.notice(msg.nick, "No error with that index exists")

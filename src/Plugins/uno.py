@@ -340,8 +340,6 @@ class Plugin:
 			discard = self.deck.pop()
 		self._discard(discard)
 
-		self._do_action(self.discard[-1])
-
 		self._begin_turn()
 
 	def _discard(self, card):
