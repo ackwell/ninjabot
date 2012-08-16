@@ -8,15 +8,13 @@ import os
 import subprocess
 
 class Git(object):
-    def __init__(self, path=None):
-        self.path = path
+    def __init__(self):
+        pass
 
     def pull(self):
         output = subprocess.check_output(['git', 'pull'])
         return output.strip()
 
     def current_revision(self):
-        try:
-            return open(os.path.join([self.path, 'refs', 'heads', 'master']), 'rU').read().strip()
-        except:
-            return None
+        output = subprocess.check_output(['git', 'rev-list', 'HEAD', '-n', '1'])
+        return output.strip()
