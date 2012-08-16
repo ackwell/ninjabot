@@ -71,8 +71,9 @@ class Plugin:
         # Iterate through all 'pod' elements
         for pod in tree.iterfind('pod'):
             #print pod.get('title')
-            if pod.get('primary') == 'true':
+            if pod.get('primary') == 'true' or pod.get('title') == 'Result':
                 # If it is a primary pod (good result) check through subpods
+                result = ''
                 subpod_count = pod.get('numsubpods')
                 for subpod in pod.iterfind('subpod'):
                     # Only take primary subpods/lone subpods
@@ -83,7 +84,11 @@ class Plugin:
                             result = result.split('\n')[0] + '...'
                         #print '--',result
                 # Get the title for output and add to results
-                podtitle = pod.get('title')
+                if result == '' and subpod_count > 1:
+                    podtitle = 'Results'
+                    result = 'Too many results'
+                else:
+                    podtitle = pod.get('title')
                 results.append((podtitle, result))
             # If WA interprets the query differently, use it
             if pod.get('title') == 'Input interpretation':

@@ -4,6 +4,7 @@ from urlparse import urlparse
 import re
 import urllib, urllib2
 import httplib
+from apis import requests
 
 #I'm silencing all errors from webtools' autochecker, simply because there are so many that could pop up.
 #/me is lazy
@@ -34,16 +35,13 @@ class Plugin:
 				if '.' not in filename:
 					url += ''
 
-				o = urlparse(url)
-				conn = httplib.HTTPConnection(o.netloc)
-				conn.request("HEAD", o.path)
-				head = conn.getresponse()
+				head = requests.head(url)
 
-				if 'text/html' in head.getheader('content-type'):
-					message = 'Title: '+bs(urllib.urlopen(url), convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
+				if 'text/html' in head.headers['content-type']:
+					message = 'Title: '+bs(requests.get(url).text, convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
 				else:
-					content_type = head.getheader('content-type')
-					try: size = self.sizeof_fmt(int(head.getheader('content-length')))
+					content_type = head.headers['content-type']
+					try: size = self.sizeof_fmt(int(head.headers['content-length']))
 					except TypeError: size = "Unknown size"
 					message = '%s: %s (%s)' % (filename, content_type, size)
 				self.c.privmsg(msg.channel, message)
@@ -57,9 +55,9 @@ class Plugin:
 			self.c.notice(msg.nick, "Please specify a search term")
 			return
 
-		params = {'action':'opensearch', 'format':'xml', 'limit':'2', 'search':urllib.quote_plus(' '.join(msg.args))}
+		params = {'action':'opensearch', 'format':'xml', 'limit':'2', 'search':' '.join(msg.args)}
 		
-		resp = bss(urllib.urlopen("http://en.wikipedia.org/w/api.php?%s" % urllib.urlencode(params)), convertEntities=bs.HTML_ENTITIES)
+		resp = bss(requests.post("http://en.wikipedia.org/w/api.php", data=params).text, convertEntities=bs.HTML_ENTITIES)
 
 		if resp.textTag:
 			index = 1 if 'may refer to:' in resp.descriptionTag.string else 0
@@ -75,9 +73,10 @@ class Plugin:
 			self.c.notice(msg.nick, "Please specify a search term")
 			return
 
-		url = "https://www.google.com.au/search?q=%s" % (urllib.quote_plus(' '.join(msg.args)),)
-		req = urllib2.Request(url, None, {'User-agent':self.useragent})
-		entry = bs(urllib2.urlopen(req), convertEntities=bs.HTML_ENTITIES).find('div', 'vsc')
+		url = "https://www.google.com.au/search"
+		params = {'q':' '.join(msg.args)}
+		headers = {'User-agent':self.useragent}
+		entry = bs(requests.get(url,params=params,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'vsc')
 
 		if not entry:
 			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
@@ -100,9 +99,10 @@ class Plugin:
 			self.c.notice(msg.nick, "Please specify a search term")
 			return
 
-		url = "http://www.youtube.com/results?search_query=%s" % (urllib.quote_plus(' '.join(msg.args)),)
-		req = urllib2.Request(url, None, {'User-agent':self.useragent})
-		entry = bs(urllib2.urlopen(req), convertEntities=bs.HTML_ENTITIES).find('div', 'yt-lockup-content')
+		url = "http://www.youtube.com/results"
+		data = {'search_query':' '.join(msg.args)}
+		headers = {'User-agent':self.useragent}
+		entry = bs(requests.post(url,data=data,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'yt-lockup-content')
 
 		if not entry:
 			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
@@ -118,8 +118,9 @@ class Plugin:
 	def trigger_ud(self, msg):
 		"Usage: ud <search term>. Prints first UrbanDictionary result."
 
-		url = "http://www.urbandictionary.com/define.php?term="+urllib.quote_plus(' '.join(msg.args))
-		soup = bs(urllib2.urlopen(url), convertEntities=bs.HTML_ENTITIES)
+		url = "http://www.urbandictionary.com/define.php"
+		data = {'term':' '.join(msg.args)}
+		soup = bs(requests.post(url,data=data).text, convertEntities=bs.HTML_ENTITIES)
 		word = soup.find('td', 'word')
 		if not word:
 			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
