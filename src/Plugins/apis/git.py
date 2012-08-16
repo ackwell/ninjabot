@@ -8,8 +8,8 @@ import os
 import subprocess
 
 class Git(object):
-    def __init__(self, path=None):
-        self.path = path
+    def __init__(self):
+        pass
 
     def pull(self):
         output = subprocess.check_output(['git', 'pull'])

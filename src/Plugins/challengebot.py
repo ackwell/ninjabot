@@ -72,16 +72,17 @@ class Plugin:
             old_students = self.old_students
             self.old_students = new_students
 
-            # generate delta
-            delta = ncss.generate_students_delta(old_students, new_students)
-            names = sorted(delta.keys(), cmp=lambda a, b: cmp(a.split(' ', 1)[1], b.split(' ', 1)[1]))
-            for name in names:
-                score, status = delta[name]
-                msg = None
-                if status == ncss.ADDED:
-                    msg = '%s is now on the leaderboard with %d points!' % (name, score)
-                elif status == ncss.CHANGED:
-                    change = new_students[name] - old_students[name]
-                    msg = '%s has gained %d points for a new total of %d!' % (name, change, score)
-                if msg:
-                    self.controller.privmsg(self.channel, msg)
+            if old_students:
+                # generate delta
+                delta = ncss.generate_students_delta(old_students, new_students)
+                names = sorted(delta.keys(), cmp=lambda a, b: cmp(a.split(' ', 1)[1], b.split(' ', 1)[1]))
+                for name in names:
+                    score, status = delta[name]
+                    msg = None
+                    if status == ncss.ADDED:
+                        msg = '%s is now on the leaderboard with %d points!' % (name, score)
+                    elif status == ncss.CHANGED:
+                        change = new_students[name] - old_students[name]
+                        msg = '%s has gained %d points for a new total of %d!' % (name, change, score)
+                    if msg:
+                        self.controller.privmsg(self.channel, msg)

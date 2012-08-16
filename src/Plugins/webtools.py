@@ -129,6 +129,11 @@ class Plugin:
 		defi = self.tag2string(soup.find('div', 'definition')).split('<br')[0]
 		self.c.privmsg(msg.channel, '%s: %s'%(word,defi,))
 
+	def trigger_tx(self, msg):
+		"Usage: tx <expression>. Prints a link to a graphical representation of the supplied LaTeX expression."
+
+		url = "http://www.texify.com/img/%%5CLARGE%%5C%%21%s.gif" % urllib.quote_plus(' '.join(msg.args))
+		self.c.privmsg(msg.channel, 'LaTeX :: %s' % googl.get_short(url, self.c.config))
 
 	def tag2string(self, tag):
 		if tag.string == None:

@@ -7,7 +7,7 @@ SOURCE = 'SOURCE https://github.com/AClockWorkLemon/NCSSBot'
 class Plugin:
     def __init__(self, controller):
         self.c = controller
-        self.git = git.Git(path=os.path.join(['..', '..', '.git']))
+        self.git = git.Git()
 
     def on_incoming(self, msg):
         if not msg.ctcp: return msg
@@ -29,7 +29,12 @@ class Plugin:
             msg.ctcp = ''
 
         elif command == 'source':
-            self.c.notice(msg.nick, SOURCE)
+            revision = self.git.current_revision()
+            if revision:
+                src = SOURCE + '/commit/' + revision
+            else:
+                src = SOURCE
+            self.c.notice(msg.nick, src)
             msg.body += 'Recieved CTCP SOURCE from '+msg.nick
             msg.nick = '*'
             msg.ctcp = ''
