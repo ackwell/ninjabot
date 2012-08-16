@@ -151,10 +151,12 @@ class Plugin:
 			return
 
 		self.c.privmsg(self.channel, "%s has kicked %s from the game."%(msg.nick, msg.args[0]))
-		self._remove(msg.nick)
+		self._remove(msg.args[0])
 
 	def _remove(self, nick):
 		next = True if self.mode == self.PLAYING and self.players[self.current_player] == nick else False
+		if self.players.index(nick) >= self.current_player:
+			self.current_player -= 1
 		self.players.remove(nick)
 		if self.mode == self.PLAYING:
 			self.c.privmsg(self.channel, "Their hand was %s. It has been shuffled into the deck."%self._render_hand(nick))
@@ -196,6 +198,9 @@ class Plugin:
 			return
 		if not self.players[self.current_player] == msg.nick:
 			self.c.notice(msg.nick, "It's not your turn!")
+			return
+		if len(msg.args) == 0:
+			self.c.notice(msg.nick, "Not enough arguments specified.")
 			return
 		colour = msg.args.pop(0).lower()
 		try: colour = self.CARD_MAP[colour]
