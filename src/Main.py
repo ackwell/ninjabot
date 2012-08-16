@@ -436,7 +436,7 @@ if __name__ == '__main__':
     else:
         config_filename = os.path.join(os.path.expanduser('~'), '.ncssbot_config')
 
-    config = json.loads(open(config_filename, 'rU').read())
+    config = json.loads(re.sub(r'/\*.*?\*/','',open(config_filename, 'rU').read()))
 
     sl = SocketListener(config)
 
