@@ -1,10 +1,8 @@
 from apis.BeautifulSoup import BeautifulSoup as bs, BeautifulStoneSoup as bss, Tag
 from apis import googl
-from urlparse import urlparse
-import re
-import urllib, urllib2
-import httplib
 from apis import requests
+import re
+import urllib
 
 #I'm silencing all errors from webtools' autochecker, simply because there are so many that could pop up.
 #/me is lazy
@@ -61,10 +59,12 @@ class Plugin:
 
 		if resp.textTag:
 			index = 1 if 'may refer to:' in resp.descriptionTag.string else 0
-			info = resp.findAll('description')[index].string
-			self.c.privmsg(msg.channel, "\002Wikipedia ::\002 %s"%(info))
+			info = resp.findAll('description')[index].string.strip()
+			url = resp.findAll('url')[index].string
+			message = "\002Wikipedia ::\002 %s \002::\002 %s" % (info, googl.get_short(url,self.c.config))
+			self.c.privmsg(msg.channel, message)
 		else:
-			self.c.privmsg(msg.channel, '%s: No articles were found.'%' '.join(msg.args))
+			self.c.privmsg(msg.channel, '%s: No articles were found.' % ' '.join(msg.args))
 		
 
 	def trigger_g(self, msg):
@@ -89,7 +89,7 @@ class Plugin:
 		message = "\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
 			self.tag2string(al),
 			self.tag2string(entry.find('span','st')),
-			url,)
+			url)
 		self.c.privmsg(msg.channel, message)
 
 

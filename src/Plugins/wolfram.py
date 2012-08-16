@@ -1,7 +1,7 @@
-import xml.etree.ElementTree as ElementTree
-import urllib
 from apis import googl
 from apis import requests
+import xml.etree.ElementTree as ElementTree
+import urllib
 
 class Plugin:
     active = True
@@ -81,7 +81,9 @@ class Plugin:
                         result = subpod.findtext('plaintext')
                         if '\n' in result:
                             # Adds '...' if result is multiline
-                            result = result.split('\n')[0] + '...'
+                            result = result.replace('\n',' ')#result.split('\n')[0] + '...'
+                        if len(result) > 100:
+                            result = result[:result.find(' ',100)] + '...'
                         #print '--',result
                 # Get the title for output and add to results
                 if result == '' and subpod_count > 1:

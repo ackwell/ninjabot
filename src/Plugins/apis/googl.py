@@ -1,6 +1,5 @@
-from urllib2 import Request, urlopen
-from urllib import urlencode
 import json
+import requests
 
 def get_short(longUrl, config):
     """
@@ -9,25 +8,27 @@ def get_short(longUrl, config):
     """
     
     #Google only accetps it as a JSON header
+    headers = {'content-type': 'application/json'}
+
     data = {
-            "longUrl":longUrl,
-            "key":config["googl"]["api-key"]
+            'longUrl': longUrl,
+            'key': config['googl']['api-key']
             }
-    jdata = json.dumps(data)
-    req = Request("https://www.googleapis.com/urlshortener/v1/url",jdata,{'content-type': 'application/json'})
-    u = urlopen(req).read()
-    return json.loads(u)["id"]
+
+    req = requests.post('https://www.googleapis.com/urlshortener/v1/url', data=json.dumps(data), headers=headers)
+    #print req.json
+    return req.json['id']
 
 def get_long(shortUrl, config):
     """
     Converts a shortened URL back to the full URL
     Returns full URL
     """
-    
-    args = {
+
+    data = {
             "shortUrl":shortUrl,
             "key":config['googl']["api-key"]
             }
-    u = urlopen("https://www.googleapis.com/urlshortener/v1/url?"+urlencode(args)).read()
+    req = requests.get("https://www.googleapis.com/urlshortener/v1/url", params=data)
     #I'll need to capture google's error messages and raise exceptins/NOTIFY nick etc
-    return json.loads(u)["longUrl"]
+    return req.json["longUrl"]
