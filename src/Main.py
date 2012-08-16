@@ -155,17 +155,10 @@ class SocketListener(threading.Thread):
                 else:
                     # Create message object
                     try:
-                        #print msg
                         msg_obj = Message(msg)
                         self.controller.incoming_message(msg_obj)
-                    except Exception as e:#Exception as e:
-                        #print e, msg
-                        error = traceback.format_exc()
-                        print error
-                        self.controller.errors.append(error)
-                        self.controller.privmsg(self.config['server']['channel'], "An error occured. Please ask an admin to check error log %i."%(len(self.controller.errors)-1))
-                    #msg_obj = Message(msg)
-                    #self.controller.incoming_message(msg_obj)
+                    except Exception as e:
+                        self.controller.report_error(e)
 
         # Once we are told to stop, send the quit message, close the socket,
         # and end the thread
@@ -209,9 +202,6 @@ class Controller:
         self.sl.controller = self
         self.gui.controller = self
 
-        #initiate the plugin system
-        self.plugins = PluginHandler(self)
-
         #initiate the buffer that the GUI will poll for updates
         self.buffer = []
 
@@ -219,9 +209,11 @@ class Controller:
         self.ops = []
         self.voiced = []
 
-        self.errors = []
-
         self._should_die = False
+
+        #initiate the plugin system
+        self.errors = []
+        self.plugins = PluginHandler(self)
 
     def begin(self):
         # Start the SocketListener
@@ -239,12 +231,13 @@ class Controller:
 
         self.buffer.append(msg) #add the message to the buffer
 
-    def outgoing_message(self, msg):
+    def outgoing_message(self, msg, ignore_plugins=False):
         # Received message object
         # Send it through the sl and to the gui for displaying
 
         # run messages through the plugin sys
-        msg = self.plugins.on_outgoing(msg)
+        if not ignore_plugins:
+            msg = self.plugins.on_outgoing(msg)
 
         self.sl.send_message(msg)
         self.buffer.append(msg) #add the message to the buffer
@@ -272,13 +265,13 @@ class Controller:
         msg.ctcp = ctcp
         self.outgoing_message(msg)
 
-    def privmsg(self, target, message, ctcp=''):
+    def privmsg(self, target, message, ctcp='', ignore_plugins=False):
         msg = Message()
         msg.command = Message.PRIVMSG
         msg.channel = target
         msg.body = message
         msg.ctcp = ctcp
-        self.outgoing_message(msg)
+        self.outgoing_message(msg, ignore_plugins)
 
     def join(self, channel):
         msg = Message()
@@ -308,6 +301,12 @@ class Controller:
         "Kills the current instance."
         if self.is_admin(msg.nick):
             self.die()
+
+    def report_error(self, error):
+        error = traceback.format_exc()
+        print error
+        self.errors.append(error)
+        self.privmsg(self.config['server']['channel'], "An error occured. Please ask an admin to check error log %i."%(len(self.errors)-1), ignore_plugins=True)
 
 class PluginHandler:
     def __init__(self, controller):
@@ -346,11 +345,17 @@ class PluginHandler:
                 l.append(f[:-3])
 
         for mod in l:
-            try: m = reload(import_module('Plugins.'+mod)).Plugin #So much haxx here
-            except AttributeError: continue
+            try:
+                m = reload(import_module('Plugins.'+mod)).Plugin
+            except AttributeError:
+                continue
+            except Exception as e:
+                self.controller.report_error(e)
+                continue
 
             if 'active' in dir(m):
-                if not getattr(m, 'active'): continue
+                if not getattr(m, 'active'):
+                    continue
 
             m = m(self.controller)
 

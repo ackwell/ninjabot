@@ -20,7 +20,7 @@ class Plugin:
         #config = json.loads(open(config_filename, 'rU').read())
         self.cookie = self.controller.config['ncss']['cookie']
         self.course = int(self.controller.config['ncss']['course'])
-        self.channel = self.controller.config['ncss']['channel']
+        self.channel = self.controller.config['server']['channel']
 
         # create NCSS object
         self.ncss = ncss.NCSS(course=self.course, cookie=self.cookie)
