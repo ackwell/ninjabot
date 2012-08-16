@@ -26,9 +26,15 @@
 		"channel": "##ncss_challenge"
 	},
 
-	//GooGL url shortner
+	// GooGL url shortner
 	"googl":
 	{
 		"api-key": "Google API key"
+	}
+
+	// WolframAlpha AppID
+	"wolfram":
+	{
+		"appid": "WolframAlpha AppID"
 	}
 }
