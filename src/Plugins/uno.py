@@ -403,7 +403,7 @@ class Plugin:
 		for i in range(number):
 			if len(self.deck) == 0:
 				for card in self.discard[:-1]:
-					if card[1] = 'W':
+					if card[1] == 'W':
 						card = 'w'+card[1:]
 					self.deck.append(card)
 				random.shuffle(self.deck)

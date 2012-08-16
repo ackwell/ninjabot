@@ -60,3 +60,4 @@ class Plugin:
 			self.c.notice(msg.nick, 'You are not an admin')
 			return
 		self.c.admins.remove(msg.nick)
+		self.c.notive(msg.nick, "You have been sucessfully deauthed.")

@@ -16,7 +16,5 @@ class Git(object):
         return output.strip()
 
     def current_revision(self):
-        try:
-            return open(os.path.join([self.path, 'refs', 'heads', 'master']), 'rU').read().strip()
-        except:
-            return None
+        output = subprocess.check_output(['git', 'rev-list', 'HEAD', '-n', '1'])
+        return output.strip()
