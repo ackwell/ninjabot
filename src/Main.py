@@ -213,6 +213,7 @@ class Controller:
 
         #initiate the plugin system
         self.errors = []
+        self.ignore = []
         self.plugins = PluginHandler(self)
 
     def begin(self):
@@ -377,7 +378,7 @@ class PluginHandler:
             self.controller.notice(msg.nick, "Reloaded sucessfully.")
 
     def on_incoming(self, msg):
-        if msg.body.startswith(self.prefix):
+        if msg.body.startswith(self.prefix) and not msg.nick in self.controller.ignore:
             if len(msg.body) == len(self.prefix):
                 return msg
             msg.body = msg.body[len(self.prefix):]
