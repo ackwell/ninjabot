@@ -295,6 +295,7 @@ class Plugin:
 		"Can be used to skip join and new game cooldowns."
 		if self.mode == self.INACTIVE and self.timer > 0:
 			if self.c.is_op(msg.nick):
+				self.c.privmsg(self.channel, "Cooldown skipped. %s is ready to play!"%self.uno)
 				self.timer = 0
 			return
 		if not (self.c.is_op(msg.nick, False) or msg.nick == self.start_player):
@@ -302,6 +303,7 @@ class Plugin:
 			return
 		if self.mode != self.JOINING:
 			self.c.notice(msg.nick, "This command can only be used in the player signup stage.")
+
 		self.timer = 0
 		self._begin()
 

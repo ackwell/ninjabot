@@ -36,7 +36,8 @@ class Plugin:
 				head = requests.head(url)
 
 				if 'text/html' in head.headers['content-type']:
-					message = 'Title: '+bs(requests.get(url).text, convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
+					req = requests.get(url)
+					message = 'Title: '+bs(req.text.encode(req.encoding), convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
 				else:
 					content_type = head.headers['content-type']
 					try: size = self.sizeof_fmt(int(head.headers['content-length']))

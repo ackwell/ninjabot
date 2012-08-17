@@ -1,5 +1,9 @@
 # This is an example plugin.
 
+# Notice:
+# If you wish to store data with your plugin, please do so in the ./data directory.
+# This is simply as a means of keeping things tidy.
+
 class Plugin:
 	# Whether or not the plugin should be loaded. If not specified, assumed to be True
 	active = False
