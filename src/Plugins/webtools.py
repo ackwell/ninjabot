@@ -24,28 +24,32 @@ class Plugin:
 		if not msg.type == msg.CHANNEL: return
 
 		try:
-			urls = re.findall(r'\(?\bhttps?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]', msg.body)
+			urls = re.findall(r'https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]', msg.body)
 			for url in urls:
 				if url.startswith('(') and url.endswith(')'):
 					url = url[1:-1]
 
 				filename = re.search(r'/([^/]+)/?$', url).groups(1)[0]
-				if '.' not in filename:
-					url += ''
+				#if '.' not in filename:
+				#	url += ''
 
 				head = requests.head(url)
 
 				if 'text/html' in head.headers['content-type']:
 					req = requests.get(url)
-					message = 'Title: '+bs(req.text.encode(req.encoding), convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
+					req = req.text.encode(req.encoding)
+					r = re.search(r'(?s)<title>.*</title>', req)
+					if not r: return
+					title = bs(r.group(0), convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
+					message = 'Title: '+title
 				else:
 					content_type = head.headers['content-type']
 					try: size = self.sizeof_fmt(int(head.headers['content-length']))
 					except TypeError: size = "Unknown size"
 					message = '%s: %s (%s)' % (filename, content_type, size)
 				self.c.privmsg(msg.channel, message)
-		except:
-			pass
+		except Exception as e:
+			print e
 
 
 	def trigger_w(self, msg):
@@ -77,12 +81,14 @@ class Plugin:
 		url = "https://www.google.com.au/search"
 		params = {'q':' '.join(msg.args)}
 		headers = {'User-agent':self.useragent}
-		entry = bs(requests.get(url,params=params,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'vsc')
+		entry = requests.get(url,params=params,headers=headers).text#bs(requests.get(url,params=params,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'vsc')
 
-		if not entry:
+		r = re.search(r'(?s)<div.*?class="vsc".*?>(.*?)</div>[^d]*?</li>', entry)
+		if not r:
 			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
 			return
 
+		entry = bs(r.group(1), convertEntities=bs.HTML_ENTITIES)
 		al = entry.find('a','l')
 		if not al:
 			return #because i have no idea what would cause this
