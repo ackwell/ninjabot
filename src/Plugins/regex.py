@@ -32,7 +32,9 @@ class Plugin:
                 else:
                     current_group += body[i]
             else:
-                if len(current_group) == 0 and len(groups) == 3:
+                flags = current_group
+                
+                if (flags == 'g' or len(flags) == 0) and len(groups) == 3:
                     # did they have a last message?
                     if msg.nick in last_messages:
                         _, pattern, replacement = map(lambda s: s.replace('\\/', '/'), groups)
@@ -41,10 +43,14 @@ class Plugin:
                         for message in their_messages:
                             try: # will treat the regex as a normal message if an error occurs, i.e. invalid syntax
                                 if re.search(pattern, message):
-                                    body = re.sub(pattern, replacement, message)
+                                    if 'g' in flags:
+                                        body = re.sub(pattern, replacement, message)
+                                    else:
+                                        body = re.sub(pattern, replacement, message, 1)
 
                                     # send it
                                     self.controller.privmsg(msg.channel, '%s meant to say: %s' % (msg.nick, body))
+
                                     break
                             except:
                                 pass
