@@ -118,7 +118,7 @@ class SocketListener(threading.Thread):
 
         # Initialise some vars
         self._stop = False
-        self.exit_status = 0
+        self.exit_status = 1
         self._write_buffer = []
 
         # Initialise the superclass
@@ -288,14 +288,14 @@ class Controller:
 
     def die(self):
         print 'Beginning shutdown'
-        self.sl.exit_status = 0
+        self.sl.exit_status = 1
         self.sl.stop()
 
     def restart(self, msg):
         "Restarts the bot."
         if self.is_admin(msg.nick):
             print 'Beginning restart'
-            self.sl.exit_status = 1
+            self.sl.exit_status = 0
             self.sl.stop()
 
     def kill(self, msg):
@@ -348,17 +348,17 @@ class PluginHandler:
         for mod in l:
             try:
                 m = reload(import_module('Plugins.'+mod)).Plugin
+
+                if 'active' in dir(m):
+                    if not getattr(m, 'active'):
+                        continue
+
+                m = m(self.controller)
             except AttributeError:
                 continue
             except Exception as e:
                 self.controller.report_error(e)
                 continue
-
-            if 'active' in dir(m):
-                if not getattr(m, 'active'):
-                    continue
-
-            m = m(self.controller)
 
             for func in dir(m):
                 r1 = re.match(r'trigger_(.+)', func)
@@ -419,9 +419,9 @@ if __name__ == '__main__':
                 status = process.wait()
             except KeyboardInterrupt:
                 process.kill()
-                status = 0
+                status = 1
 
-            if status != 1:
+            if status != 0:
                 print
                 print 'Goodbye!'
                 quit()

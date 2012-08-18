@@ -39,13 +39,15 @@ class Plugin:
 
                         # scan for a matching message in their last messages
                         for message in their_messages:
-                            if re.search(pattern, message):
-                                body = re.sub(pattern, replacement, message)
+                            try: # will treat the regex as a normal message if an error occurs, i.e. invalid syntax
+                                if re.search(pattern, message):
+                                    body = re.sub(pattern, replacement, message)
 
-                                # send it
-                                self.controller.privmsg(msg.channel, '%s meant to say: %s' % (msg.nick, body))
-
-                                break
+                                    # send it
+                                    self.controller.privmsg(msg.channel, '%s meant to say: %s' % (msg.nick, body))
+                                    break
+                            except:
+                                pass
                         else:
                         	# match wasn't found
                         	# return without adding this to their last messages
