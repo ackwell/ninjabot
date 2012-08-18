@@ -1,6 +1,7 @@
 from apis import git
 import os.path
 import platform
+import time
 
 SOURCE = 'SOURCE https://github.com/AClockWorkLemon/NCSSBot'
 
@@ -36,6 +37,18 @@ class Plugin:
                 src = SOURCE
             self.c.notice(msg.nick, '\x01%s\x01' % src)
             msg.body += 'Recieved CTCP SOURCE from '+msg.nick
+            msg.nick = '*'
+            msg.ctcp = ''
+
+        elif command == 'time':
+            self.c.notice(msg.nick, '\x01TIME %s\x01' % time.ctime())
+            msg.body += 'Received CTCP TIME from '+msg.nick
+            msg.nick = '*'
+            msg.ctcp = ''
+
+        elif command == 'ping':
+            self.c.notice(msg.nick, '\x01PING %s\x01' % ' '.join(args))
+            msg.body += 'Received CTCP PING from '+msg.nick
             msg.nick = '*'
             msg.ctcp = ''
 
