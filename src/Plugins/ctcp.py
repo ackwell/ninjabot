@@ -23,7 +23,7 @@ class Plugin:
             python_info = 'Python %s' % platform.python_version()
             platform_info = platform.platform()
             node_info = platform.node()
-            self.c.notice(msg.nick, 'NCSSBot revision %s, running on %s in %s mode, %s, %s' % (revision, node_info, mode, python_info, platform_info))
+            self.c.notice(msg.nick, '\x01VERSION NCSSBot revision %s, running on %s in %s mode, %s, %s\x01' % (revision, node_info, mode, python_info, platform_info))
             msg.body += 'Recieved CTCP VERSION from '+msg.nick
             msg.nick = '*'
             msg.ctcp = ''
@@ -34,7 +34,7 @@ class Plugin:
                 src = SOURCE + '/commit/' + revision
             else:
                 src = SOURCE
-            self.c.notice(msg.nick, src)
+            self.c.notice(msg.nick, '\x01%s\x01' % src)
             msg.body += 'Recieved CTCP SOURCE from '+msg.nick
             msg.nick = '*'
             msg.ctcp = ''
