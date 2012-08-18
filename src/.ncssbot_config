@@ -23,8 +23,7 @@
 	"ncss":
 	{
 		"cookie": "put your session ID here",
-		"course": 37,
-		"channel": "##ncss_challenge"
+		"course": 37
 	},
 
 	/* GooGL url shortner */
