@@ -35,12 +35,19 @@ class Plugin:
                 else:
                     current_group += body[i]
             else:
+                # take pity on the user if they haven't finished the expression with a forward slash
+                if len(groups) == 2 and len(current_group) > 0:
+                    groups.append(current_group)
+                    current_group = ''
+
                 flags = current_group
-                
+
                 if (flags == 'g' or len(flags) == 0) and len(groups) == 3:
                     # did they have a last message?
                     if msg.nick in last_messages:
                         _, pattern, replacement = map(lambda s: s.replace('\\/', '/'), groups)
+                        # escape backslashes
+                        replacement = replacement.replace('\\', '\\\\')
 
                         # scan for a matching message in their last messages
                         for message in their_messages:
@@ -50,6 +57,9 @@ class Plugin:
                                         body = re.sub(pattern, replacement, message)
                                     else:
                                         body = re.sub(pattern, replacement, message, 1)
+
+                                    # put backslashes back in
+                                    body = body.replace('\\\\', '\\')
 
                                     # send it
                                     self.controller.privmsg(msg.channel, '%s meant to say: %s' % (msg.nick, body))
