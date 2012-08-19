@@ -118,7 +118,7 @@ class SocketListener(threading.Thread):
 
         # Initialise some vars
         self._stop = False
-        self.exit_status = 0
+        self.exit_status = 1
         self._write_buffer = []
 
         # Initialise the superclass
@@ -213,6 +213,7 @@ class Controller:
 
         #initiate the plugin system
         self.errors = []
+        self.ignore = []
         self.plugins = PluginHandler(self)
 
     def begin(self):
@@ -257,6 +258,9 @@ class Controller:
         if not r and announce: self.notice(nick, "Only voiced users, ops and admins can use that command")
         return r
 
+    def is_ignored(self, nick):
+        return True if nick in self.ignore else False
+
     def notice(self, target, message, ctcp=''):
         msg = Message()
         msg.command = Message.NOTICE
@@ -287,14 +291,14 @@ class Controller:
 
     def die(self):
         print 'Beginning shutdown'
-        self.sl.exit_status = 0
+        self.sl.exit_status = 1
         self.sl.stop()
 
     def restart(self, msg):
         "Restarts the bot."
         if self.is_admin(msg.nick):
             print 'Beginning restart'
-            self.sl.exit_status = 1
+            self.sl.exit_status = 0
             self.sl.stop()
 
     def kill(self, msg):
@@ -347,17 +351,17 @@ class PluginHandler:
         for mod in l:
             try:
                 m = reload(import_module('Plugins.'+mod)).Plugin
+
+                if 'active' in dir(m):
+                    if not getattr(m, 'active'):
+                        continue
+
+                m = m(self.controller)
             except AttributeError:
                 continue
             except Exception as e:
                 self.controller.report_error(e)
                 continue
-
-            if 'active' in dir(m):
-                if not getattr(m, 'active'):
-                    continue
-
-            m = m(self.controller)
 
             for func in dir(m):
                 r1 = re.match(r'trigger_(.+)', func)
@@ -377,7 +381,7 @@ class PluginHandler:
             self.controller.notice(msg.nick, "Reloaded sucessfully.")
 
     def on_incoming(self, msg):
-        if msg.body.startswith(self.prefix):
+        if msg.body.startswith(self.prefix) and not msg.nick in self.controller.ignore:
             if len(msg.body) == len(self.prefix):
                 return msg
             msg.body = msg.body[len(self.prefix):]
@@ -418,9 +422,9 @@ if __name__ == '__main__':
                 status = process.wait()
             except KeyboardInterrupt:
                 process.kill()
-                status = 0
+                status = 1
 
-            if status != 1:
+            if status != 0:
                 print
                 print 'Goodbye!'
                 quit()
@@ -436,7 +440,8 @@ if __name__ == '__main__':
     else:
         config_filename = os.path.join(os.path.expanduser('~'), '.ncssbot_config')
 
-    config = json.loads(open(config_filename, 'rU').read())
+    remove_comments = re.compile(r'/\*.*?\*/', re.DOTALL)
+    config = json.loads(re.sub(remove_comments,'',open(config_filename, 'rU').read()))
 
     sl = SocketListener(config)
 

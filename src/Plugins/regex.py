@@ -12,6 +12,9 @@ class Plugin:
         self.controller = controller
 
     def on_incoming(self, msg):
+        # Ignore those who have been ignored...
+        if self.controller.is_ignored(msg.nick):return
+
         if msg.type == msg.CHANNEL:
             # check if the message matches the s/blah/blah/ syntax
             # regex could have been used for this, but factoring in those escaped forward slashes
@@ -32,20 +35,38 @@ class Plugin:
                 else:
                     current_group += body[i]
             else:
-                if len(current_group) == 0 and len(groups) == 3:
+                # take pity on the user if they haven't finished the expression with a forward slash
+                if len(groups) == 2 and len(current_group) > 0:
+                    groups.append(current_group)
+                    current_group = ''
+
+                flags = current_group
+
+                if (flags == 'g' or len(flags) == 0) and len(groups) == 3:
                     # did they have a last message?
                     if msg.nick in last_messages:
                         _, pattern, replacement = map(lambda s: s.replace('\\/', '/'), groups)
+                        # escape backslashes
+                        replacement = replacement.replace('\\', '\\\\')
 
                         # scan for a matching message in their last messages
                         for message in their_messages:
-                            if re.search(pattern, message):
-                                body = re.sub(pattern, replacement, message)
+                            try: # will treat the regex as a normal message if an error occurs, i.e. invalid syntax
+                                if re.search(pattern, message):
+                                    if 'g' in flags:
+                                        body = re.sub(pattern, replacement, message)
+                                    else:
+                                        body = re.sub(pattern, replacement, message, 1)
 
-                                # send it
-                                self.controller.privmsg(msg.channel, '%s meant to say: %s' % (msg.nick, body))
+                                    # put backslashes back in
+                                    body = body.replace('\\\\', '\\')
 
-                                break
+                                    # send it
+                                    self.controller.privmsg(msg.channel, '%s meant to say: %s' % (msg.nick, body))
+
+                                    break
+                            except:
+                                pass
                         else:
                         	# match wasn't found
                         	# return without adding this to their last messages

@@ -1,5 +1,6 @@
-// By default, the bot will look for a config file like this in the current user's home directory.
-// Alternative files can be specified by passing their location to the -c command line flag
+/* By default, the bot will look for a config file like this in the current user's home directory.
+   Alternative files can be specified by passing their location to the -c command line flag
+ */
 
 {
 	"config":
@@ -18,21 +19,20 @@
 		"channel": "#your_channel"
 	},
 
-	// Only applicable for NCSS nerds >:D
+	/* Only applicable for NCSS nerds >:D */
 	"ncss":
 	{
 		"cookie": "put your session ID here",
-		"course": 37,
-		"channel": "##ncss_challenge"
+		"course": 37
 	},
 
-	// GooGL url shortner
+	/* GooGL url shortner */
 	"googl":
 	{
 		"api-key": "Google API key"
-	}
+	},
 
-	// WolframAlpha AppID
+	/* WolframAlpha AppID */
 	"wolfram":
 	{
 		"appid": "WolframAlpha AppID"

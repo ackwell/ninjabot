@@ -24,27 +24,32 @@ class Plugin:
 		if not msg.type == msg.CHANNEL: return
 
 		try:
-			urls = re.findall(r'\(?\bhttps?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]', msg.body)
+			urls = re.findall(r'https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]', msg.body)
 			for url in urls:
 				if url.startswith('(') and url.endswith(')'):
 					url = url[1:-1]
 
 				filename = re.search(r'/([^/]+)/?$', url).groups(1)[0]
-				if '.' not in filename:
-					url += ''
+				#if '.' not in filename:
+				#	url += ''
 
 				head = requests.head(url)
 
 				if 'text/html' in head.headers['content-type']:
-					message = 'Title: '+bs(requests.get(url).text, convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
+					req = requests.get(url)
+					req = req.text.encode(req.encoding)
+					r = re.search(r'(?s)<title>.*</title>', req)
+					if not r: return
+					title = bs(r.group(0), convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
+					message = 'Title: '+title
 				else:
 					content_type = head.headers['content-type']
 					try: size = self.sizeof_fmt(int(head.headers['content-length']))
 					except TypeError: size = "Unknown size"
 					message = '%s: %s (%s)' % (filename, content_type, size)
 				self.c.privmsg(msg.channel, message)
-		except:
-			pass
+		except Exception as e:
+			print e
 
 
 	def trigger_w(self, msg):
@@ -76,12 +81,14 @@ class Plugin:
 		url = "https://www.google.com.au/search"
 		params = {'q':' '.join(msg.args)}
 		headers = {'User-agent':self.useragent}
-		entry = bs(requests.get(url,params=params,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'vsc')
+		entry = requests.get(url,params=params,headers=headers).text#bs(requests.get(url,params=params,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'vsc')
 
-		if not entry:
+		r = re.search(r'(?s)<div.*?class="vsc".*?>(.*?)</div>[^d]*?</li>', entry)
+		if not r:
 			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
 			return
 
+		entry = bs(r.group(1), convertEntities=bs.HTML_ENTITIES)
 		al = entry.find('a','l')
 		if not al:
 			return #because i have no idea what would cause this
@@ -102,16 +109,19 @@ class Plugin:
 		url = "http://www.youtube.com/results"
 		data = {'search_query':' '.join(msg.args)}
 		headers = {'User-agent':self.useragent}
-		entry = bs(requests.post(url,data=data,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'yt-lockup-content')
+		req = requests.post(url,data=data,headers=headers).text
+		entry = re.search(r'(?s)<li.*?yt-grid-box.*?>(.*?)</li', req)
 
 		if not entry:
 			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
 			return
+		entry = bs(entry.group(1), convertEntities=bs.HTML_ENTITIES)
 
+		link = entry.find('a', 'yt-uix-tile-link')
 		message = "\002You\0030,4Tube\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
-			entry.find('a', 'yt-uix-contextlink').string,
+			link.string,
 			self.tag2string(entry.find('p', 'description')),
-			"http://youtu.be/"+entry.find('a', 'yt-uix-contextlink')['href'].split('=')[1],)
+			"http://youtu.be/"+link['href'].split('=')[1],)
 		self.c.privmsg(msg.channel, message)
 
 

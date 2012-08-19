@@ -84,6 +84,8 @@ class Plugin:
                             result = result.replace('\n',' ')#result.split('\n')[0] + '...'
                         if len(result) > 100:
                             result = result[:result.find(' ',100)] + '...'
+                        if len(result) > 200:
+                            result = result[:200] + '...'
                         #print '--',result
                 # Get the title for output and add to results
                 if result == '' and subpod_count > 1:
@@ -98,6 +100,12 @@ class Plugin:
                     interpretation = subpod.findtext('plaintext')
                     #print 'int -', interpretation
 
+        if '\n' in interpretation:
+            interpretation = interpretation.replace('\n',' ')
+        if len(interpretation) > 100:
+            interpretation = interpretation[:interpretation.find(' ',100)] + '...'
+        if len(interpretation) > 200:
+            interpretation = interpretation[:200] + '...'
         # Notify of use of alternate interpretation
         if interpretation != '':
             self.controller.privmsg(msg.channel, '%s Interpreting as `%s`.' % (self.prefix, interpretation))

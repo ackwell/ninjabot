@@ -22,7 +22,7 @@ class Plugin:
 				m = self.cache[err]
 			else:
 				m = kdepaste.write(self.c.errors[err])
-				if err > 0:
+				if err > 0 and 'err' not in m:
 					self.cache[err] = m
 			self.c.notice(msg.nick, "Error report: %s"%m)
 			return
