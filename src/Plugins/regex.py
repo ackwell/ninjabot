@@ -12,6 +12,9 @@ class Plugin:
         self.controller = controller
 
     def on_incoming(self, msg):
+        # Ignore those who have been ignored...
+        if self.controller.is_ignored(msg.nick):return
+
         if msg.type == msg.CHANNEL:
             # check if the message matches the s/blah/blah/ syntax
             # regex could have been used for this, but factoring in those escaped forward slashes

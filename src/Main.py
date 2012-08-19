@@ -258,6 +258,9 @@ class Controller:
         if not r and announce: self.notice(nick, "Only voiced users, ops and admins can use that command")
         return r
 
+    def is_ignored(self, nick):
+        return True if nick in self.ignore else False
+
     def notice(self, target, message, ctcp=''):
         msg = Message()
         msg.command = Message.NOTICE
