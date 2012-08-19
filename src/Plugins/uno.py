@@ -90,6 +90,9 @@ class Plugin:
         self.uno_join(msg)
         self.timer = 2
 
+        # clear the colourblind list
+        self.colourblind_players = []
+
     def uno_stop(self, msg):
         "Stops the current game of UNO!. Only ops+ and the start player can stop a game."
         if not (self.c.is_op(msg.nick, False) or msg.nick == self.start_player):
