@@ -8,7 +8,7 @@ class Plugin:
 			if msg.nick in self.c.ignore:
 				self.c.ignore.remove(msg.nick)
 				self.c.ignore.append(msg.body)
-				self.timeouts[msg.body] = self.timeouts[msg.nick]
+				if msg.body in self.timeouts: self.timeouts[msg.body] = self.timeouts[msg.nick]
 				del self.timeouts[msg.nick]
 
 	def trigger_ignore(self, msg):
