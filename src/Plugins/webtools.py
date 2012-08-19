@@ -109,11 +109,13 @@ class Plugin:
 		url = "http://www.youtube.com/results"
 		data = {'search_query':' '.join(msg.args)}
 		headers = {'User-agent':self.useragent}
-		entry = bs(requests.post(url,data=data,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'yt-lockup-content')
+		req = requests.post(url,data=data,headers=headers).text
+		entry = re.search(r'(?s)<li.*?yt-grid-box.*?>(.*?)</li', req)
 
 		if not entry:
 			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
 			return
+		entry = bs(entry.group(1), convertEntities=bs.HTML_ENTITIES)
 
 		message = "\002You\0030,4Tube\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
 			entry.find('a', 'yt-uix-contextlink').string,
