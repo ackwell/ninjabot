@@ -117,10 +117,11 @@ class Plugin:
 			return
 		entry = bs(entry.group(1), convertEntities=bs.HTML_ENTITIES)
 
+		link = entry.find('a', 'yt-uix-tile-link')
 		message = "\002You\0030,4Tube\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
-			entry.find('a', 'yt-uix-contextlink').string,
+			link.string,
 			self.tag2string(entry.find('p', 'description')),
-			"http://youtu.be/"+entry.find('a', 'yt-uix-contextlink')['href'].split('=')[1],)
+			"http://youtu.be/"+link['href'].split('=')[1],)
 		self.c.privmsg(msg.channel, message)
 
 
