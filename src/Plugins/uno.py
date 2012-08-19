@@ -162,7 +162,7 @@ class Plugin:
             self.current_player -= 1
         self.players.remove(nick)
         if self.mode == self.PLAYING:
-            self.c.privmsg(self.channel, "Their hand was %s. It has been shuffled into the deck."%self._render_hand(nick))
+            self.c.privmsg(self.channel, "Their hand was %s. It has been shuffled into the deck."%self._render_hand(nick, colourblind=False))
             for card in self.hands[nick]:
                 self.deck.insert(random.randint(0, len(self.deck)), card)
 
@@ -433,8 +433,9 @@ class Plugin:
             self.hands[player].append(self.deck.pop())
         if not silent: self.c.notice(player, "Your hand: %s."%self._render_hand(player))
 
-    def _render_hand(self, player):
-        colourblind = (player in self.colourblind_players)
+    def _render_hand(self, player, colourblind=-1):
+        if colourblind == -1:
+            colourblind = (player in self.colourblind_players)
         out = ''
         for card in sorted(self.hands[player]):
             out += self._render_card(card, colourblind)
