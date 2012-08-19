@@ -126,6 +126,8 @@ class SocketListener(threading.Thread):
 
     def run(self):
         # Send our love to the server
+        if self.config['server']['user'] and self.config['server']['password']:
+            self._sock.send('PASS %s:%s\r\n'%(self.config['server']['user'],self.config['server']['password']))
         self._sock.send('NICK %s\r\n' % self.config['config']['nick'])
         self._sock.send('USER %s 0 * :%s\r\n' % (self.config['config']['nick'], self.config['config']['realname']))
         self._sock.send('JOIN :%s\r\n' % self.config['server']['channel'])
