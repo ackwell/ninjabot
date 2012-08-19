@@ -281,12 +281,15 @@ class Plugin:
     def uno_colourblind(self, msg):
         "Toggles your colourblind status. When enabled, you can play the game without having colours enabled in your IRC client."
         player = msg.nick
-        if player in self.colourblind_players:
-            self.colourblind_players.remove(player)
-            self.c.notice(player, "You are no longer set as colourblind.")
+        if player in self.players:
+            if player in self.colourblind_players:
+                self.colourblind_players.remove(player)
+                self.c.notice(player, "You are no longer set as colourblind.")
+            else:
+                self.colourblind_players.append(player)
+                self.c.notice(player, "You are now set as colourblind.")
         else:
-            self.colourblind_players.append(player)
-            self.c.notice(player, "You are now set as colourblind.")
+            self.c.notice(player, "You must be playing to toggle your colourblind status!")
 
     def timer_60(self):
         if self.timer > 1:
