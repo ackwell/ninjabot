@@ -59,6 +59,14 @@ class Plugin:
         else:
             self.c.notice(msg.nick, "The command '%s' does not exist. Check `%suno help` for avalable commands."%(command, self.c.plugins.prefix))
 
+    def on_incoming(self, msg):
+        "Check for nick changes"
+        if msg.command == msg.NICK and msg.nick in self.players:
+            self.players[self.players.index(msg.nick)] = msg.body
+            if msg.nick in self.hands:
+                self.hands[msg.body] = self.hands[msg.nick]
+                del self.hands[msg.nick]
+
     def uno_help(self, msg):
         "Prints the help text. Further command help can be displayed by specifng a command."
         if len(msg.args) == 0:
