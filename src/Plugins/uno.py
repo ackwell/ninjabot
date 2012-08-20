@@ -164,7 +164,7 @@ class Plugin:
 
     def _remove(self, nick):
         next = True if self.mode == self.PLAYING and self.players[self.current_player] == nick else False
-        if self.players.index(nick) >= self.current_player:
+        if self.players.index(nick) <= self.current_player:
             self.current_player -= 1
         self.players.remove(nick)
         if self.mode == self.PLAYING:
@@ -271,6 +271,14 @@ class Plugin:
             return
 
         self.c.notice(msg.nick, "Your hand: %s"%self._render_hand(msg.nick))
+
+    def uno_top(self, msg):
+        "Displays the current top card"
+        if not self.mode == self.PLAYING:
+            self.c.notice(msg.nick, "There is no game in progress.")
+            return
+
+        self.c.notice(msg.nick, "Top card: %s"%self._render_card(self.discard[-1]))
 
     def uno_draw(self, msg): "Draw a card from the deck.";self.uno_pickup(msg)
     def uno_pickup(self, msg):
