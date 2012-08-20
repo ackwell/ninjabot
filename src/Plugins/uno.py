@@ -126,6 +126,9 @@ class Plugin:
         self.c.privmsg(self.channel, "%s has joined the game!"%msg.nick)
         if len(self.players) == 10:
             self.c.privmsg(self.channel, "The game is full! Get ready to play %s!"%self.uno)
+            self.timer = 0
+            self._begin()
+
 
     def uno_leave(self, msg):
         "Leave the game."
