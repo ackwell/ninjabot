@@ -401,11 +401,15 @@ class Plugin:
             self._next_player()
 
         self.turn += 1
+
+        lplayer = self.players[self.last_player]
         player = self.players[self.current_player]
+        nplayer = self.players[self._next_player(True)]
         if self.direction == 1:
-            turns = "%s ->\002 %s \002-> %s"%(self.players[self.last_player], self.players[self.current_player], self.players[self._next_player(True)])
+            turns = "%s (%s) ->\002 %s (%s) \002-> %s (%s)"%(lplayer, len(self.hands[lplayer]), player, len(self.hands[player]), nplayer, len(self.hands[nplayer]))
         else:
-            turns = "%s <-\002 %s \002<- %s"%(self.players[self._next_player(True)], self.players[self.current_player], self.players[self.last_player])
+            turns = "%s (%s) <-\002 %s (%s) \002<- %s (%s)"%(nplayer, len(self.hands[nplayer]), player, len(self.hands[player]), lplayer, len(self.hands[lplayer]))
+
         self.c.privmsg(self.channel, "Turn %s: %s"%(self.turn, turns))
         self.c.privmsg(self.channel, "Top card: %s"%self._render_card(self.discard[-1]))
         for p in self.colourblind_players:
