@@ -447,7 +447,8 @@ if __name__ == '__main__':
 
     sl = SocketListener(config)
 
-    gui = MainInterface(graphical=graphical)
+    gui = GUInterface() if graphical else CLInterface()
+    gui.graphical = graphical
 
     controller = Controller(sl, gui, config)
 
