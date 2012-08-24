@@ -62,7 +62,10 @@ class Plugin:
                                     body = body.replace('\\\\', '\\')
 
                                     # send it
-                                    self.controller.privmsg(msg.channel, '%s meant to say: %s' % (msg.nick, body))
+                                    if body == "":
+                                        self.controller.privmsg(msg.channel, '%s said nothing' % msg.nick)
+                                    else:
+                                        self.controller.privmsg(msg.channel, '%s meant to say: %s' % (msg.nick, body))
 
                                     break
                             except:
