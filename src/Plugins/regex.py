@@ -24,7 +24,7 @@ class Plugin:
 
             groups = list()
             current_group = ''
-            for i in range(len(body)):
+            for i in xrange(len(body)):
                 if i == 0 and body[i] != 's':
                     break
                 elif i == 1 and body[i] != '/':
