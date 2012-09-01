@@ -62,10 +62,10 @@ class Plugin:
                                             body = message[:span[0]] + replacement + message[span[1]:]
                                             print body
                                         else:
-                                            break
+                                            return
                                     else:
                                         body = re.sub(pattern, replacement, message, 1)
-
+                                        
                                     # put backslashes back in
                                     body = body.replace('\\\\', '\\')
 
@@ -79,9 +79,9 @@ class Plugin:
                             except:
                                 pass
                         else:
-                        	# match wasn't found
-                        	# return without adding this to their last messages
-                        	return
+                            # match wasn't found
+                            # return without adding this to their last messages
+                            return
 
             # add it to the last messages dictionary
             their_messages = last_messages[msg.nick]
