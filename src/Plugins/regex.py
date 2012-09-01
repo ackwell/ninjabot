@@ -56,7 +56,13 @@ class Plugin:
                                     if 'g' in flags:
                                         body = re.sub(pattern, replacement, message)
                                     elif flags.isdigit():
-                                        body = re.sub(pattern, replacement, message, int(flags))
+                                        matches = [m for m in re.finditer(pattern, message)]
+                                        if len(matches) >= int(flags):
+                                            span = matches[int(flags)-1].span()
+                                            body = message[:span[0]] + replacement + message[span[1]:]
+                                            print body
+                                        else:
+                                            break
                                     else:
                                         body = re.sub(pattern, replacement, message, 1)
 
