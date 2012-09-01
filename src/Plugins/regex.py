@@ -24,7 +24,7 @@ class Plugin:
 
             groups = list()
             current_group = ''
-            for i in range(len(body)):
+            for i in xrange(len(body)):
                 if i == 0 and body[i] != 's':
                     break
                 elif i == 1 and body[i] != '/':
@@ -42,7 +42,7 @@ class Plugin:
 
                 flags = current_group
 
-                if (flags == 'g' or len(flags) == 0) and len(groups) == 3:
+                if (flags == 'g' or flags.isdigit() or len(flags) == 0) and len(groups) == 3:
                     # did they have a last message?
                     if msg.nick in last_messages:
                         _, pattern, replacement = map(lambda s: s.replace('\\/', '/'), groups)
@@ -55,6 +55,8 @@ class Plugin:
                                 if re.search(pattern, message):
                                     if 'g' in flags:
                                         body = re.sub(pattern, replacement, message)
+                                    elif flags.isdigit():
+                                        body = re.sub(pattern, replacement, message, int(flags))
                                     else:
                                         body = re.sub(pattern, replacement, message, 1)
 
