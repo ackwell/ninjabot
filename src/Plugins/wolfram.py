@@ -88,11 +88,10 @@ class Plugin:
                             result = result[:200] + '...'
                         #print '--',result
                 # Get the title for output and add to results
+                podtitle = pod.get('title')
                 if result == '' and subpod_count > 1:
-                    podtitle = 'Results'
-                    result = 'Too many results'
-                else:
-                    podtitle = pod.get('title')
+                    result = pod.iterfind('subpod').next().findtext('plaintext')
+                    result += '. ' + str(int(subpod_count) - 1) + ' other forms'
                 results.append((podtitle, result))
             # If WA interprets the query differently, use it
             if pod.get('title') == 'Input interpretation':
