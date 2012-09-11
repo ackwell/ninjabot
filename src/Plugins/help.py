@@ -16,11 +16,11 @@ class Plugin:
 				if doc:
 					self.c.notice(msg.nick, doc)
 				else:
-					self.non_existant_help(msg)
+					self.non_existent_help(msg)
 			else:
-				self.non_existant_help(msg)
+				self.non_existent_help(msg)
 
-	def non_existant_help(self, msg):
+	def non_existent_help(self, msg):
 		self.c.notice(msg.nick, "Either that trigger does not exist, or it has no documentation.")
 		
 
