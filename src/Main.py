@@ -207,6 +207,8 @@ class Controller:
         self.sl.controller = self
         self.gui.controller = self
 
+        self.channel = self.config['server']['channel']
+
         #initiate the buffer that the GUI will poll for updates
         self.buffer = []
 

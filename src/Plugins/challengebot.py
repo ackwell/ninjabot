@@ -89,3 +89,9 @@ class Plugin:
                         msg = '%s has gained %d points for a new total of %d!' % (name, change, score)
                     if msg:
                         self.controller.privmsg(self.channel, msg)
+                    msg = None
+                    if status == ncss.ADDED or status == ncss.CHANGED:
+                        if score > 200:
+                            msg = 'Congratulations to %s on completing this year\'s challenge!' % name.split(' (')[0]
+                    if msg:
+                        self.controller.privmsg(self.channel, msg)

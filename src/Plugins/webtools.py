@@ -22,6 +22,7 @@ class Plugin:
 
 	def on_incoming(self, msg):
 		if not msg.type == msg.CHANNEL: return
+		if self.c.is_ignored(msg.nick): return
 
 		try:
 			urls = re.findall(r'https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]', msg.body)
