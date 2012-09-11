@@ -11,8 +11,16 @@ class Plugin:
 			self.c.notice(msg.nick, prefix+(', '+prefix).join(sorted(self.c.plugins.triggers.keys())))
 			self.c.notice(msg.nick, 'For further info, type '+prefix+'help <trigger>')
 		else:
-			doc = self.c.plugins.triggers[msg.args[0].lstrip(prefix)].__doc__
-			if doc:
-				self.c.notice(msg.nick, doc)
+			if msg.args[0].lstrip(prefix) in self.c.plugins.triggers:
+				doc = self.c.plugins.triggers[msg.args[0].lstrip(prefix)].__doc__
+				if doc:
+					self.c.notice(msg.nick, doc)
+				else:
+					self.non_existent_help(msg)
 			else:
-				self.c.notice(msg.nick, "Either that trigger does not exist, or it has no documentation.")
+				self.non_existent_help(msg)
+
+	def non_existent_help(self, msg):
+		self.c.notice(msg.nick, "Either that trigger does not exist, or it has no documentation.")
+		
+
