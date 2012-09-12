@@ -2,7 +2,7 @@ import time
 from apis import ncss
 
 class Plugin:
-    active = True
+    active = False
 
     def __init__(self, controller):
         self.controller       = controller
