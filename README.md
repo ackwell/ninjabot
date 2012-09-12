@@ -11,7 +11,7 @@ directory.
 
     $ git clone https://github.com/ackwell/NCSSBot.git
     $ cd NCSSBot
-    $ mv .ncssbot_config ~
+    $ cp .ncssbot_config ~
 
 You will then want to edit the config file with your details and API keys. If you don't
 have an API key for a particular service, it is reccomended you disable the plugin.
