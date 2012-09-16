@@ -9,7 +9,7 @@ Setting up
 Setup for ninjabot is pretty simple. Clone the repo, then copy the config file to your home
 directory.
 
-    $ git clone https://github.com/ackwell/NCSSBot.git
+    $ git clone https://github.com/ackwell/ninjabot.git
     $ cd NCSSBot
     $ cp .ncssbot_config ~
 
