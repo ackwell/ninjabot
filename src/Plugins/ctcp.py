@@ -3,7 +3,7 @@ import os.path
 import platform
 import time
 
-SOURCE = 'SOURCE https://github.com/ackwell/NCSSBot'
+SOURCE = 'SOURCE https://github.com/ackwell/ninjabot'
 
 class Plugin:
     def __init__(self, controller):

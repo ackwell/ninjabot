@@ -5,8 +5,8 @@
 {
 	"config":
 	{
-		"nick": "NCSSBot",
-		"realname": "NCSSBot",
+		"nick": "ninjabot",
+		"realname": "ninjabot",
 		"quit-message": "Quitting...",
 		"trigger-prefix": "@",
 		"admins": "AdminNickname adminNickname2"
