@@ -1,12 +1,12 @@
-NCSSBot
+ninjabot
 =======
 
-An extensible python IRC bot
+Ninjabot is not 'Just Another Bot': An extensible python IRC bot
 
 Setting up
 ----------
 
-Setup for NCSSBot is pretty simple. Clone the repo, then move the config file to your home
+Setup for ninjabot is pretty simple. Clone the repo, then copy the config file to your home
 directory.
 
     $ git clone https://github.com/ackwell/NCSSBot.git
@@ -15,11 +15,13 @@ directory.
 
 You will then want to edit the config file with your details and API keys. If you don't
 have an API key for a particular service, it is reccomended you disable the plugin.
+Plugins can be disabled by (as outlined in `Plugins/example.py`) adding `active = False`
+as a class variable.
 
 Plugins
 -------
 
-NCSSBot comes with an (ever expanding) base set of plugins which should be more than
+ninjabot comes with an (ever expanding) base set of plugins which should be more than
 enough to get you started, but the true power of the bot comes when you make your own.
 
 To get started writing plugins, check `Plugins/example.py`, it shows the general structure
