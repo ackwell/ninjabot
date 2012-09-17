@@ -419,7 +419,7 @@ if __name__ == '__main__':
 
     if 'wrapped' not in args:
         # launch wrapper
-        print 'NCSSBot wrapper up and running!'
+        print 'ninjabot wrapper up and running!'
         while True:
             print 'Starting instance...'
             print
@@ -437,15 +437,15 @@ if __name__ == '__main__':
                 quit()
             else:
                 print
-                print 'Restarting NCSSBot'
+                print 'Restarting ninjabot'
 
     graphical = not ('nogui' in args)
-    print 'NCSSBot started in %s mode' % ('graphical' if graphical else 'text')
+    print 'ninjabot started in %s mode' % ('graphical' if graphical else 'text')
 
     if '-s' in args:
         config_filename = args[args.index('-s')+1]
     else:
-        config_filename = os.path.join(os.path.expanduser('~'), '.ncssbot_config')
+        config_filename = os.path.join(os.path.expanduser('~'), '.ninjabot_config')
 
     remove_comments = re.compile(r'/\*.*?\*/', re.DOTALL)
     config = json.loads(re.sub(remove_comments,'',open(config_filename, 'rU').read()))

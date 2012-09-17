@@ -1,7 +1,7 @@
 ninjabot
-=======
+========
 
-Ninjabot is not 'Just Another Bot': An extensible python IRC bot
+**n**injabot **i**s **n**ot **j**ust **a**nother **bot**: An extensible Python IRC bot
 
 Setting up
 ----------
@@ -10,8 +10,8 @@ Setup for ninjabot is pretty simple. Clone the repo, then copy the config file t
 directory.
 
     $ git clone https://github.com/ackwell/ninjabot.git
-    $ cd NCSSBot
-    $ cp .ncssbot_config ~
+    $ cd ninjabot
+    $ cp .ninjabot_config ~
 
 You will then want to edit the config file with your details and API keys. If you don't
 have an API key for a particular service, it is reccomended you disable the plugin.

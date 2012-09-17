@@ -19,7 +19,7 @@
 		"channel": "#your_channel"
 	},
 
-	/* Only applicable for NCSS nerds >:D */
+	/* Only applicable for the NCSS API */
 	"ncss":
 	{
 		"cookie": "put your session ID here",
