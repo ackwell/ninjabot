@@ -419,7 +419,7 @@ if __name__ == '__main__':
 
     if 'wrapped' not in args:
         # launch wrapper
-        print 'NCSSBot wrapper up and running!'
+        print 'ninjabot wrapper up and running!'
         while not False:
             print 'Starting instance...'
             print
@@ -437,9 +437,9 @@ if __name__ == '__main__':
                 quit()
             else:
                 print
-                print 'Restarting NCSSBot'
+                print 'Restarting ninjabot'
 
-    print 'NCSSBot started'
+    print 'ninjabot started'
 
     if '-s' in args:
         config_filename = args[args.index('-s')+1]
