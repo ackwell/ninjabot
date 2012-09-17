@@ -1,4 +1,4 @@
-# Regex Plugin for NCSSBot
+# Regex Plugin for ninjabot
 
 from collections import defaultdict, deque
 import re

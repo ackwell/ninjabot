@@ -37,7 +37,7 @@ class Plugin:
 		self.controller.privmsg(self.controller.channel, 'Example of a timed function, executed every 10 seconds.')
 
 # API reference:
-# NCSSBot doesn't have a real 'API', as such, however the Controller and Message classes
+# ninjabot doesn't have a real 'API', as such, however the Controller and Message classes
 # provides most of the functionality you will need. Below is a short listing of the more
 # useful functions. For more info, you'll want to take a look through the Controller class
 # in Main.py, and the various classes it depends on. The instance of Controller is passed

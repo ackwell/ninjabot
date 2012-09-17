@@ -1,4 +1,4 @@
-# Plugin to truncate all output from NCSSBot to stop flood/ensure important
+# Plugin to truncate all output from ninjabot to stop flood/ensure important
 # parts ie. URLs are displayed
 import re
 
