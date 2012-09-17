@@ -14,7 +14,7 @@ directory.
     $ cp .ninjabot_config ~
 
 You will then want to edit the config file with your details and API keys. If you don't
-have an API key for a particular service, it is reccomended you disable the plugin.
+have an API key for a particular service, it is recommended you disable the plugin.
 Plugins can be disabled by (as outlined in `Plugins/example.py`) adding `active = False`
 as a class variable.
 
@@ -26,7 +26,7 @@ enough to get you started, but the true power of the bot comes when you make you
 
 To get started writing plugins, check `Plugins/example.py`, it shows the general structure
 of a plugin, and contains a quickstart on the more common controller functions. For further
-info, the best thing to do is to take a look though the main bot code, a plugin is able to 
+info, the best thing to do is to take a look though the main bot code, a plugin is able to
 leverage any functionality that can be accessed through the controller class.
 
 For further examples, it is probably worth taking a look through the plugins included
