@@ -70,31 +70,30 @@ class NCSS(object):
         return ids
 
 def generate_forum_delta(old, new):
-    # firstly, check if any posts have been added/deleted
-    count_add = len(new) - len(old)
-
     # now, check how many of these have been updated
     # compile a dictionary of old posts, based on a unique ID of TITLE|TIMESTAMP|AUTHOR
     generate_id = lambda post: post['title'] + '|' + post['timestamp'] + '|' + post['author']
 
     old_posts = dict()
+    add_titles = list()
+    update_titles = list()
+
     for post in old:
         unique_id = generate_id(post)
-        old_posts[unique_id] = post['nposts']
+        old_posts[unique_id] = post
 
     # now go through the new posts, and check for changes
-    count_updates = 0
     for post in new:
         unique_id = generate_id(post)
-        try:
-            old_nposts = old_posts[unique_id] # this will throw a KeyError if it's a freshly added post
+        if unique_id not in old_posts:
+            add_titles.append(post['title'])
+        else:
+            old_nposts = old_posts[unique_id]['nposts']
             new_nposts = post['nposts']
             if new_nposts > old_nposts:
-                count_updates += 1
-        except KeyError:
-            pass
+                update_titles.append(post['title'])
 
-    return (count_add, count_updates)
+    return (add_titles, update_titles)
 
 ADDED = 1
 CHANGED = 2

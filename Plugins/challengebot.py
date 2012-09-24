@@ -44,19 +44,22 @@ class Plugin:
 
                     # generate delta
                     added, updated = ncss.generate_forum_delta(old_threads, new_threads)
+                    added_count, updated_count = len(added), len(updated)
 
-                    if added > 0 or updated != 0:
+                    if added_count or updated_count:
                         # compile a message
                         statuses = list()
-                        if added > 0:
-                            status = '%d new post' % added
-                            if added > 1:
+                        if added_count:
+                            status = '%d new post' % added_count
+                            if added_count > 1:
                                 status += 's'
+                            status += ' (%s)' % ', '.join(added)
                             statuses.append(status)
-                        if updated > 0:
-                            status = '%d updated post' % updated
-                            if updated > 1:
+                        if updated_count:
+                            status = '%d updated post' % updated_count
+                            if updated_count > 1:
                                 status += 's'
+                            status += ' (%s)' % ', '.join(updated)
                             statuses.append(status)
                         message = '%s: %s' % (title, ', '.join(statuses))
 
@@ -84,5 +87,11 @@ class Plugin:
                     elif status == ncss.CHANGED:
                         change = new_students[name] - old_students[name]
                         msg = '%s has gained %d points for a new total of %d!' % (name, change, score)
+                    if msg:
+                        self.controller.privmsg(self.channel, msg)
+                    msg = None
+                    if status == ncss.ADDED or status == ncss.CHANGED:
+                        if score > 200:
+                            msg = 'Congratulations to %s on completing this year\'s challenge!' % name.split(' (')[0]
                     if msg:
                         self.controller.privmsg(self.channel, msg)

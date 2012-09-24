@@ -5,8 +5,8 @@
 {
 	"config":
 	{
-		"nick": "NCSSBot",
-		"realname": "NCSSBot",
+		"nick": "ninjabot",
+		"realname": "ninjabot",
 		"quit-message": "Quitting...",
 		"trigger-prefix": "@",
 		"admins": "AdminNickname adminNickname2"
@@ -19,12 +19,11 @@
 		"channel": "#your_channel"
 	},
 
-	/* Only applicable for NCSS nerds >:D */
+	/* Only applicable for the NCSS API */
 	"ncss":
 	{
 		"cookie": "put your session ID here",
-		"course": 37,
-		"channel": "##ncss_challenge"
+		"course": 37
 	},
 
 	/* GooGL url shortner */

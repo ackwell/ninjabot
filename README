@@ -1,6 +1,0 @@
-------=== NCSSBot ===------
-
-NCSSBot is a collaboration between AClockWorkLemon and George1024 to create a Python IRC bot with some extensive features.
-It originally started out as two separate bots, George1024's ChallengeBot, which polled the NCSS Challenge Leaderboards and poseted any changes, and mine, MarvinBot, which used a modular command structure to allow more commands to be added and old ones to be edited with ease.
-NCSSBot tries to combine these two principles, among others, to create a Multi-threaded IRC bot, wich is controllable through the command line, has website polling capabilities, and a module-based command system.
-

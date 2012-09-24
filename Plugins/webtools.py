@@ -22,30 +22,35 @@ class Plugin:
 
 	def on_incoming(self, msg):
 		if not msg.type == msg.CHANNEL: return
+		if self.c.is_ignored(msg.nick): return
 
 		try:
-			urls = re.findall(r'\(?\bhttps?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]', msg.body)
+			urls = re.findall(r'https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]', msg.body)
 			for url in urls:
 				if url.startswith('(') and url.endswith(')'):
 					url = url[1:-1]
 
 				filename = re.search(r'/([^/]+)/?$', url).groups(1)[0]
-				if '.' not in filename:
-					url += ''
+				#if '.' not in filename:
+				#	url += ''
 
 				head = requests.head(url)
 
 				if 'text/html' in head.headers['content-type']:
 					req = requests.get(url)
-					message = 'Title: '+bs(req.text.encode(req.encoding), convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
+					req = req.text.encode(req.encoding)
+					r = re.search(r'(?s)<title>.*</title>', req)
+					if not r: return
+					title = bs(r.group(0), convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
+					message = 'Title: '+title
 				else:
 					content_type = head.headers['content-type']
 					try: size = self.sizeof_fmt(int(head.headers['content-length']))
 					except TypeError: size = "Unknown size"
 					message = '%s: %s (%s)' % (filename, content_type, size)
 				self.c.privmsg(msg.channel, message)
-		except:
-			pass
+		except Exception as e:
+			print e
 
 
 	def trigger_w(self, msg):
@@ -77,12 +82,14 @@ class Plugin:
 		url = "https://www.google.com.au/search"
 		params = {'q':' '.join(msg.args)}
 		headers = {'User-agent':self.useragent}
-		entry = bs(requests.get(url,params=params,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'vsc')
+		entry = requests.get(url,params=params,headers=headers).text#bs(requests.get(url,params=params,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'vsc')
 
-		if not entry:
+		r = re.search(r'(?s)<div.*?class="vsc".*?>(.*?)</div>[^d]*?</li>', entry)
+		if not r:
 			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
 			return
 
+		entry = bs(r.group(1), convertEntities=bs.HTML_ENTITIES)
 		al = entry.find('a','l')
 		if not al:
 			return #because i have no idea what would cause this
@@ -103,16 +110,19 @@ class Plugin:
 		url = "http://www.youtube.com/results"
 		data = {'search_query':' '.join(msg.args)}
 		headers = {'User-agent':self.useragent}
-		entry = bs(requests.post(url,data=data,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'yt-lockup-content')
+		req = requests.post(url,data=data,headers=headers).text
+		entry = re.search(r'(?s)<li.*?yt-grid-box.*?>(.*?)</li', req)
 
 		if not entry:
 			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
 			return
+		entry = bs(entry.group(1), convertEntities=bs.HTML_ENTITIES)
 
+		link = entry.find('a', 'yt-uix-tile-link')
 		message = "\002You\0030,4Tube\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
-			entry.find('a', 'yt-uix-contextlink').string,
+			link.string,
 			self.tag2string(entry.find('p', 'description')),
-			"http://youtu.be/"+entry.find('a', 'yt-uix-contextlink')['href'].split('=')[1],)
+			"http://youtu.be/"+link['href'].split('=')[1],)
 		self.c.privmsg(msg.channel, message)
 
 
@@ -134,7 +144,7 @@ class Plugin:
 	def trigger_tx(self, msg):
 		"Usage: tx <expression>. Prints a link to a graphical representation of the supplied LaTeX expression."
 
-		url = "http://www.texify.com/img/%%5CLARGE%%5C%%21%s.gif" % urllib.quote_plus(' '.join(msg.args))
+		url = "http://www.texify.com/$%s$" % urllib.quote(' '.join(msg.args))
 		self.c.privmsg(msg.channel, 'LaTeX :: %s' % googl.get_short(url, self.c.config))
 
 	def tag2string(self, tag):

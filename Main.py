@@ -126,6 +126,11 @@ class SocketListener(threading.Thread):
 
     def run(self):
         # Send our love to the server
+        if 'password' in self.config['server'] and self.config['server']['password']:
+            pwd = self.config['server']['password']
+            if 'user' in self.config['server'] and self.config['server']['user']:
+                pwd = '%s:%s'%(self.config['server']['user'], pwd)
+            self._sock.send('PASS %s\r\n'%pwd)
         self._sock.send('NICK %s\r\n' % self.config['config']['nick'])
         self._sock.send('USER %s 0 * :%s\r\n' % (self.config['config']['nick'], self.config['config']['realname']))
         self._sock.send('JOIN :%s\r\n' % self.config['server']['channel'])
@@ -202,6 +207,8 @@ class Controller:
         self.sl.controller = self
         self.gui.controller = self
 
+        self.channel = self.config['server']['channel']
+
         #initiate the buffer that the GUI will poll for updates
         self.buffer = []
 
@@ -257,6 +264,9 @@ class Controller:
         r = True if nick in self.voiced or nick in self.ops or nick in self.admins else False
         if not r and announce: self.notice(nick, "Only voiced users, ops and admins can use that command")
         return r
+
+    def is_ignored(self, nick):
+        return True if nick in self.ignore else False
 
     def notice(self, target, message, ctcp=''):
         msg = Message()
@@ -409,8 +419,8 @@ if __name__ == '__main__':
 
     if 'wrapped' not in args:
         # launch wrapper
-        print 'NCSSBot wrapper up and running!'
-        while True:
+        print 'ninjabot wrapper up and running!'
+        while not False:
             print 'Starting instance...'
             print
             process_args = [sys.executable] + sys.argv + ['wrapped']
@@ -427,21 +437,22 @@ if __name__ == '__main__':
                 quit()
             else:
                 print
-                print 'Restarting NCSSBot'
+                print 'Restarting ninjabot'
 
-    graphical = not ('nogui' in args)
-    print 'NCSSBot started in %s mode' % ('graphical' if graphical else 'text')
+    print 'ninjabot started'
 
     if '-s' in args:
         config_filename = args[args.index('-s')+1]
     else:
         config_filename = os.path.join(os.path.expanduser('~'), '.ncssbot_config')
 
-    config = json.loads(re.sub(r'/\*.*?\*/','',open(config_filename, 'rU').read()))
+    remove_comments = re.compile(r'/\*.*?\*/', re.DOTALL)
+    config = json.loads(re.sub(remove_comments,'',open(config_filename, 'rU').read()))
 
     sl = SocketListener(config)
 
-    gui = MainInterface(graphical=graphical)
+    gui = CLInterface()
+    gui.graphical = False
 
     controller = Controller(sl, gui, config)
 
