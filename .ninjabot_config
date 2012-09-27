@@ -10,6 +10,7 @@
 		"quit-message": "Quitting...",
 		"trigger-prefix": "@",
 		"admins": "AdminNickname adminNickname2"
+		"language": "en-au"
 	},
 
 	"server":
