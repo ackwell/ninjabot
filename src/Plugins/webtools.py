@@ -34,10 +34,12 @@ class Plugin:
 				#if '.' not in filename:
 				#	url += ''
 
+				req_headers = {'Accept-Language':'en'}
+
 				head = requests.head(url)
 
 				if 'text/html' in head.headers['content-type']:
-					req = requests.get(url)
+					req = requests.get(url,headers=req_headers)
 					req = req.text.encode(req.encoding)
 					r = re.search(r'(?s)<title>.*</title>', req)
 					if not r: return
