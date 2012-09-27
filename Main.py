@@ -444,7 +444,7 @@ if __name__ == '__main__':
     if '-s' in args:
         config_filename = args[args.index('-s')+1]
     else:
-        config_filename = os.path.join(os.path.expanduser('~'), '.ncssbot_config')
+        config_filename = os.path.join(os.path.expanduser('~'), '.ninjabot_config')
 
     remove_comments = re.compile(r'/\*.*?\*/', re.DOTALL)
     config = json.loads(re.sub(remove_comments,'',open(config_filename, 'rU').read()))
