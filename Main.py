@@ -420,7 +420,7 @@ if __name__ == '__main__':
     if 'wrapped' not in args:
         # launch wrapper
         print 'ninjabot wrapper up and running!'
-        while True:
+        while not False:
             print 'Starting instance...'
             print
             process_args = [sys.executable] + sys.argv + ['wrapped']
@@ -439,21 +439,20 @@ if __name__ == '__main__':
                 print
                 print 'Restarting ninjabot'
 
-    graphical = not ('nogui' in args)
-    print 'ninjabot started in %s mode' % ('graphical' if graphical else 'text')
+    print 'ninjabot started'
 
     if '-s' in args:
         config_filename = args[args.index('-s')+1]
     else:
-        config_filename = os.path.join(os.path.expanduser('~'), '.ninjabot_config')
+        config_filename = os.path.join(os.path.expanduser('~'), '.ncssbot_config')
 
     remove_comments = re.compile(r'/\*.*?\*/', re.DOTALL)
     config = json.loads(re.sub(remove_comments,'',open(config_filename, 'rU').read()))
 
     sl = SocketListener(config)
 
-    gui = GUInterface() if graphical else CLInterface()
-    gui.graphical = graphical
+    gui = CLInterface()
+    gui.graphical = False
 
     controller = Controller(sl, gui, config)
 
