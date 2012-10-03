@@ -34,11 +34,15 @@ class Plugin:
 				#if '.' not in filename:
 				#	url += ''
 
+				req_headers = {}
+				if 'language' in self.c.config['config']:
+					req_headers['Accept-Language'] = self.c.config['config']['language']
+
 				head = requests.head(url)
 
 				if 'text/html' in head.headers['content-type']:
-					req = requests.get(url)
-					req = req.text.encode(req.encoding)
+					req = requests.get(url,headers=req_headers)
+					req = req.text
 					r = re.search(r'(?s)<title>.*</title>', req)
 					if not r: return
 					title = bs(r.group(0), convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
