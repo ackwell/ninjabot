@@ -35,9 +35,9 @@ class Plugin:
             if msg.nick in last_messages:
                 last_message = last_messages[msg.nick]
                 if len(groups) == 2:
-                    _, pattern, replacement = map(lambda s: s.replace('\\/', '/'), groups)
+                    pattern, replacement = map(lambda s: s.replace('\\/', '/'), groups)
                     if len(pattern) == len(replacement):
-                        body = last_message.translate(maketrans(pattern, replacement))
+                        body = last_message.translate(dict(zip(map(ord, pattern), replacement)))
                         self.controller.privmsg(msg.channel, '%s: %s' % (msg.nick, body))
                     else:
                         # was invalid, return without adding this to their last messages
