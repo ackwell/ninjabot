@@ -32,8 +32,8 @@ class Plugin:
         if matches != None:
             groups = matches.groups()
             # did they have a last message?
-            if msg.nick in self.last_messages:
-                last_message = self.last_messages[msg.nick]
+            if msg.nick in last_messages:
+                last_message = last_messages[msg.nick]
                 if len(groups) == 2:
                     _, pattern, replacement = map(lambda s: s.replace('\\/', '/'), groups)
                     if len(pattern) == len(replacement):
