@@ -118,7 +118,7 @@ class Plugin:
 
         # Add a goo.gl url to last result
         messages[-1] += ' \002::\002 '
-        messages[-1] += googl.get_short('http://www.wolframalpha.com/input/?i=%s' % urllib.quote_plus(' '.join(msg.args)), self.controller.config)
+        messages[-1] += googl.get_short('http://www.wolframalpha.com/input/?i=%s' % urllib.quote_plus(' '.join(msg.args).encode('utf-8')), self.controller.config)
 
         for message in messages:
             self.controller.privmsg(msg.channel, message)
