@@ -90,6 +90,7 @@ class IRCConnection:
 			self.socket.close()
 			self.socket = None
 			raise ConnectionError, "Error connecting to socket."
+		self.socket.settimeout(0.2)
 
 		self.connected = True
 
@@ -126,9 +127,12 @@ class IRCConnection:
 
 	# Recieve data from the server.
 	def receive(self):
-		try: new_data = self.socket.recv(2**14)
+		new_data = ''
+		try:
+			new_data = self.socket.recv(2**14)
+			if not new_data: self.disconnect("Connection reset by peer.")
+		except socket.timeout: pass
 		except socket.error: self.disconnect("Connection reset by peer.")
-		if not new_data: self.disconnect("Connection reset by peer.")
 
 		# 'parrently some IRCd don't use the \r in their delimiter
 		lines = re.split(r'\r?\n', self.buffer + new_data)
@@ -136,21 +140,24 @@ class IRCConnection:
 
 		return lines
 
-	def iter_lines(self):
+	def process_loop(self):
 		while self.connected:
 			lines = self.receive()
+
 			for line in lines:
 				# DEBUG
 				print line
 
 				message = Message(line)
 
-				# Handle PINGs
+				# Handle PINGs ASAP
 				if message.command == 'PING':
 					self.pong(message.body)
 					continue
 
 				yield message
+
+			# Flood control send here
 
 	# IRC Commands
 
@@ -195,7 +202,7 @@ class ninjabot(IRCConnection):
 		# temp join
 		self.join('##ninjabot_test')
 
-		for line in self.iter_lines():
+		for line in self.process_loop():
 			pass#print line
 
 
