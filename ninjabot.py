@@ -1,5 +1,8 @@
 import re
 import socket
+import time
+
+from Queue import Queue
 
 # Errors
 class ConnectionError(Exception): pass
@@ -69,6 +72,13 @@ class IRCConnection:
 		self.connected = False
 		self.socket = None
 
+		# Flood protection
+		self.message_queue = Queue()
+		self.sent_chars = 0
+		self.sent_time_last = time.time()
+		self.sent_time = 0
+
+
 	# Connect to the IRC server
 	def connect(self, host, port, nickname, username="", realname="", password=""):
 		self.host = host
@@ -114,16 +124,42 @@ class IRCConnection:
 		self.connected = False
 
 	# Send a message to the server. Delimiter is added automatically
-	def send(self, message):
+	def send(self, message, now=False):
 		if self.socket is None: raise ConnectionError, "Not connected."
 
-		try:
-			message += "\r\n"
-			self.socket.sendall(message)
-		except socket.error: self.disconnect("Connection reset by peer.")
+		# If it's imporant (or has already been queued)
+		if now:
+			try:
+				message += "\r\n"
+				self.socket.sendall(message)
+			except socket.error: self.disconnect("Connection reset by peer.")
 
-		# DEBUG
-		print "SENT: " + message
+			# DEBUG
+			print "SENT: " + message
+
+		# Else, queue it
+		else:
+			# Encode the message. Uncomment if shit goes down.
+			#message = message.encode('utf-8', 'ignore')
+			self.message_queue.put(message)
+
+	# Send some stuff from the queue. Used for flood prevention.
+	def send_queue(self):
+		self.sent_time += time.time() - self.sent_time_last
+		self.sent_time_last = time.time()
+		if self.sent_time >= 1.0:
+			self.sent_time = 0
+			self.sent_chars = 0
+
+		# This *WILL STILL FLOOD* if abused.
+		# Should keep it to a minimum, however.
+		while not self.message_queue.empty():
+			if self.sent_chars <= 500:
+				message = self.message_queue.get()
+				self.send(message, now=True)
+				self.sent_chars += len(message)
+			else:
+				break
 
 	# Recieve data from the server.
 	def receive(self):
@@ -157,7 +193,7 @@ class IRCConnection:
 
 				yield message
 
-			# Flood control send here
+			self.send_queue()
 
 	# IRC Commands
 
@@ -171,13 +207,17 @@ class IRCConnection:
 		self.send("PASS " + password)
 
 	def ping(self, target, target2=""):
-		self.send("PING %s%s" % (target, target2 and (" " + target2)))
+		self.send("PING %s%s" % (target, target2 and (" " + target2)), now=True)
 
 	def pong(self, target, target2=""):
-		self.send("PONG %s%s" % (target, target2 and (" " + target2)))
+		self.send("PONG %s%s" % (target, target2 and (" " + target2)), now=True)
+
+	def privmsg(self, targets, message):
+		if type(targets) is list: targets = ','.join(targets)
+		self.send("PRIVMSG %s :%s" % (targets, message))
 
 	def quit(self, message):
-		self.send("QUIT" + (message and (" :" + message)))
+		self.send("QUIT" + (message and (" :" + message)), now=True)
 
 	def user(self, username, realname):
 		self.send("USER %s 0 * :%s" % (username, realname))
