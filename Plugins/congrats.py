@@ -4,7 +4,7 @@ from apis import ncss
 class Plugin:
     active = False
 
-    def __init__(self, controller):
+    def __init__(self, controller, config):
         self.controller       = controller
         self.cookie           = self.controller.config['ncss']['cookie']
         self.course           = int(self.controller.config['ncss']['course'])
