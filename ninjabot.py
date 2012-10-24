@@ -134,8 +134,11 @@ class IRCConnection:
 
 		# If it's imporant (or has already been queued)
 		if now:
+			# Max message length for IRC is 512 chr.
+			if len(message) > 510:
+				message = message[:511]
+			message += "\r\n"
 			try:
-				message += "\r\n"
 				self.socket.sendall(message)
 			except socket.error: self.disconnect("Connection reset by peer.")
 
@@ -221,6 +224,10 @@ class IRCConnection:
 		if type(targets) is list: targets = ','.join(targets)
 		self.send("PRIVMSG %s :%s" % (targets, message))
 
+	def notice(self, targets, message):
+		if type(targets) is list: targets = ','.join(targets)
+		self.send("NOTICE %s :%s" % (targets, message))
+
 	def quit(self, message):
 		self.send("QUIT" + (message and (" :" + message)), now=True)
 
@@ -237,35 +244,60 @@ class ninjabot(IRCConnection):
 		self.config = config
 
 		# Start up the shcduler for timer plugins
-		self.scheduler = kronos.ThreadedScheduler()
-		self.scheduler.start()
-		self.timers = []
+		#self.scheduler = kronos.ThreadedScheduler()
+		#self.scheduler.start()
+		#self.timers = []
 
 		self.load_plugins()
 
 	def start(self):
 		self.connect(**self.config['server'])
 
-		# temp join
-		self.join('##ninjabot_test')
+		# Connect to channels specified in config
+		for channel in self.config['bot']['channels']:
+			self.join(channel)
 
-		for line in self.process_loop():
-			pass#print line
+		command_prefix = self.config['bot']['command_prefix']
 
-	def load_plugins(self, context=None):
+		# Generator that spews messages from the server
+		for msg in self.process_loop():
+			# Check if it's a command
+			if msg.body.startswith(command_prefix):
+				if len(msg.body) == len(command_prefix): continue
+				# Strip the prefix
+				msg.body = msg.body[len(command_prefix):]
+
+				# Get the command and stuff
+				msg_split = msg.body.split(None, 1)
+				command, argument = msg_split[0], msg_split[1] if len(msg_split)>1 else ''
+				msg.argument = argument
+
+				# Try and call the trigger
+				if command in self.triggers:
+					self.triggers[command](msg)
+				elif self.config['bot']['notify_cnf']:
+					self.notice(msg.nick, command+' is not a valid command.')
+
+			# Not a command? Run it through on_incoming then
+			else:
+				for func in self.incoming:
+					temp_msg = func(msg)
+					if temp_msg: msg = temp_msg
+
+
+	def load_plugins(self, msg=None):
 		"Reloads plugins"
 
 		self.triggers = {}
 		self.incoming = []
-		self.outgoing = []
 
 		# Register base functions
 		self.triggers['reload'] = self.load_plugins
 
 		# Stop any running timers
-		for timer in self.timers:
-			self.scheduler.cancel(timer)
-		self.timers = []
+		#for timer in self.timers:
+		#	self.scheduler.cancel(timer)
+		#self.timers = []
 
 		# Get a list of plugins
 		l = []
@@ -275,11 +307,13 @@ class ninjabot(IRCConnection):
 
 		# Try to import them
 		for mod in l:
+			modname = 'Plugins.' + mod
+
 			# Need to check if plugin is enabled in the config here.
 			try:
 				# Not pretty, but best I can be assed to do.
 				# Anything more requires tomfoolery with sys.modules
-				m = reload(import_module('Plugins.' + mod)).Plugin(self)
+				plugin = reload(import_module(modname)).Plugin(self)
 			# Probably the __init__ file...
 			except AttributeError:
 				continue
@@ -287,7 +321,22 @@ class ninjabot(IRCConnection):
 				# Report the error
 				continue
 
-			# Add triggers to the whatsits etc
+			# Register plugin functions
+			for func_name in dir(plugin):
+				m_trigger = re.match(r'trigger_(.+)', func_name)
+				#m_timer = re.match(r'timer_([0-9]+)', func_name)
+
+				func = getattr(plugin, func_name)
+				if m_trigger:
+					self.triggers[m_trigger.group(1)] = func
+				#add timer
+				elif func_name == 'on_incoming':
+					self.incoming.append(func)
+
+		# If reload was issued from channel, message the caller to notify completion
+		if msg:
+			self.notice(msg.nick, "Reloaded sucessfully.")
+
 
 
 
