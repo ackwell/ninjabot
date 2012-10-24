@@ -5,6 +5,7 @@ import re
 import socket
 import sys
 import time
+import traceback
 
 from importlib import import_module
 from Queue import Queue
@@ -147,8 +148,8 @@ class IRCConnection:
 
 		# Else, queue it
 		else:
-			# Encode the message. Uncomment if shit goes down.
-			#message = message.encode('utf-8', 'ignore')
+			# Encode the message.
+			message = message.encode('utf-8', 'ignore')
 			self.message_queue.put(message)
 
 	# Send some stuff from the queue. Used for flood prevention.
@@ -192,6 +193,8 @@ class IRCConnection:
 				# DEBUG
 				print line
 
+				# Encode, then chuck through the Message whatsit
+				line = unicode(line, 'utf-8', 'ignore')
 				message = Message(line)
 
 				# Handle PINGs ASAP
@@ -238,15 +241,22 @@ class IRCConnection:
 
 
 class ninjabot(IRCConnection):
-	def __init__(self, config):
+	def __init__(self, config_path):
 		IRCConnection.__init__(self)
 
-		self.config = config
+		self.config_path = config_path
+		self.load_config()
+
+		# List of errors n' stuff
+		self.errors = []
+
+		# Bot admins. Authentication is handled externally (plugin)
+		self.admins = []
 
 		# Start up the shcduler for timer plugins
-		#self.scheduler = kronos.ThreadedScheduler()
-		#self.scheduler.start()
-		#self.timers = []
+		self.scheduler = kronos.ThreadedScheduler()
+		self.scheduler.start()
+		self.timers = []
 
 		self.load_plugins()
 
@@ -257,47 +267,74 @@ class ninjabot(IRCConnection):
 		for channel in self.config['bot']['channels']:
 			self.join(channel)
 
-		command_prefix = self.config['bot']['command_prefix']
+		self.command_prefix = self.config['bot']['command_prefix']
 
 		# Generator that spews messages from the server
 		for msg in self.process_loop():
-			# Check if it's a command
-			if msg.body.startswith(command_prefix):
-				if len(msg.body) == len(command_prefix): continue
-				# Strip the prefix
-				msg.body = msg.body[len(command_prefix):]
+			# Catch any errors from the plugins
+			try:
+				self.on_incoming(msg)
+			except:
+				self.report_error()
 
-				# Get the command and stuff
-				msg_split = msg.body.split(None, 1)
-				command, argument = msg_split[0], msg_split[1] if len(msg_split)>1 else ''
-				msg.argument = argument
+	def on_incoming(self, msg):
+		# Check if it's a command
+		if msg.body.startswith(self.command_prefix):
+			if len(msg.body) == len(self.command_prefix): return
+			# Strip the prefix
+			msg.body = msg.body[len(self.command_prefix):]
 
-				# Try and call the trigger
-				if command in self.triggers:
-					self.triggers[command](msg)
-				elif self.config['bot']['notify_cnf']:
-					self.notice(msg.nick, command+' is not a valid command.')
+			# Get the command and stuff
+			msg_split = msg.body.split(None, 1)
+			command, argument = msg_split[0].lower(), msg_split[1] if len(msg_split)>1 else ''
+			msg.argument = argument
 
-			# Not a command? Run it through on_incoming then
-			else:
-				for func in self.incoming:
-					temp_msg = func(msg)
-					if temp_msg: msg = temp_msg
+			# Try to call the trigger
+			if command in self.triggers:
+				self.triggers[command](msg)
+			elif self.config['bot']['notify_cnf']:
+				self.notice(msg.nick, command+' is not a valid command.')
 
+		# Not a command? Run it through on_incoming then
+		else:
+			for func in self.incoming:
+				temp_msg = func(msg)
+				if temp_msg: msg = temp_msg
 
-	def load_plugins(self, msg=None):
-		"Reloads plugins"
+	def reload(self, msg):
+		"Reloads various things."
+		if not self.isadmin(msg.nick): return
+		
+		arg = msg.argument.lower()
+		# For legacy reasons, if nothing provided, assume reloading plugins
+		if not len(arg): arg = 'plugins'
+		if arg == "plugins":
+			self.load_plugins()
+		elif arg == "config":
+			self.load_config()
+		else:
+			self.notice(msg.nick, arg+" cannot be reloaded.")
 
+		self.notice(msg.nick, "Reloaded sucessfully.")
+
+	def load_config(self):
+		# Need to remove comments, else JSON throws a hissy
+		regexp_remove_comments = re.compile(r'/\*.*?\*/', re.DOTALL)
+		config = open(self.config_path, 'rU').read()
+		self.config = json.loads(regexp_remove_comments.sub('', config))
+
+	def load_plugins(self):
 		self.triggers = {}
 		self.incoming = []
 
 		# Register base functions
-		self.triggers['reload'] = self.load_plugins
+		self.triggers['reload'] = self.reload
+		self.triggers['kill'] = self.kill
 
 		# Stop any running timers
-		#for timer in self.timers:
-		#	self.scheduler.cancel(timer)
-		#self.timers = []
+		for timer in self.timers:
+			self.scheduler.cancel(timer)
+		self.timers = []
 
 		# Get a list of plugins
 		l = []
@@ -307,35 +344,61 @@ class ninjabot(IRCConnection):
 
 		# Try to import them
 		for mod in l:
-			modname = 'Plugins.' + mod
+			# Skip over disabled plugins
+			if 'plugins' in self.config and mod in self.config['plugins'] and not self.config['plugins'][mod]:
+				continue
 
-			# Need to check if plugin is enabled in the config here.
+			# Get the plugin's config, if it exists
+			config = {}
+			if mod in self.config:
+				config = self.config[mod]
+
 			try:
 				# Not pretty, but best I can be assed to do.
 				# Anything more requires tomfoolery with sys.modules
-				plugin = reload(import_module(modname)).Plugin(self)
+				plugin = reload(import_module('Plugins.' + mod)).Plugin(self, config)
 			# Probably the __init__ file...
 			except AttributeError:
 				continue
-			except Exception as e:
-				# Report the error
+			except:
+				self.report_error()
 				continue
 
 			# Register plugin functions
 			for func_name in dir(plugin):
 				m_trigger = re.match(r'trigger_(.+)', func_name)
-				#m_timer = re.match(r'timer_([0-9]+)', func_name)
+				m_timer = re.match(r'timer_([0-9]+)', func_name)
 
 				func = getattr(plugin, func_name)
 				if m_trigger:
-					self.triggers[m_trigger.group(1)] = func
-				#add timer
+					self.triggers[m_trigger.group(1).lower()] = func
+				elif m_timer:
+					t = int(m_timer.group(1))
+					timer = self.scheduler.add_interval_task(func, mod+func_name, 0, t, kronos.method.threaded, [], None)
+					self.timers.append(timer)
 				elif func_name == 'on_incoming':
 					self.incoming.append(func)
 
-		# If reload was issued from channel, message the caller to notify completion
-		if msg:
-			self.notice(msg.nick, "Reloaded sucessfully.")
+	def kill(self, msg):
+		if not self.isadmin(msg.nick): return
+		message = self.config['bot']['quit_message']
+		if len(msg.argument):
+			message = msg.argument
+		self.disconnect(message)
+
+	def report_error(self):
+		error = traceback.format_exc()
+		print error
+		self.errors.append(error)
+		if self.config['bot']['notify_errors']:
+			self.privmsg(','.join(self.config['bot']['channels']), "An error occured. Please ask an admin to check error log %i."%(len(self.errors)-1))
+
+	def isadmin(self, nickname, silent=False):
+		if nickname in self.admins:
+			return True
+		if self.config['bot']['notify_insufficient_privs'] and not silent:
+			self.notice(nickname, "You have insufficient privilages to perform that action.")
+		return False
 
 
 
@@ -354,13 +417,8 @@ if __name__ == '__main__':
 	else:
 		config_filename = os.path.join(os.path.expanduser('~'), '.ninjabot_config')
 
-	# Need to remove comments, else JSON throws a hissy
-	regexp_remove_comments = re.compile(r'/\*.*?\*/', re.DOTALL)
-	config = open(config_filename, 'rU').read()
-	config = json.loads(regexp_remove_comments.sub('', config))
-
 	# Start up the bot
-	bot = ninjabot(config)
+	bot = ninjabot(config_filename)
 	bot.start()
 
 
