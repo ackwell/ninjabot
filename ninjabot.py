@@ -1,7 +1,12 @@
+import json
+import kronos
+import os
 import re
 import socket
+import sys
 import time
 
+from importlib import import_module
 from Queue import Queue
 
 # Errors
@@ -226,24 +231,63 @@ class IRCConnection:
 
 
 class ninjabot(IRCConnection):
-	def __init__(self):
+	def __init__(self, config):
 		IRCConnection.__init__(self)
 
-		temp_config = {
-			"host": "irc.freenode.net",
-			"port": 6667,
-			"nickname": "nb_test",
-			"username": "nb_test_un",
-			"realname": "nb_test_rn"
-		}
+		self.config = config
 
-		self.connect(**temp_config)
+		# Start up the shcduler for timer plugins
+		self.scheduler = kronos.ThreadedScheduler()
+		self.scheduler.start()
+		self.timers = []
+
+		self.load_plugins()
+
+	def start(self):
+		self.connect(**self.config['server'])
 
 		# temp join
 		self.join('##ninjabot_test')
 
 		for line in self.process_loop():
 			pass#print line
+
+	def load_plugins(self, context=None):
+		"Reloads plugins"
+
+		self.triggers = {}
+		self.incoming = []
+		self.outgoing = []
+
+		# Register base functions
+		self.triggers['reload'] = self.load_plugins
+
+		# Stop any running timers
+		for timer in self.timers:
+			self.scheduler.cancel(timer)
+		self.timers = []
+
+		# Get a list of plugins
+		l = []
+		for f in os.listdir('./Plugins'):
+			if f.endswith('.py'):
+				l.append(f[:-3])
+
+		# Try to import them
+		for mod in l:
+			# Need to check if plugin is enabled in the config here.
+			try:
+				# Not pretty, but best I can be assed to do.
+				# Anything more requires tomfoolery with sys.modules
+				m = reload(import_module('Plugins.' + mod)).Plugin(self)
+			# Probably the __init__ file...
+			except AttributeError:
+				continue
+			except Exception as e:
+				# Report the error
+				continue
+
+			# Add triggers to the whatsits etc
 
 
 
@@ -252,4 +296,60 @@ class ninjabot(IRCConnection):
 
 
 if __name__ == '__main__':
-	t = ninjabot()
+	# Grab the command line args
+	args = sys.argv[1:]
+
+	# Check if a config file path has been specified
+	if '-c' in args:
+		config_filename = args[args.index('-c') + 1]
+	else:
+		config_filename = os.path.join(os.path.expanduser('~'), '.ninjabot_config')
+
+	# Need to remove comments, else JSON throws a hissy
+	regexp_remove_comments = re.compile(r'/\*.*?\*/', re.DOTALL)
+	config = open(config_filename, 'rU').read()
+	config = json.loads(regexp_remove_comments.sub('', config))
+
+	# Start up the bot
+	bot = ninjabot(config)
+	bot.start()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Whitespace because ST2 on OSX seems not to have the extra buffer space
+# Please excuse
