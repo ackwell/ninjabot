@@ -14,8 +14,6 @@ from Queue import Queue
 # Errors
 class ConnectionError(Exception): pass
 
-# NOTE: PING TARGET IN SELF.BODY
-
 # class used to hold message data in a slightly more useful manner
 class Message:
 	OTHER   = 0
@@ -71,7 +69,6 @@ class Message:
 
 	def ctcp_dequote(self, s):
 		return re.sub(r'\\(.)', lambda m:'\001' if m.group(0)=='\\a' else m.group(1), s)
-
 
 # Creates and handles connection to IRC server
 class IRCConnection:
@@ -237,9 +234,6 @@ class IRCConnection:
 
 	def user(self, username, realname):
 		self.send("USER %s 0 * :%s" % (username, realname))
-
-
-
 
 class ninjabot(IRCConnection):
 	def __init__(self, config_path):
@@ -413,13 +407,6 @@ class ninjabot(IRCConnection):
 			self.notice(nickname, "You have insufficient privilages to perform that action.")
 		return False
 
-
-
-
-
-
-
-
 if __name__ == '__main__':
 	# Grab the command line args
 	args = sys.argv[1:]
@@ -454,43 +441,3 @@ if __name__ == '__main__':
 	# Start up the bot
 	bot = ninjabot(config_filename)
 	bot.start()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Whitespace because ST2 on OSX seems not to have the extra buffer space
-# Please excuse

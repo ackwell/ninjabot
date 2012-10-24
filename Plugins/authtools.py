@@ -1,13 +1,13 @@
 # Removed OP/Voice stuff for now
 class Plugin:
-	def __init__(self, bot, config):
+	def __init__(self, bot, admins):
 		self.bot = bot
-		self.botonfig = config
+		self.admins = admins
 
 	def on_incoming(self, msg):
-		if msg.command == 'NOTICE' and msg.nick == "NickServ":
+		if msg.command == 'NOTICE' and msg.nick == "NickServ" and '->' in msg.body:
 			args = msg.body.split()
-			if args[2] in self.botonfig['admins'] and args[4] == '3':
+			if args[2] in self.admins and args[4] == '3':
 				self.bot.admins.append(args[0])
 				self.bot.notice(args[0], "You have been added as an admin.")
 			else:
@@ -25,8 +25,6 @@ class Plugin:
 			if msg.nick in self.bot.admins:
 				self.bot.admins.remove(msg.nick)
 				self.bot.notice(msg.nick, "This nick has been deauthed. Please reauth.")
-
-
 
 	def trigger_auth(self, msg):
 		"Checks with NickServ, then adds you to admins list."

@@ -3,6 +3,9 @@ ninjabot
 
 **n**injabot **i**s **n**ot **j**ust **a**nother **bot**: An extensible Python IRC bot
 
+**Please note:** ninjabot has just had a major rework, and as such, some/all of the
+documentation is a little out of date.
+
 Setting up
 ----------
 
