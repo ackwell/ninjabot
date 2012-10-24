@@ -3,6 +3,7 @@ import kronos
 import os
 import re
 import socket
+import subprocess
 import sys
 import time
 import traceback
@@ -258,6 +259,9 @@ class ninjabot(IRCConnection):
 		self.scheduler.start()
 		self.timers = []
 
+		# Exit without restarting by default
+		self.exit_status = 1
+
 		self.load_plugins()
 
 	def start(self):
@@ -276,6 +280,9 @@ class ninjabot(IRCConnection):
 				self.on_incoming(msg)
 			except:
 				self.report_error()
+
+		# Loop has exited - exit the process
+		sys.exit(self.exit_status)
 
 	def on_incoming(self, msg):
 		# Check if it's a command
@@ -304,7 +311,7 @@ class ninjabot(IRCConnection):
 	def reload(self, msg):
 		"Reloads various things."
 		if not self.isadmin(msg.nick): return
-		
+
 		arg = msg.argument.lower()
 		# For legacy reasons, if nothing provided, assume reloading plugins
 		if not len(arg): arg = 'plugins'
@@ -330,6 +337,7 @@ class ninjabot(IRCConnection):
 		# Register base functions
 		self.triggers['reload'] = self.reload
 		self.triggers['kill'] = self.kill
+		self.triggers['restart'] = self.restart
 
 		# Stop any running timers
 		for timer in self.timers:
@@ -386,6 +394,11 @@ class ninjabot(IRCConnection):
 			message = msg.argument
 		self.disconnect(message)
 
+	def restart(self, msg):
+		if not self.isadmin(msg.nick): return
+		self.exit_status = 0
+		self.kill(msg)
+
 	def report_error(self):
 		error = traceback.format_exc()
 		print error
@@ -410,6 +423,27 @@ class ninjabot(IRCConnection):
 if __name__ == '__main__':
 	# Grab the command line args
 	args = sys.argv[1:]
+
+	if 'wrapped' not in args:
+		# Launch the wrapper
+		print 'ninjabot wrapper up and running!'
+		while not False:
+			print 'Starting instance...\n'
+			process_args = [sys.executable] + sys.argv + ['wrapped']
+			process = subprocess.Popen(process_args, shell=False)
+			try:
+				status = process.wait()
+			except KeyboardInterrupt:
+				process.kill()
+				status = 1
+
+			if status != 0:
+				print '\nGoodbye!'
+				quit()
+			else:
+				print '\nRestarting ninjabot'
+
+	print 'ninjabot starting up'
 
 	# Check if a config file path has been specified
 	if '-c' in args:
