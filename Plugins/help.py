@@ -11,8 +11,8 @@ class Plugin:
 			self.c.notice(msg.nick, prefix+(', '+prefix).join(sorted(self.c.triggers.keys())))
 			self.c.notice(msg.nick, 'For further info, type '+prefix+'help <trigger>')
 		else:
-			if msg.args[0].lstrip(prefix) in self.c.plugins.triggers:
-				doc = self.c.plugins.triggers[msg.args[0].lstrip(prefix)].__doc__
+			if msg.args[0].lstrip(prefix) in self.c.triggers:
+				doc = self.c.triggers[msg.args[0].lstrip(prefix)].__doc__
 				if doc:
 					self.c.notice(msg.nick, doc)
 				else:
