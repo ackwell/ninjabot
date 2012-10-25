@@ -18,8 +18,8 @@ directory.
 
 You will then want to edit the config file with your details and API keys. If you don't
 have an API key for a particular service, it is recommended you disable the plugin.
-Plugins can be disabled by (as outlined in `Plugins/example.py`) adding `active = False`
-as a class variable.
+Plugins can be disabled by (as outlined in the example config file) adding `"module_name": false`
+to the `plugins` section of the config.
 
 Plugins
 -------
