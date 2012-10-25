@@ -21,7 +21,8 @@ class Plugin:
 
 	def config_help(self, msg):
 		self.bot.notice(msg.nick, "%sconfig set p1 [p2 ...] value: Sets the config path specified to value."%self.bot.command_prefix)
-		self.bot.notice(msg.nick, "%scongig get p1 [p2 ...]: Retrieves value for specified config path."%self.bot.command_prefix)
+		self.bot.notice(msg.nick, "%sconfig get p1 [p2 ...]: Retrieves value for specified config path."%self.bot.command_prefix)
+		self.bot.notice(msg.nick, "%sconfig save: Saves the current config to file."%self.bot.command_prefix)
 
 	def config_set(self, msg):
 		config = self._get_config(msg.args[:-2])
@@ -37,7 +38,7 @@ class Plugin:
 
 	def config_save(self, msg):
 		f_config = open(self.bot.config_path, 'w')
-		f_config.write(json.dumps(self.bot.config))
+		f_config.write(json.dumps(self.bot.config, indent=2))
 		f_config.close()
 		self.bot.notice(msg.nick, "Config saved sucessfully.")
 

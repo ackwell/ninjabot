@@ -1,41 +1,57 @@
 /* By default, the bot will look for a config file like this in the current user's home directory.
-   Alternative files can be specified by passing their location to the -c command line flag
+   Alternative config files can be specified by passing their location to the -c command line flag.
  */
 
 {
-	"config":
-	{
-		"nick": "ninjabot",
-		"realname": "ninjabot",
-		"quit-message": "Quitting...",
-		"trigger-prefix": "@",
-		"admins": "AdminNickname adminNickname2"
-		"language": "en-au"
-	},
+	/* Server connection details */
+	"server": {
+    "host": "irc.example.com",  
+    "port": 6667,
+    "nickname": "ninjabot", 
+    "username": "ninjabot_un", 
+    "realname": "ninjabot_rn", 
+    /*"password": "server password"*/ /* Optional */
+  },
 
-	"server":
-	{
-		"host": "irc.your.server",
-		"port": 6667,
-		"channel": "#your_channel"
-	},
+  /* ninjabot settings */
+  "bot": {
+  	"channels": [
+      "##ninjabot_test"
+    ], 
+    "command_prefix": "|",
+    "notify_insufficient_privs": true,
+    "notify_errors": true, 
+    "notify_cnf": true, 
+    "quit_message": "Goodbye!", 
+  }, 
 
-	/* Only applicable for the NCSS API */
-	"ncss":
-	{
-		"cookie": "put your session ID here",
-		"course": 37
-	},
+  /* Enable/disable plugins. Uses the plugin's module name, i.e. "example"
+     for Plugins/example.py.
+     Plugins are assumeed to be enabled unless specified here. */
+  "plugins": {
+    "challengebot": false, 
+    "example": false
+  }, 
+  
+  /* Plugin-specific settings. Uses same naming scheme as the "plugins"
+     section above. Value will be passed to the plugin on initialisation */
+  "authtools": [
+    "AClockWorkLemon", 
+    "spake", 
+    "IceDingo"
+  ], 
+  
+  "challengebot": {
+    "course": 37, 
+    "cookie": "NCSS website cookie"
+  }, 
 
-	/* GooGL url shortner */
-	"googl":
-	{
-		"api-key": "Google API key"
-	},
+  "webtools": "en-au", 
 
-	/* WolframAlpha AppID */
-	"wolfram":
-	{
-		"appid": "WolframAlpha AppID"
-	}
+  "wolfram": "AppID",
+
+  /* Centralised spot to put API settings. Will need to be fetched manually */
+  "apis": {
+    "googl": "googl API key"
+  }
 }
