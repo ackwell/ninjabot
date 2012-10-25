@@ -1,7 +1,7 @@
 from apis import kdepaste
 
 class Plugin:
-	def __init__(self, controller):
+	def __init__(self, controller, config):
 		self.c = controller
 
 		self.cache = {}

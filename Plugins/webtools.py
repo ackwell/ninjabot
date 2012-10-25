@@ -8,8 +8,10 @@ import urllib
 #/me is lazy
 
 class Plugin:
-	def __init__(self, controller):
+	def __init__(self, controller, language):
 		self.c = controller
+		self.lang = language
+		# Yeah, the bot is a chrome browser, ok? I'M NOT LYING, I SWEAR!
 		self.useragent = 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.60 Safari/537.1'
 
 
@@ -35,8 +37,8 @@ class Plugin:
 				#	url += ''
 
 				req_headers = {}
-				if 'language' in self.c.config['config']:
-					req_headers['Accept-Language'] = self.c.config['config']['language']
+				if self.lang:
+					req_headers['Accept-Language'] = self.lang
 
 				head = requests.head(url)
 

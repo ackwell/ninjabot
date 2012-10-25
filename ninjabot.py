@@ -248,6 +248,9 @@ class ninjabot(IRCConnection):
 		# Bot admins. Authentication is handled externally (plugin)
 		self.admins = []
 
+		# Ignored users. Again, handled by a plugin.
+		self.ignored = []
+
 		# Start up the shcduler for timer plugins
 		self.scheduler = kronos.ThreadedScheduler()
 		self.scheduler.start()
@@ -286,9 +289,9 @@ class ninjabot(IRCConnection):
 			msg.body = msg.body[len(self.command_prefix):]
 
 			# Get the command and stuff
-			msg_split = msg.body.split(None, 1)
-			command, argument = msg_split[0].lower(), msg_split[1] if len(msg_split)>1 else ''
-			msg.argument = argument
+			args = msg.body.split()
+			command = args.pop(0)
+			msg.args = args
 
 			# Try to call the trigger
 			if command in self.triggers:
@@ -304,19 +307,19 @@ class ninjabot(IRCConnection):
 
 	def reload(self, msg):
 		"Reloads various things."
-		if not self.isadmin(msg.nick): return
+		if not self.is_admin(msg.nick): return
 
-		arg = msg.argument.lower()
 		# For legacy reasons, if nothing provided, assume reloading plugins
-		if not len(arg): arg = 'plugins'
+		arg = msg.args[0].lower() if len(msg.args) else 'plugins'
 		if arg == "plugins":
 			self.load_plugins()
 		elif arg == "config":
 			self.load_config()
 		else:
 			self.notice(msg.nick, arg+" cannot be reloaded.")
+			return
 
-		self.notice(msg.nick, "Reloaded sucessfully.")
+		self.notice(msg.nick, "Reloaded %s sucessfully." % arg)
 
 	def load_config(self):
 		# Need to remove comments, else JSON throws a hissy
@@ -351,7 +354,7 @@ class ninjabot(IRCConnection):
 				continue
 
 			# Get the plugin's config, if it exists
-			config = {}
+			config = None
 			if mod in self.config:
 				config = self.config[mod]
 
@@ -382,14 +385,14 @@ class ninjabot(IRCConnection):
 					self.incoming.append(func)
 
 	def kill(self, msg):
-		if not self.isadmin(msg.nick): return
+		if not self.is_admin(msg.nick): return
 		message = self.config['bot']['quit_message']
-		if len(msg.argument):
-			message = msg.argument
+		if len(msg.args):
+			message = ' '.join(msg.args)
 		self.disconnect(message)
 
 	def restart(self, msg):
-		if not self.isadmin(msg.nick): return
+		if not self.is_admin(msg.nick): return
 		self.exit_status = 0
 		self.kill(msg)
 
@@ -400,11 +403,16 @@ class ninjabot(IRCConnection):
 		if self.config['bot']['notify_errors']:
 			self.privmsg(','.join(self.config['bot']['channels']), "An error occured. Please ask an admin to check error log %i."%(len(self.errors)-1))
 
-	def isadmin(self, nickname, silent=False):
+	def is_admin(self, nickname, silent=False):
 		if nickname in self.admins:
 			return True
 		if self.config['bot']['notify_insufficient_privs'] and not silent:
 			self.notice(nickname, "You have insufficient privilages to perform that action.")
+		return False
+
+	def is_ignored(self, nickname):
+		if nickname in self.ignored:
+			return True
 		return False
 
 if __name__ == '__main__':

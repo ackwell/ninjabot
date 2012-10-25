@@ -3,7 +3,6 @@ import time
 from collections import defaultdict
 
 class Plugin:
-    #active = False
 
     #modes
     INACTIVE = 0
@@ -14,7 +13,7 @@ class Plugin:
     FORWARD = 1
     BACKWARD = -1
 
-    def __init__(self, controller):
+    def __init__(self, controller, config):
         self.c = controller
 
         self.uno = "\002\0034U\0033N\0032O\0038!\003\002"
@@ -50,18 +49,18 @@ class Plugin:
         "\002\0034U\0033N\0032O\0038!\003:\002 Uno for IRC. For detailed help, run `uno help`"
 
         if len(msg.args) == 0:
-            self.c.notice(msg.nick, "Please specify an UNO command. Check `%suno help` for avaliable commands."%self.c.plugins.prefix)
+            self.c.notice(msg.nick, "Please specify an UNO command. Check `%suno help` for avaliable commands."%self.c.command_prefix)
             return
 
         command = msg.args.pop(0).lower()
         if 'uno_'+command in dir(self):
             getattr(self, 'uno_'+command)(msg)
         else:
-            self.c.notice(msg.nick, "The command '%s' does not exist. Check `%suno help` for avalable commands."%(command, self.c.plugins.prefix))
+            self.c.notice(msg.nick, "The command '%s' does not exist. Check `%suno help` for avalable commands."%(command, self.c.command_prefix))
 
     def on_incoming(self, msg):
         "Check for nick changes"
-        if msg.command == msg.NICK and msg.nick in self.players:
+        if msg.command == 'NICK' and msg.nick in self.players:
             self.players[self.players.index(msg.nick)] = msg.body
             if msg.nick in self.hands:
                 self.hands[msg.body] = self.hands[msg.nick]
@@ -74,12 +73,12 @@ class Plugin:
             com = ''
             for d in dir(self):
                 if d.startswith('uno_'):
-                    com += '%s%s '%(self.c.plugins.prefix, d.split('_')[1])
+                    com += '%s%s '%(self.c.command_prefix, d.split('_')[1])
             self.c.notice(msg.nick, 'Avaliable commands are: %s.'%com)
-            self.c.notice(msg.nick, 'For more information, run `%suno help <command>`.'%self.c.plugins.prefix)
+            self.c.notice(msg.nick, 'For more information, run `%suno help <command>`.'%self.c.command_prefix)
         else:
             try: self.c.notice(msg.nick, getattr(self, 'uno_'+msg.args[0]).__doc__)
-            except AttributeError: self.c.notice(msg.nick, "That command does not exist. For a list of commands, run %suno help."%self.c.plugins.prefix)
+            except AttributeError: self.c.notice(msg.nick, "That command does not exist. For a list of commands, run %suno help."%self.c.command_prefix)
 
     def uno_start(self, msg):
         "Starts a game of UNO!"
@@ -94,7 +93,7 @@ class Plugin:
         self.mode = self.JOINING
         self.start_player = msg.nick
         self.channel = msg.channel
-        self.c.privmsg(self.channel, "New game of %s starting! Type `%suno join` to join the fun! Game will start in about 2 minutes..."%(self.uno, self.c.plugins.prefix))
+        self.c.privmsg(self.channel, "New game of %s starting! Type `%suno join` to join the fun! Game will start in about 2 minutes..."%(self.uno, self.c.command_prefix))
         self.uno_join(msg)
         self.timer = 2
 
@@ -102,8 +101,8 @@ class Plugin:
         self.colourblind_players = []
 
     def uno_stop(self, msg):
-        "Stops the current game of UNO!. Only ops+ and the start player can stop a game."
-        if not (self.c.is_op(msg.nick, False) or msg.nick == self.start_player):
+        "Stops the current game of UNO!. Only admins and the start player can stop a game."
+        if not (self.c.is_admin(msg.nick, False) or msg.nick == self.start_player):
             self.c.notice(msg.nick, "Only ops+ and the start player can stop a game.")
             return
         elif self.mode == self.INACTIVE:
@@ -124,7 +123,7 @@ class Plugin:
             self.c.notice(msg.nick, "The current game of %s is full, sorry."%self.uno)
             return
         elif self.mode == self.INACTIVE:
-            self.c.notice(msg.nick, 'There is no %s game running! Why not start one with `%suno start`?'%(self.uno, self.c.plugins.prefix))
+            self.c.notice(msg.nick, 'There is no %s game running! Why not start one with `%suno start`?'%(self.uno, self.c.command_prefix))
             return
         elif self.mode == self.PLAYING:
             self.c.notice(msg.nick, "There's already a game of %s running!"%self.uno)
@@ -142,7 +141,7 @@ class Plugin:
         "Leave the game."
         if self.mode == self.PLAYING:
             if len(msg.args) == 0:
-                self.c.notice(msg.nick, "Please confirm you wish to leave with `%suno leave confirm`."%self.c.plugins.prefix)
+                self.c.notice(msg.nick, "Please confirm you wish to leave with `%suno leave confirm`."%self.c.command_prefix)
                 return
             elif msg.args[0].lower() != 'confirm':
                 return
@@ -155,7 +154,7 @@ class Plugin:
 
     def uno_kick(self, msg):
         "Kicks a player from the game."
-        if not self.c.is_op(msg.nick):
+        if not self.c.is_admin(msg.nick):
             return
         elif self.mode != self.PLAYING:
             self.c.notice(msg.nick, "There is no game in progress.")
@@ -332,12 +331,12 @@ class Plugin:
     def uno_skip(self, msg):
         "Can be used to skip join and new game cooldowns."
         if self.mode == self.INACTIVE and self.timer > 0:
-            if self.c.is_op(msg.nick):
+            if self.c.is_admin(msg.nick):
                 self.c.privmsg(self.channel, "Cooldown skipped. %s is ready to play!"%self.uno)
                 self.timer = 0
             return
-        if not (self.c.is_op(msg.nick, False) or msg.nick == self.start_player):
-            self.c.notice(msg.nick, "Only bot ops+ and the start player can skip.")
+        if not (self.c.is_admin(msg.nick, False) or msg.nick == self.start_player):
+            self.c.notice(msg.nick, "Only bot admins and the start player can skip.")
             return
         if self.mode != self.JOINING:
             self.c.notice(msg.nick, "This command can only be used in the player signup stage.")

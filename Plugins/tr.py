@@ -6,7 +6,7 @@ import re
 last_messages = {}
 
 class Plugin:
-    def __init__(self, controller):
+    def __init__(self, controller, config):
         self.controller = controller
 
     def on_incoming(self, msg):

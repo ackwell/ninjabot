@@ -5,7 +5,7 @@ from apis import git
 import time
 
 class Plugin:
-    def __init__(self, controller):
+    def __init__(self, controller, config):
         self.controller = controller
         self.git = git.Git()
 

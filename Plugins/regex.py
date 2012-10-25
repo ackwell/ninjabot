@@ -8,7 +8,7 @@ BACKLOG = 3 # keep this many past messages saved for each user
 last_messages = defaultdict(deque)
 
 class Plugin:
-    def __init__(self, controller):
+    def __init__(self, controller, config):
         self.controller = controller
 
     def on_incoming(self, msg):

@@ -6,9 +6,9 @@ import urllib
 class Plugin:
     active = True
 
-    def __init__(self, controller):
+    def __init__(self, controller, appid):
         self.controller = controller
-        self.appid = self.controller.config['wolfram']['appid']
+        self.appid = appid
 
         self.queryurl = 'http://api.wolframalpha.com/v2/query'
         self.session = requests.session()

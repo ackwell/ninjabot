@@ -12,7 +12,7 @@ def get_short(longUrl, config):
 
     data = {
             'longUrl': longUrl,
-            'key': config['googl']['api-key']
+            'key': config['apis']['googl']
             }
 
     req = requests.post('https://www.googleapis.com/urlshortener/v1/url', data=json.dumps(data), headers=headers)
@@ -27,7 +27,7 @@ def get_long(shortUrl, config):
 
     data = {
             "shortUrl":shortUrl,
-            "key":config['googl']["api-key"]
+            "key":config['apis']['googl']
             }
     req = requests.get("https://www.googleapis.com/urlshortener/v1/url", params=data)
     #I'll need to capture google's error messages and raise exceptins/NOTIFY nick etc
