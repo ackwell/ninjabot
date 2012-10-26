@@ -15,7 +15,7 @@
 
   /* ninjabot settings */
   "bot": {
-  	"channels": [
+    "channels": [
       "##ninjabot_test"
     ], 
     "command_prefix": "|",
@@ -27,19 +27,26 @@
 
   /* Enable/disable plugins. Uses the plugin's module name, i.e. "example"
      for Plugins/example.py.
-     Plugins are assumeed to be enabled unless specified here. */
+     Plugins are assumeed to be enabled unless specified here.
+   */
   "plugins": {
     "challengebot": false, 
     "example": false
   }, 
   
   /* Plugin-specific settings. Uses same naming scheme as the "plugins"
-     section above. Value will be passed to the plugin on initialisation */
-  "authtools": [
-    "AClockWorkLemon", 
-    "spake", 
-    "IceDingo"
-  ], 
+     section above. Value will be passed to the plugin on initialisation
+   */
+  "authtools":{
+    "admins": [
+      "admin1",
+      "admin2"
+    ], 
+    /* Specifies the NS command to use. Rizon uses 'status', freenode uses 'acc'.
+       More will be added as I discover them. (They require different parameters)
+     */
+    "mode": "acc"
+  },
   
   "challengebot": {
     "course": 37, 

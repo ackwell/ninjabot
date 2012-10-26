@@ -102,7 +102,7 @@ class Plugin:
 
     def uno_stop(self, msg):
         "Stops the current game of UNO!. Only admins and the start player can stop a game."
-        if not (self.c.is_admin(msg.nick, False) or msg.nick == self.start_player):
+        if not (self.c.is_admin(msg.nick, True) or msg.nick == self.start_player):
             self.c.notice(msg.nick, "Only ops+ and the start player can stop a game.")
             return
         elif self.mode == self.INACTIVE:
@@ -335,7 +335,7 @@ class Plugin:
                 self.c.privmsg(self.channel, "Cooldown skipped. %s is ready to play!"%self.uno)
                 self.timer = 0
             return
-        if not (self.c.is_admin(msg.nick, False) or msg.nick == self.start_player):
+        if not (self.c.is_admin(msg.nick, True) or msg.nick == self.start_player):
             self.c.notice(msg.nick, "Only bot admins and the start player can skip.")
             return
         if self.mode != self.JOINING:
