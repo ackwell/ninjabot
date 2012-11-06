@@ -3,9 +3,6 @@ ninjabot
 
 **n**injabot **i**s **n**ot **j**ust **a**nother **bot**: An extensible Python IRC bot
 
-**Please note:** ninjabot has just had a major rework, and as such, some/all of the
-documentation is a little out of date.
-
 Setting up
 ----------
 
@@ -38,3 +35,6 @@ with the bot. `Plugins/regex.py` is a good example of how to use the on_incoming
 
 If you write a plugin which you think would benefit the main code base, by all means, send
 a pull request! Additions are always welcome.
+
+Please note: Due to the recent/ongoing revamp, the plugin API avaliable is not nessicarily stable,
+and as such could change at any time. I will announce any breaking changes in teh changelog.
