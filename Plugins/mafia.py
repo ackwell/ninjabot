@@ -1,8 +1,22 @@
-import time
+import random
 
 class Plugin:
+	# Game statuses
+	INACTIVE = 0
+	LOBBY    = 1
+	DAY      = 2
+	NIGHT    = 3
+
 	def __init__(self, bot, config):
 		self.bot = bot
+		self.config = config
+
+		self.game_status = self.INACTIVE
+
+		# Init variables nice n' empty
+		self.town_channel = ""
+		self.mafia_channel = ""
+		self.players = []
 
 	def trigger_mafia(self, msg):
 		"Mafia: THAT'S MAFIA TALK! For a list of commands, run `mafia help`"
@@ -20,15 +34,27 @@ class Plugin:
 		self.bot.notice(msg.nick, "NOT IMPLEMENTED")
 
 	def mafia_start(self, msg):
+		# Check that there isn't a game running
+		if self.game_status != self.INACTIVE:
+			self.bot.notice(msg.nick, "There is already a game in play. Join %s if you would like to %sspectate" % (self.town_channel, "join or " if self.game_status == self.LOBBY else ""))
+
 		# Create channels to play in (Need OP)
-		channel_hash = str(hash(time.time())).encode('base64')
-		
+		channel_hash = str(random.randint(0, 10000)).encode('base64')
+		self.town_channel = self.config['town_channel_name']+channel_hash
+		self.mafia_channel = self.config['mafia_channel_name']+channel_hash
+		self.bot.join(self.town_channel)
+		self.bot.join(self.mafia_channel)
+		# TODO: Regen hash, etc, if already users in channel
 
+		# Hide the mafia channel
+		self.bot.mode(self.mafia_channel, "+is")
 
-	def _mafia_jointest(self, msg):
-		self.bot.join('##ninjabot-mafia-town-test')
-		self.bot.mode('##ninjabot-mafia-town-test', '+is')
-		self.bot.invite('ackwell', '##ninjabot-mafia-town-test')
+		# Set game mode, announce game start
+		self.game_status = self.LOBBY
+		self.bot.privmsg(self.bot.config['bot']['channels'], "%s has started a game of Mafia! Join %s if you wish to join or spectate!" % (msg.nick, self.town_channel))
 
-	def _mafia_stest(self, msg):
-		self.bot.schedule(self.mafia_jointest, 10)
+		# Set the lobby timeout
+		self.bot.schedule(self._setup, self.config['lobby_timeout'])
+
+	def _setup(self):
+		pass
