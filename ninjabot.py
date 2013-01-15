@@ -206,11 +206,21 @@ class IRCConnection:
 
 	# IRC Commands
 
+	def invite(self, nick, channel):
+		self.send("INVITE %s %s" % (nick, channel))
+
 	def join(self, channel, key=""):
 		self.send("JOIN %s%s" % (channel, key and (" " + key)))
 
+	def mode(self, target, mode, params=""):
+		self.send('MODE %s %s%s' % (target, mode, params and (" " + params)))
+
 	def nick(self, nickname):
 		self.send("NICK " + nickname)
+
+	def notice(self, targets, message):
+		if type(targets) is list: targets = ','.join(targets)
+		self.send("NOTICE %s :%s" % (targets, message))
 
 	def pass_(self, password):
 		self.send("PASS " + password)
@@ -224,10 +234,6 @@ class IRCConnection:
 	def privmsg(self, targets, message):
 		if type(targets) is list: targets = ','.join(targets)
 		self.send("PRIVMSG %s :%s" % (targets, message))
-
-	def notice(self, targets, message):
-		if type(targets) is list: targets = ','.join(targets)
-		self.send("NOTICE %s :%s" % (targets, message))
 
 	def quit(self, message):
 		self.send("QUIT" + (message and (" :" + message)), now=True)
@@ -414,6 +420,9 @@ class ninjabot(IRCConnection):
 		if nickname in self.ignored:
 			return True
 		return False
+
+	def schedule(self, function, delay):
+		self.scheduler.add_single_task(function, str(hash(function)), delay, kronos.method.threaded, [], None)
 
 if __name__ == '__main__':
 	# Grab the command line args

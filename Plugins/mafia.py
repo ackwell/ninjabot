@@ -1,4 +1,4 @@
-
+import time
 
 class Plugin:
 	def __init__(self, bot, config):
@@ -19,7 +19,16 @@ class Plugin:
 	def mafia_help(self, msg):
 		self.bot.notice(msg.nick, "NOT IMPLEMENTED")
 
-	def mafia_jointest(self, msg):
+	def mafia_start(self, msg):
+		# Create channels to play in (Need OP)
+		channel_hash = str(hash(time.time())).encode('base64')
+		
+
+
+	def _mafia_jointest(self, msg):
 		self.bot.join('##ninjabot-mafia-town-test')
 		self.bot.mode('##ninjabot-mafia-town-test', '+is')
 		self.bot.invite('ackwell', '##ninjabot-mafia-town-test')
+
+	def _mafia_stest(self, msg):
+		self.bot.schedule(self.mafia_jointest, 10)

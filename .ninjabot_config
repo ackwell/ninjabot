@@ -9,7 +9,7 @@
     "port": 6667,
     "nickname": "ninjabot", 
     "username": "ninjabot_un", 
-    "realname": "ninjabot_rn", 
+    "realname": "ninjabot_rn"
     /*"password": "server password"*/ /* Optional */
   },
 
@@ -22,7 +22,7 @@
     "notify_insufficient_privs": true,
     "notify_errors": true, 
     "notify_cnf": true, 
-    "quit_message": "Goodbye!", 
+    "quit_message": "Goodbye!"
   }, 
 
   /* Enable/disable plugins. Uses the plugin's module name, i.e. "example"
@@ -46,6 +46,11 @@
        More will be added as I discover them. (They require different parameters)
      */
     "mode": "acc"
+  },
+
+  "mafia": {
+    "town_channel_name": "##nbm-town-",
+    "mafia_channel_name": "##nbm-mafia-"
   },
   
   "challengebot": {
