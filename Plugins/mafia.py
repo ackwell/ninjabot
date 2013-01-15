@@ -23,7 +23,7 @@ class Plugin:
 	def trigger_mafia(self, msg):
 		"Mafia: THAT'S MAFIA TALK! For a list of commands, run `mafia help`"
 		if len(msg.args) == 0:
-			self.bot.notice(msg.nick, "Please specify an Mafia command. Check `%smafia help` for avaliable commands."%self.bot.command_prefix)
+			self.bot.notice(msg.nick, "Please specify a Mafia command. Check `%smafia help` for avaliable commands."%self.bot.command_prefix)
 			return
 
 		command = msg.args.pop(0).lower()
@@ -59,4 +59,26 @@ class Plugin:
 		self.bot.schedule(self._setup, self.config['lobby_timeout'])
 
 	def _setup(self):
+		# Make sure we have enough players
+		if len(self.players) < self.config['minimum_players']:
+			self.bot.privmsg(self.town_channel, "An insufficient number of players joined. The game has been canceled.")
+			self._pulldown()
+			return
+
+	def _pulldown(self):
+		# Devoice all players
+		# Kick all players in both channels
+		# part both channels
+		# Empty variables + reset gamestate
 		pass
+
+	def on_incoming(self, msg):
+		# If we send out a NAMES, we probably want to kick everyone.
+		if msg.command == msg.NUMERIC['NAMREPLY']:
+			# This won't kick the bot - it's OP symbol stops it
+			self.bot.kick(msg.data[1], ','.join(msg.body.split()))
+
+
+
+	def mafia_test(self, msg):
+		self.bot.names(msg.args)

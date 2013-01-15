@@ -20,6 +20,11 @@ class Message:
 	CHANNEL = 1
 	PRIVATE = 2
 
+	NUMERIC = {
+		'NAMREPLY': "353",
+		'ENDOFNAMES': "366"
+	}
+
 	def __init__(self, message):
 		prefix = ''
 		trailing = ''
@@ -40,6 +45,10 @@ class Message:
 		if len(args) == 1: self.channel = ""
 		else: self.channel = args.pop(0)
 		self.body = trailing if trailing else ' '.join(args)
+
+		# Save any extra arguments
+		if len(args) >= 1:
+			self.data = args[:-1]
 
 		# Split the prefix into something a bit more useful
 		if '!' in prefix:
@@ -212,8 +221,17 @@ class IRCConnection:
 	def join(self, channel, key=""):
 		self.send("JOIN %s%s" % (channel, key and (" " + key)))
 
+	def kick(self, channels, users, comment=""):
+		if type(channels) is list: channels = ','.join(channels)
+		if type(users) is list: users = ','.join(users)
+		self.send("KICK %s %s%s" % (channels, users, comment and (" :" + comment)))
+
 	def mode(self, target, mode, params=""):
-		self.send('MODE %s %s%s' % (target, mode, params and (" " + params)))
+		self.send("MODE %s %s%s" % (target, mode, params and (" " + params)))
+
+	def names(self, channels):
+		if type(channels) is list: channels = ','.join(channels)
+		self.send("NAMES %s" % (channels))
 
 	def nick(self, nickname):
 		self.send("NICK " + nickname)
