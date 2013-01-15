@@ -1,5 +1,6 @@
 # Imports
-import random
+import hashlib
+import time
 
 class Plugin:
 	# Game statuses
@@ -40,7 +41,7 @@ class Plugin:
 			self.bot.notice(msg.nick, "There is already a game in play. Join %s if you would like to %sspectate" % (self.town_channel, "join or " if self.game_status == self.LOBBY else ""))
 
 		# Create channels to play in (Need OP)
-		channel_hash = str(random.randint(0, 10000)).encode('base64')
+		channel_hash = hashlib.sha1(str(time.time())).hexdigest()[:8]
 		self.town_channel = self.config['town_channel_name']+channel_hash
 		self.mafia_channel = self.config['mafia_channel_name']+channel_hash
 		self.bot.join(self.town_channel)
