@@ -36,7 +36,7 @@ class Plugin:
     def word_help(self, msg):
         "Prints the help text. Further command help can be displayed by specifng a command."
         if len(msg.args) == 0:
-            self.c.notice(msg.nick, 'An IRC implementation of letters and numbers word game. Try and make the longest word.')
+            self.c.notice(msg.nick, 'An IRC implementation of letters and numbers word game. Try and make the longest word. Use %sword <word>'%self.c.command_prefix)
             com = ''
             for d in dir(self):
                 if d.startswith('word_'):
