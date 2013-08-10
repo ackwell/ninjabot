@@ -3,6 +3,7 @@ from apis import googl
 from apis import requests
 import re
 import urllib
+import json
 
 #I'm silencing all errors from webtools' autochecker, simply because there are so many that could pop up.
 #/me is lazy
@@ -85,24 +86,22 @@ class Plugin:
 			self.c.notice(msg.nick, "Please specify a search term")
 			return
 
-		url = "https://www.google.com.au/search"
-		params = {'q':' '.join(msg.args)}
+		url = "http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=%s"%'+'.join(msg.args)
 		headers = {'User-agent':self.useragent}
-		entry = requests.get(url,params=params,headers=headers).text#bs(requests.get(url,params=params,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'vsc')
+		entry = requests.get(url,headers=headers).text#bs(requests.get(url,params=params,headers=headers).text, convertEntities=bs.HTML_ENTITIES).find('div', 'vsc')
+	
+		#r = re.search(r'(?s)<div.*?class="vsc".*?>(.*?)</div>[^d]*?</li>', entry)
+		#if not r:
+		#	self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
+		#	return
+		js=json.loads(entry)["responseData"]["results"][0];
+		#if not al:
+		#	return #because i have no idea what would cause this
+		url = googl.get_short(js['url'], self.c.config)
 
-		r = re.search(r'(?s)<div.*?class="vsc".*?>(.*?)</div>[^d]*?</li>', entry)
-		if not r:
-			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
-			return
-
-		entry = bs(r.group(1), convertEntities=bs.HTML_ENTITIES)
-		al = entry.find('a','l')
-		if not al:
-			return #because i have no idea what would cause this
-		url = googl.get_short(al['href'], self.c.config)
 		message = "\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
-			self.tag2string(al),
-			self.tag2string(entry.find('span','st')),
+			bs(js['titleNoFormatting'], convertEntities=bs.HTML_ENTITIES),
+			re.sub("</?b>", "\002", js['content']),
 			url)
 		self.c.privmsg(msg.channel, message)
 
