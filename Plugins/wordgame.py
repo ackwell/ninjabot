@@ -81,6 +81,14 @@ class Plugin:
             return
             
         self._finished()
+    
+    def word_add(self, msg):
+        if not (self.c.is_admin(msg.nick, True)):
+            return
+        
+        word = msg.args[0].lower()
+        with open(self.DICT_PATH, 'a') as file:
+            file.write(word+"\n")
 
     def timer_10(self):
         if self.mode == self.PLAYING:
