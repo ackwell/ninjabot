@@ -112,22 +112,21 @@ class Plugin:
 			self.c.notice(msg.nick, "Please specify a search term")
 			return
 
-		url = "http://www.youtube.com/results"
-		data = {'search_query':' '.join(msg.args)}
+		url = "https://gdata.youtube.com/feeds/api/videos"
+		data = {'q':' '.join(msg.args), 'max-results':'1', 'v':'2', 'alt':'json'}
+		url += '?' + urllib.urlencode(data)
 		headers = {'User-agent':self.useragent}
-		req = requests.post(url,data=data,headers=headers).text
-		entry = re.search(r'(?s)<li.*?yt-grid-box.*?>(.*?)</li', req)
-
-		if not entry:
+		req = requests.get(url,headers=headers).text
+		entry = json.loads(req)['feed']['entry']
+		if len(entry) < 0:
 			self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
 			return
-		entry = bs(entry.group(1), convertEntities=bs.HTML_ENTITIES)
-
-		link = entry.find('a', 'yt-uix-tile-link')
+		entry = entry[0]
+		link = entry['link'][0]
 		message = "\002You\0030,4Tube\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
-			link.string,
-			self.tag2string(entry.find('p', 'description')),
-			"http://youtu.be/"+link['href'].split('=')[1],)
+			entry['title']['$t'],
+			entry['media$group']['media$description']['$t'],
+			"http://youtu.be/"+entry['id']['$t'].split(':')[-1],)
 		self.c.privmsg(msg.channel, message)
 
 
