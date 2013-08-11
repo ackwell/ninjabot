@@ -94,14 +94,14 @@ class Plugin:
 		#if not r:
 		#	self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
 		#	return
-		js=json.loads(entry)["responseData"]["results"][0];
+		js=json.loads(entry)["responseData"]["results"][0]
 		#if not al:
 		#	return #because i have no idea what would cause this
 		url = googl.get_short(js['url'], self.c.config)
 
 		message = "\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
 			bs(js['titleNoFormatting'], convertEntities=bs.HTML_ENTITIES),
-			re.sub("</?b>", "\002", js['content']),
+			bs(re.sub("</?b>", "\002", js['content']), convertEntities=bs.HTML_ENTITIES),
 			url)
 		self.c.privmsg(msg.channel, message)
 
