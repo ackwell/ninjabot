@@ -25,14 +25,18 @@ class Plugin:
             body = msg.body
             matches = re.match(r'''(?x)     # verbose mode
                         ^(s)(/)             # starts with s, then / (our separator)
-                        (   # capture pattern
+                        ((?: # capture pattern
                             (?:\\\2)*       # any number of escaped separators
-                            [^/]+           # at least 1 non-/
-                            (?:\\\2[^/]*)*  # 1 escaped separators and any number of non-/, as many times as possible
-                        )   # end capture pattern
+                            [^/]*           # any number of non-seps
+                            (?:(?:\\\2)+[^/])*
+                        )*)  # ...as many times as possible, end capture pattern
                         \2                  # separator
-                        ((?:\\\2)*[^/]+(?:\\\2[^/]*)*) # the above again
-                        (?:\2([g0-9])?)?$    # end with optional separator with optional flags
+                        ((?:
+                            (?:\\\2)*
+                            [^/]*
+                            (?:(?:\\\2)+[^/])*
+                        )*)
+                        (?:\2([g0-9])?)?$   # end with optional separator with optional flags
                     ''', body)
 
             if matches:
