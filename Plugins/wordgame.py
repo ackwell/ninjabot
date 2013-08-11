@@ -5,17 +5,19 @@ class Plugin:
     #modes
     INACTIVE = 0
     PLAYING = 1
-    
+
     DICT_PATH = "dictionary.txt"
-    CONS = "bcdfghjklmnpqrstvwxyz"
-    VOWELS = "aeiou"
+#   CONS = "bcdfghjklmnpqrstvwxyz"
+#   VOWELS = "aeiou"
+    LETTERS = "abcdefghijklmnopqrstuvwxyz"
+    WORD_SIZE = 10
 
 
     def __init__(self, controller, config):
         self.c = controller
         self.mode = self.INACTIVE
         self.timer = 0
-        
+
     def trigger_word(self, msg):
         "Letters and numbers inspired wordgame for IRC. For detailed help, run `word help`"
         if not self.mode:
@@ -28,11 +30,11 @@ class Plugin:
                 getattr(self, 'word_'+command)(msg)
             else:
                 self.c.notice(msg.nick, "The command '%s' does not exist. Check `%sword help` for avalable commands."%(command, self.c.command_prefix))
-                
+
         else: #there's a game underway, check the word
             print msg.args[0].lower(), msg.nick
             self._take_word(msg.args[0].lower(), msg.nick)
-            
+
     def word_help(self, msg):
         "Prints the help text. Further command help can be displayed by specifng a command."
         if len(msg.args) == 0:
@@ -52,24 +54,33 @@ class Plugin:
         if self.mode:
             self.c.notice(msg.nick, "There is already a wordgame running!")
             return
-        
+
         self.best_word = ["",""]
         self.originals = []
-        
-        j = random.randint(1,5) #Select a random number of vowels, cons
-        for i in range(j):
-            self.originals.append(random.choice(self.VOWELS))
-        for i in range(10-j):
-            self.originals.append(random.choice(self.CONS))
-        
+
+	# Get a "base word" to use
+	dictionary = open(self.DICT_PATH, "r")
+	words = dictionary.readlines()
+	base_word = random.choice(words)
+	dictionary.close()
+
+	# Add some random letters to it, if it is too small
+	if len(base_word) < self.WORD_SIZE:
+		for new in xrange(self.WORD_SIZE - len(base_word)):
+			# Choose randomly between consonants and vowels
+			letter_list = random.choice([self.CONS, self.VOWELS])
+			base_word += random.choice(letter_list)
+
+	# Turn word into list and shuffle it
+	self.originals = list(base_word)
+	random.shuffle(self.originals)
+
         self.mode = self.PLAYING
         self.timer = 3
         self.start_player = msg.nick
         self.channel = msg.channel
         self.c.privmsg(self.channel, "A new wordgame begins! The Letters are: %s"%"".join(self.originals))
         self.best_possible = self._find_best()
-            
-        
 
     def word_stop(self, msg):
         "Stops the current wordgame. Only admins and the start player can stop a game."
@@ -79,13 +90,13 @@ class Plugin:
         elif self.mode == self.self.INACTIVE:
             self.c.notice(msg.nick, "There is no game in progress.")
             return
-            
+
         self._finished()
-    
+
     def word_add(self, msg):
         if not (self.c.is_admin(msg.nick, True)):
             return
-        
+
         word = msg.args[0].lower()
         with open(self.DICT_PATH, 'a') as file:
             file.write(word+"\n")
@@ -98,7 +109,7 @@ class Plugin:
                 self.timer -= 1
             else:
                 self._finished()
-                
+
     def _find_best(self):
         best = ""
         with open(self.DICT_PATH, 'r') as inF:
@@ -113,8 +124,8 @@ class Plugin:
                 if len(word) > len(best):
                     best = word
         return best
-                
-    
+
+
     def _finished(self):
         self.takingWords = False
         if self.best_word[0] == "":
@@ -125,7 +136,7 @@ class Plugin:
 
         self.start_player = ''
         self.mode = self.INACTIVE
-            
+
     def _take_word(self, word, user):
         letters = self.originals[::]
         for letter in word:
@@ -145,5 +156,5 @@ class Plugin:
                         self.best_word[1] = user
                         self.c.privmsg(self.channel, "Best word so far: %s"%self.best_word[0])
                         return
-                
+
 
