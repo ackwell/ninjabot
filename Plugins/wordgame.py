@@ -107,11 +107,10 @@ class Plugin:
     def timer_10(self):
         if self.mode == self.PLAYING:
             if self.timer > 0:
-                if self.timer == 1:
-			if self.best_word[0]:
-	                    self.c.privmsg(self.channel, "%d seconds left! Best word so far: %s"%(10*self.timer,self.best_word[0]))
-			else:
-	                    self.c.privmsg(self.channel, "%d seconds left! No words so far."%(10*self.timer))
+		if self.best_word[0]:
+		    self.c.privmsg(self.channel, "%d seconds left! Best word so far: %s"%(10*self.timer,self.best_word[0]))
+		else:
+		    self.c.privmsg(self.channel, "%d seconds left! No words so far."%(10*self.timer))
                 self.timer -= 1
             else:
                 self._finished()
