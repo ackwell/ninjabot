@@ -24,7 +24,7 @@ class Plugin:
                 self.c.notice(msg.nick, "Please specify a wordgame command. Check `%sword help` for avaliable commands."%self.c.command_prefix)
                 return
 
-            command = msg.args[0].lower()
+            command = msg.args.pop(0).lower()
             if 'word_'+command in dir(self):
                 getattr(self, 'word_'+command)(msg)
             else:
@@ -33,7 +33,6 @@ class Plugin:
         else: #there's a game underway, check the word
             print msg.args[0].lower(), msg.nick
             self._take_word(msg.args[0].lower(), msg.nick)
-
     def word_help(self, msg):
         "Prints the help text. Further command help can be displayed by specifng a command."
         if len(msg.args) == 0:
@@ -97,6 +96,7 @@ class Plugin:
         self._finished()
 
     def word_add(self, msg):
+        "Add <word> to the wordgame dictionary. Only admins may do this."
         if not (self.c.is_admin(msg.nick, True)):
             return
 
@@ -150,13 +150,11 @@ class Plugin:
                 continue
             else:
                 return
-        print "Passed letter check"
+
         if len(word) > len(self.best_word[0]):
-            print "Searching for word",
             with open(self.DICT_PATH, 'r') as inF:
                 for line in inF:
                     if line.strip() == word:
-                        print "Found."
                         self.best_word[0] = word
                         self.best_word[1] = user
                         self.c.privmsg(self.channel, "Best word so far: %s"%self.best_word[0])
