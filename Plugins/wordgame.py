@@ -7,11 +7,10 @@ class Plugin:
     PLAYING = 1
 
     DICT_PATH = "dictionary.txt"
-#   CONS = "bcdfghjklmnpqrstvwxyz"
-#   VOWELS = "aeiou"
-    LETTERS = "abcdefghijklmnopqrstuvwxyz"
+    CONS = "bcdfghjklmnpqrstvwxyz"
+    VOWELS = "aeiou"
     WORD_SIZE = 10
-
+    MIN_BASE = 6
 
     def __init__(self, controller, config):
         self.c = controller
@@ -58,18 +57,21 @@ class Plugin:
         self.best_word = ["",""]
         self.originals = []
 
-	# Get a "base word" to use
+	# Get a "base word" to use (minimum length of self.MIN_BASE)
 	dictionary = open(self.DICT_PATH, "r")
 	words = dictionary.readlines()
-	base_word = random.choice(words)
+
+	base_word = random.choice(words).strip()
+	while len(base_word) < self.MIN_BASE:
+		base_word = random.choice(words).strip()
+
 	dictionary.close()
 
 	# Add some random letters to it, if it is too small
 	if len(base_word) < self.WORD_SIZE:
 		for new in xrange(self.WORD_SIZE - len(base_word)):
 			# Choose randomly between consonants and vowels
-			letter_list = random.choice([self.CONS, self.VOWELS])
-			base_word += random.choice(letter_list)
+			base_word += random.choice(self.CONS + self.VOWELS)
 
 	# Turn word into list and shuffle it
 	self.originals = list(base_word)
@@ -79,8 +81,9 @@ class Plugin:
         self.timer = 3
         self.start_player = msg.nick
         self.channel = msg.channel
-        self.c.privmsg(self.channel, "A new wordgame begins! The Letters are: %s"%"".join(self.originals))
         self.best_possible = self._find_best()
+
+        self.c.privmsg(self.channel, "A new wordgame begins! The Letters are: %s (best word is %d letters long)"%("".join(self.originals), len(self.best_possible)))
 
     def word_stop(self, msg):
         "Stops the current wordgame. Only admins and the start player can stop a game."
@@ -105,7 +108,10 @@ class Plugin:
         if self.mode == self.PLAYING:
             if self.timer > 0:
                 if self.timer == 1:
-                    self.c.privmsg(self.channel, "%d seconds left! Best word so far: %s"%(10*self.timer,self.best_word[0]))
+			if self.best_word[0]:
+	                    self.c.privmsg(self.channel, "%d seconds left! Best word so far: %s"%(10*self.timer,self.best_word[0]))
+			else:
+	                    self.c.privmsg(self.channel, "%d seconds left! No words so far."%(10*self.timer))
                 self.timer -= 1
             else:
                 self._finished()
