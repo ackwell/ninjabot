@@ -45,7 +45,7 @@ class Plugin:
                 # did they have a last message?
                 if msg.nick in last_messages:
                     their_messages = last_messages[nick]
-                    mode, sep, pattern, replacement, flags = map(lambda s: s.replace('\\/', '/') if s else '', groups)
+                    mode, sep, pattern, replacement, flags = [s.replace('\\'+groups[1], groups[1]) if s else '' for s in groups]
 
                     if mode == 's':  # string replace mode
                         # escape backslashes
@@ -58,7 +58,7 @@ class Plugin:
                                     if 'g' in flags:
                                         body = re.sub(pattern, replacement, message)
                                     elif flags.isdigit():
-                                        matches = [m for m in re.finditer(pattern, message)]
+                                        matches = re.findall(pattern, message)
                                         if len(matches) >= int(flags):
                                             span = matches[int(flags)-1].span()
                                             body = message[:span[0]] + replacement + message[span[1]:]
@@ -74,7 +74,7 @@ class Plugin:
                                     if body == "":
                                         self.controller.privmsg(msg.channel, nick + ' said nothing')
                                     else:
-                                        self.controller.privmsg(msg.channel, '%s meant to say: %s' % (nick, body))
+                                        self.controller.privmsg(msg.channel, '{} meant to say: {}'.format(nick, body))
 
                                     break
                             except:
