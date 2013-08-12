@@ -16,15 +16,33 @@ class Plugin:
         self.c = controller
         self.mode = self.INACTIVE
         self.timer = 0
+	self.found = []
+
+    def _is_good(self, word):
+        "Checks if a word is in the current running game word"
+	if self.mode == self.INACTIVE or len(word) > len(self.originals):
+		return False
+
+	letters = self.originals[:]
+	for letter in word:
+		if letter in letters:
+			letters.remove(letter)
+		else:
+			return False
+
+	return True
 
     def trigger_word(self, msg):
         "Letters and numbers inspired wordgame for IRC. For detailed help, run `word help`"
-        if not self.mode:
+	command = msg.args[0].lower()
+
+	# Commands are only commands if the game is not running or if the wor is a function, has been found or is not a valid word
+        if not self.mode or ("word_"+command in dir(self) and (command in self.found or not self._is_good(command))):
             if len(msg.args) == 0:
                 self.c.notice(msg.nick, "Please specify a wordgame command. Check `%sword help` for avaliable commands."%self.c.command_prefix)
                 return
 
-            command = msg.args.pop(0).lower()
+	    del msg.args[0]
             if 'word_'+command in dir(self):
                 getattr(self, 'word_'+command)(msg)
             else:
@@ -54,6 +72,7 @@ class Plugin:
             return
 
         self.best_word = ["",""]
+	self.found = []
         self.originals = []
 
 	# Get a "base word" to use (minimum length of self.MIN_BASE)
@@ -89,7 +108,7 @@ class Plugin:
         if not (self.c.is_admin(msg.nick, True) or msg.nick == self.start_player):
             self.c.notice(msg.nick, "Only ops+ and the start player can stop a game.")
             return
-        elif self.mode == self.self.INACTIVE:
+        elif self.mode == self.INACTIVE:
             self.c.notice(msg.nick, "There is no game in progress.")
             return
 
@@ -143,13 +162,14 @@ class Plugin:
         self.mode = self.INACTIVE
 
     def _take_word(self, word, user):
-        letters = self.originals[::]
-        for letter in word:
-            if letter in self.originals and letter in letters:
-                letters.remove(letter)
-                continue
-            else:
-                return
+        if word in self.found:
+            self.c.privmsg(self.channel, "The word %s had already been found" % word)
+	    return
+
+	if not self._is_good(word):
+		return
+
+	self.found.append(word)
 
         if len(word) > len(self.best_word[0]):
             with open(self.DICT_PATH, 'r') as inF:
