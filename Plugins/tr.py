@@ -20,12 +20,12 @@ class Plugin:
         matches = re.match(r'''(?x)     # verbose mode
                     ^(?:y|tr)(/)        # starts with y/ or tr/
                     (
-                        (?:\\\2)*       # any number of escaped /
+                        (?:\\\1)*       # any number of escaped /
                         [^/]+           # at least 1 non-/
-                        (?:\\\2[^/]*)*  # an escaped / and any number of non-/, repeatedly
+                        (?:\\\1[^/]*)*  # an escaped / and any number of non-/, repeatedly
                     )
                     /                   # literal /
-                    ((?:\\\2)*[^/]+(?:\\\2[^/]*)*) # the above again
+                    ((?:\\\1)*[^/]+(?:\\\1[^/]*)*) # the above again
                     /?$                 # end with optional /
                 ''', body)
 
