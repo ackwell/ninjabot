@@ -112,11 +112,9 @@ class Plugin:
             return
 
         url = "https://gdata.youtube.com/feeds/api/videos"
-        data = {'q':' '.join(msg.args), 'max-results':'1', 'v':'2', 'alt':'json'}
-        url += '?' + urllib.urlencode(data)
-        headers = {'User-agent':self.useragent}
-        req = requests.get(url,headers=headers).text
-        entry = json.loads(req)['feed']['entry']
+        params = {'q':' '.join(msg.args), 'max-results':'1', 'v':'2', 'alt':'json'}
+        req = requests.get(url, headers=headers, params=params)
+        entry = req.json['feed']['entry']
         if len(entry) < 0:
             self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
             return
