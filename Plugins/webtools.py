@@ -1,6 +1,7 @@
 from apis.BeautifulSoup import BeautifulSoup as bs, BeautifulStoneSoup as bss, Tag
 from apis import googl
 from apis import requests
+from apis.htmlentities import clear_entities as fixentities
 import re
 import urllib
 
@@ -47,7 +48,7 @@ class Plugin:
                     req = req.text
                     r = re.search(r'(?s)<title>.*</title>', req)
                     if not r: return
-                    title = bs(r.group(0), convertEntities=bs.HTML_ENTITIES).title.string.strip().replace('\n', '')
+                    title = fixentities(r.group(0)).title.string.strip().replace('\n', '')
                     message = 'Title: '+title
                 else:
                     content_type = head.headers['content-type']
@@ -99,8 +100,8 @@ class Plugin:
         url = googl.get_short(top_res['url'], self.c.config)
 
         message = u"\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
-            bs(top_res['titleNoFormatting'], convertEntities=bs.HTML_ENTITIES),
-            bs(re.sub("</?b>", "\002", top_res['content']), convertEntities=bs.HTML_ENTITIES),
+            fixentities(top_res['titleNoFormatting']),
+            fixentities(unicode(re.sub("</?b>", "\002", top_res['content']))),
             url)
         self.c.privmsg(msg.channel, message)
 
