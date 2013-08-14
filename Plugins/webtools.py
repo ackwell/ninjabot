@@ -66,18 +66,18 @@ class Plugin:
             return
 
         params = {'action':'opensearch', 'format':'xml', 'limit':'2', 'search':' '.join(msg.args)}
-        
+
         resp = bss(requests.post("http://en.wikipedia.org/w/api.php", data=params).text, convertEntities=bs.HTML_ENTITIES)
 
         if resp.textTag:
             index = 1 if 'may refer to:' in resp.descriptionTag.string else 0
             info = resp.findAll('description')[index].string.strip()
             url = resp.findAll('url')[index].string
-            message = "\002Wikipedia ::\002 %s \002::\002 %s" % (info, googl.get_short(url,self.c.config))
+            message = u"\002Wikipedia ::\002 %s \002::\002 %s" % (info, googl.get_short(url,self.c.config))
             self.c.privmsg(msg.channel, message)
         else:
             self.c.privmsg(msg.channel, '%s: No articles were found.' % ' '.join(msg.args))
-        
+
 
     def trigger_g(self, msg):
         "Usage: g <search term>. Prints title & short description of first google result."
@@ -89,7 +89,7 @@ class Plugin:
         params = {'q': ' '.join(msg.args),
                   'v': 1.0}
         resp_json = requests.get(url, params=params).json
-    
+
         results = resp_json["responseData"]["results"]
         if len(results) == 0:
             self.c.privmsg(msg.channel, '{}: No results.'.format(' '.join(msg.args)))
@@ -98,7 +98,7 @@ class Plugin:
 
         url = googl.get_short(top_res['url'], self.c.config)
 
-        message = "\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
+        message = u"\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
             bs(top_res['titleNoFormatting'], convertEntities=bs.HTML_ENTITIES),
             bs(re.sub("</?b>", "\002", top_res['content']), convertEntities=bs.HTML_ENTITIES),
             url)
@@ -122,7 +122,7 @@ class Plugin:
             return
         entry = entry[0]
         link = entry['link'][0]
-        message = "\002You\0030,4Tube\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
+        message = u"\002You\0030,4Tube\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
             entry['title']['$t'],
             entry['media$group']['media$description']['$t'],
             "http://youtu.be/"+entry['id']['$t'].split(':')[-1],)
