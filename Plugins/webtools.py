@@ -113,7 +113,7 @@ class Plugin:
 
         url = "https://gdata.youtube.com/feeds/api/videos"
         params = {'q':' '.join(msg.args), 'max-results':'1', 'v':'2', 'alt':'json'}
-        req = requests.get(url, headers=headers, params=params)
+        req = requests.get(url, params=params)
         entry = req.json['feed']['entry']
         if len(entry) < 0:
             self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
