@@ -73,7 +73,7 @@ class Plugin:
             index = 1 if 'may refer to:' in resp.descriptionTag.string else 0
             info = resp.findAll('description')[index].string.strip()
             url = resp.findAll('url')[index].string
-            message = "\002Wikipedia ::\002 %s \002::\002 %s" % (info, googl.get_short(url,self.c.config))
+            message = u"\002Wikipedia ::\002 %s \002::\002 %s" % (info, googl.get_short(url,self.c.config))
             self.c.privmsg(msg.channel, message)
         else:
             self.c.privmsg(msg.channel, '%s: No articles were found.' % ' '.join(msg.args))
@@ -122,7 +122,7 @@ class Plugin:
             return
         entry = entry[0]
         link = entry['link'][0]
-        message = "\002You\0030,4Tube\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
+        message = u"\002You\0030,4Tube\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
             entry['title']['$t'],
             entry['media$group']['media$description']['$t'],
             "http://youtu.be/"+entry['id']['$t'].split(':')[-1],)
