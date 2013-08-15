@@ -12,6 +12,8 @@ class Plugin:
 	WORD_SIZE = 10
 	MIN_BASE = 6
 
+	GAME_LENGTH = 30
+
 	def __init__(self, controller, config):
 		self.c = controller
 		self.mode = self.INACTIVE
@@ -100,7 +102,7 @@ class Plugin:
 		random.shuffle(self.originals)
 
 		self.mode = self.PLAYING
-		self.timer = 3
+		self.timer = self.GAME_LENGTH // 10
 		self.start_player = msg.nick
 		self.channel = msg.channel
 		self.best_possible = self._find_best()
@@ -130,11 +132,13 @@ class Plugin:
 	def timer_10(self):
 		if self.mode == self.PLAYING:
 			if self.timer > 0:
+
 				if self.best_word[0]:
 					self.c.privmsg(self.channel, "%d seconds left! Best word so far: %s"%(10*self.timer,self.best_word[0]))
 				else:
 					self.c.privmsg(self.channel, "%d seconds left! No words so far."%(10*self.timer))
-					self.timer -= 1
+
+				self.timer -= 1
 			else:
 				self._finished()
 
