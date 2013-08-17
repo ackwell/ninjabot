@@ -48,7 +48,7 @@ class Plugin:
                     req = req.text
                     r = re.search(r'(?s)<title>.*</title>', req)
                     if not r: return
-                    title = fixentities(r.group(0)).title.string.strip().replace('\n', '')
+                    title = re.sub(r'</?title>', '', fixentities(r.group(0)).strip().replace('\n', ''))
                     message = 'Title: '+title
                 else:
                     content_type = head.headers['content-type']

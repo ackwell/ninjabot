@@ -8,6 +8,7 @@ fix_entities  = lambda name: ENTITIES[name.groups()[0]] if name.groups()[0] in E
 
 def clear_entities(text):
 	#print u"Entity-freeing %s"%unicode(text)
+	text = re.sub("&amp;", "&", text);
 	text = re.sub("&(\w+?);", fix_entities, text);
 	text = re.sub("&#(\d\d\d);", fix_charcodes, text);
 	return text
