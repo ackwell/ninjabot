@@ -1,6 +1,5 @@
 # tr Plugin for ninjabot
 
-from string import maketrans
 import re
 
 last_messages = {}
@@ -19,26 +18,27 @@ class Plugin:
 
         # check if the message matches the (y|tr)/blah/blah/ syntax
         matches = re.match(r'''(?x)     # verbose mode
-                    ^(?:y|tr)/          # starts with y/ or tr/
+                    ^(?:y|tr)(/)        # starts with y/ or tr/
                     (
-                        (?:\\/)*        # any number of escaped /
+                        (?:\\\1)*       # any number of escaped /
                         [^/]+           # at least 1 non-/
-                        (?:\\/[^/]*)*   # an escaped / and any number of non-/, repeatedly
+                        (?:\\\1[^/]*)*  # an escaped / and any number of non-/, repeatedly
                     )
                     /                   # literal /
-                    ((?:\\/)*[^/]+(?:\\/[^/]*)*) # the above again
+                    ((?:\\\1)*[^/]+(?:\\\1[^/]*)*) # the above again
                     /?$                 # end with optional /
                 ''', body)
-        if matches != None:
+
+        if matches:
             groups = matches.groups()
             # did they have a last message?
             if msg.nick in last_messages:
                 last_message = last_messages[msg.nick]
                 if len(groups) == 2:
-                    pattern, replacement = map(lambda s: s.replace('\\/', '/'), groups)
+                    pattern, replacement = [s.replace('\\'+groups[0], groups[0]) for s in groups][1:]
                     if len(pattern) == len(replacement):
                         body = last_message.translate(dict(zip(map(ord, pattern), replacement)))
-                        self.controller.privmsg(msg.channel, '%s: %s' % (msg.nick, body))
+                        self.controller.privmsg(msg.channel, '{}: {}'.format(msg.nick, body))
                     else:
                         # was invalid, return without adding this to their last messages
                         return
