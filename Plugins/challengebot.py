@@ -13,7 +13,7 @@ class Plugin:
 
         # read config file
         self.cookie = config['cookie']
-        self.course = config['course'])
+        self.course = config['course']
         self.channel = ','.join(self.controller.config['bot']['channels'])
 
         # create NCSS object

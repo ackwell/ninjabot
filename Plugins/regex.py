@@ -12,40 +12,42 @@ class Plugin:
         self.controller = controller
 
     def on_incoming(self, msg):
+        nick = msg.nick
+
         # Ignore those who have been ignored...
-        if self.controller.is_ignored(msg.nick):return
+        if self.controller.is_ignored(nick): return
 
         if msg.type == msg.CHANNEL:
             # check if the message matches the s/blah/blah/ syntax
-            # regex could have been used for this, but factoring in those escaped forward slashes
-            # would have been more trouble than it was worth...
+            ## regex could have been used for this, but factoring in those escaped forward slashes
+            ## would have been more trouble than it was worth...
+            # Challenge accepted, spake. --auscompgeek
             body = msg.body
-            their_messages = last_messages[msg.nick]
+            matches = re.match(r'''(?x)     # verbose mode
+                        ^(s)(/)             # starts with s, then / (our separator)
+                        ((?: # capture pattern
+                            (?:\\\2)*       # any number of escaped separators
+                            [^/]*           # any number of non-seps
+                            (?:(?:\\\2)+[^/])*
+                        )*)  # ...as many times as possible, end capture pattern
+                        \2                  # separator
+                        ((?:
+                            (?:\\\2)*
+                            [^/]*
+                            (?:(?:\\\2)+[^/])*
+                        )*)
+                        (?:\2([g0-9])?)?$   # end with optional separator with optional flags
+                    ''', body)
 
-            groups = list()
-            current_group = ''
-            for i in xrange(len(body)):
-                if i == 0 and body[i] != 's':
-                    break
-                elif i == 1 and body[i] != '/':
-                    break
-                elif body[i] == '/' and (body[i-1] != '\\' or (len(body) >= 3 and body[i-2] == '\\')):
-                    groups.append(current_group)
-                    current_group = ''
-                else:
-                    current_group += body[i]
-            else:
-                # take pity on the user if they haven't finished the expression with a forward slash
-                if len(groups) == 2 and len(current_group) > 0:
-                    groups.append(current_group)
-                    current_group = ''
+            if matches:
+                groups = matches.groups()
 
-                flags = current_group
+                # did they have a last message?
+                if msg.nick in last_messages:
+                    their_messages = last_messages[nick]
+                    mode, sep, pattern, replacement, flags = map(lambda s: s.replace('\\/', '/') if s else '', groups)
 
-                if (flags == 'g' or flags.isdigit() or len(flags) == 0) and len(groups) == 3:
-                    # did they have a last message?
-                    if msg.nick in last_messages:
-                        _, pattern, replacement = map(lambda s: s.replace('\\/', '/'), groups)
+                    if mode == 's':  # string replace mode
                         # escape backslashes
                         replacement = replacement.replace('\\', '\\\\')
 
@@ -60,20 +62,19 @@ class Plugin:
                                         if len(matches) >= int(flags):
                                             span = matches[int(flags)-1].span()
                                             body = message[:span[0]] + replacement + message[span[1]:]
-                                            print body
                                         else:
                                             return
                                     else:
                                         body = re.sub(pattern, replacement, message, 1)
-                                        
+
                                     # put backslashes back in
                                     body = body.replace('\\\\', '\\')
 
                                     # send it
                                     if body == "":
-                                        self.controller.privmsg(msg.channel, '%s said nothing' % msg.nick)
+                                        self.controller.privmsg(msg.channel, nick + ' said nothing')
                                     else:
-                                        self.controller.privmsg(msg.channel, '%s meant to say: %s' % (msg.nick, body))
+                                        self.controller.privmsg(msg.channel, '%s meant to say: %s' % (nick, body))
 
                                     break
                             except:
@@ -84,7 +85,7 @@ class Plugin:
                             return
 
             # add it to the last messages dictionary
-            their_messages = last_messages[msg.nick]
+            their_messages = last_messages[nick]
             their_messages.appendleft(body)
             if len(their_messages) > BACKLOG:
                 their_messages.pop()
