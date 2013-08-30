@@ -1,9 +1,9 @@
 from apis.BeautifulSoup import BeautifulSoup as bs, BeautifulStoneSoup as bss, Tag
 from apis import googl
-from apis import requests
-from apis.htmlentities import clear_entities as fixentities
+from apis import htmlentities
 import re
 import urllib
+import requests
 
 #I'm silencing all errors from webtools' autochecker, simply because there are so many that could pop up.
 #/me is lazy
@@ -19,13 +19,15 @@ class Plugin:
     def sizeof_fmt(self, num):
         for x in ['bytes','KB','MB','GB','TB']:
             if num < 1024.0:
-                return "%3.1f%s" % (num, x)
+                return "{:3.1f}{:s}".format(num, x)
             num /= 1024.0
 
 
     def on_incoming(self, msg):
-        if not msg.type == msg.CHANNEL: return
-        if self.c.is_ignored(msg.nick): return
+        if not msg.type == msg.CHANNEL:
+            return
+        if self.c.is_ignored(msg.nick):
+            return
 
         try:
             urls = re.findall(r'https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]', msg.body)
@@ -34,27 +36,28 @@ class Plugin:
                     url = url[1:-1]
 
                 filename = re.search(r'/([^/]+)/?$', url).groups(1)[0]
-                #if '.' not in filename:
-                #   url += ''
 
                 req_headers = {}
                 if self.lang:
                     req_headers['Accept-Language'] = self.lang
 
                 head = requests.head(url)
+                content_type = head.headers['content-type']
 
-                if 'text/html' in head.headers['content-type']:
-                    req = requests.get(url,headers=req_headers)
-                    req = req.text
-                    r = re.search(r'(?s)<title>.*</title>', req)
-                    if not r: return
-                    title = re.sub(r'</?title>', '', fixentities(r.group(0)).strip().replace('\n', ''))
-                    message = 'Title: '+title
+                if 'text/html' in content_type:
+                    req = requests.get(url, headers=req_headers)
+                    r = re.search(r'<title>.*?</title>', req.text, re.I)
+                    if r is None:
+                        return
+                    title = re.sub(r'</?title>', '', htmlentities.clear_entities(r.group(0)).strip().replace('\n', ''))
+                    message = 'Title: ' + title
                 else:
-                    content_type = head.headers['content-type']
-                    try: size = self.sizeof_fmt(int(head.headers['content-length']))
-                    except TypeError: size = "Unknown size"
-                    message = '%s: %s (%s)' % (filename, content_type, size)
+                    content_length = head.headers['content-length']
+                    if content_length.isdigit():
+                        size = self.sizeof_fmt(int(content_length))
+                    else:
+                        size = "Unknown size"
+                    message = '{:s}: {:s} ({:s})'.format(filename, content_type, size)
                 self.c.privmsg(msg.channel, message)
         except Exception as e:
             print e
