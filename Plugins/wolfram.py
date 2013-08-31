@@ -6,9 +6,12 @@ import urllib
 class Plugin:
     active = True
 
-    def __init__(self, controller, appid):
+    def __init__(self, controller, config):
         self.controller = controller
-        self.appid = appid
+        self.appid      = config['appid']
+        self.location   = config.get('location', None)
+        self.latlong    = config.get('latlong', None)
+        self.units      = config.get('units', None)
 
         self.queryurl = 'http://api.wolframalpha.com/v2/query'
         self.session = requests.session()
@@ -25,6 +28,12 @@ class Plugin:
         querydata = {'appid' : self.appid,
                      'input' : ' '.join(msg.args),
                      'format': 'plaintext'}
+        if self.location is not None:
+            querydata['location'] = self.location
+        if self.latlong is not None:
+            querydata['latlong'] = self.latlong
+        if self.units is not None:
+            querydata['units'] = self.units
 
         # Perform the query and form XML Tree
         response = self.session.post(self.queryurl, data=querydata)
