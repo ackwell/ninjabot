@@ -19,7 +19,7 @@ class Plugin:
     def sizeof_fmt(self, num):
         for x in ['bytes','KB','MB','GB','TB']:
             if num < 1024.0:
-                return "{:3.1f}{:s}".format(num, x)
+                return "{:3.1f}{}".format(num, x)
             num /= 1024.0
 
 
@@ -57,7 +57,7 @@ class Plugin:
                         size = self.sizeof_fmt(int(content_length))
                     else:
                         size = "Unknown size"
-                    message = '{:s}: {:s} ({:s})'.format(filename, content_type, size)
+                    message = '{}: {} ({})'.format(filename, content_type, size)
                 self.c.privmsg(msg.channel, message)
         except Exception as e:
             print e
@@ -69,7 +69,10 @@ class Plugin:
             self.c.notice(msg.nick, "Please specify a search term")
             return
 
-        params = {'action':'opensearch', 'format':'xml', 'limit':'2', 'search':' '.join(msg.args)}
+        params = {'action': 'opensearch',
+                  'format': 'xml',
+                  'limit' : '2',
+                  'search': ' '.join(msg.args)}
 
         resp = bss(requests.post("http://en.wikipedia.org/w/api.php", data=params).text, convertEntities=bs.HTML_ENTITIES)
 
@@ -77,10 +80,10 @@ class Plugin:
             index = 1 if 'may refer to:' in resp.descriptionTag.string else 0
             info = resp.findAll('description')[index].string.strip()
             url = resp.findAll('url')[index].string
-            message = u"\002Wikipedia ::\002 %s \002::\002 %s" % (info, googl.get_short(url,self.c.config))
+            message = u"\002Wikipedia ::\002 {} \002::\002 {}".format(info, googl.get_short(url,self.c.config))
             self.c.privmsg(msg.channel, message)
         else:
-            self.c.privmsg(msg.channel, '%s: No articles were found.' % ' '.join(msg.args))
+            self.c.privmsg(msg.channel, '{}: No articles were found.'.format(' '.join(msg.args))
 
 
     def trigger_g(self, msg):
