@@ -84,6 +84,9 @@ class Plugin:
         else:
             self.c.privmsg(msg.channel, '{}: No articles were found.'.format(' '.join(msg.args)))
 
+    def trigger_wiki(self, msg):
+        "Usage: wiki <search term>. Prints a short description of the corresponding wikipedia article."
+        self.trigger_w(msg)
 
     def trigger_g(self, msg):
         "Usage: g <search term>. Prints title & short description of first google result."
