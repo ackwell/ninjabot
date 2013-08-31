@@ -159,8 +159,8 @@ class Plugin:
     def trigger_tx(self, msg):
         "Usage: tx <expression>. Prints a link to a graphical representation of the supplied LaTeX expression."
 
-        url = "http://www.texify.com/$%s$" % urllib.quote(' '.join(msg.args))
-        self.c.privmsg(msg.channel, 'LaTeX :: %s' % googl.get_short(url, self.c.config))
+        url = "http://www.texify.com/${}$".format(urllib.quote(' '.join(msg.args)))
+        self.c.privmsg(msg.channel, 'LaTeX :: {}'.format(googl.get_short(url, self.c.config)))
 
     def tag2string(self, tag):
         if tag.string is None:
