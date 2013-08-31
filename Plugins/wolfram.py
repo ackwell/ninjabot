@@ -1,6 +1,6 @@
 from apis import googl
-from apis import requests
 import xml.etree.ElementTree as ElementTree
+import requests
 import urllib
 
 class Plugin:
@@ -23,8 +23,8 @@ class Plugin:
 
         # Set up the required data for the query
         querydata = {'appid' : self.appid,
-                     'input' :' '.join(msg.args),
-                     'format':'plaintext'}
+                     'input' : ' '.join(msg.args),
+                     'format': 'plaintext'}
 
         # Perform the query and form XML Tree
         response = self.session.post(self.queryurl, data=querydata)
@@ -32,7 +32,7 @@ class Plugin:
 
         # Check for error
         if tree.get('error') == 'true':
-            self.controller.privmsg(msg.channel, '%s Error.' % self.prefix)
+            self.controller.privmsg(msg.channel, '{} Error.'.format(self.prefix))
             return
 
         # Interpretation may or may not differ from query
@@ -47,13 +47,11 @@ class Plugin:
                     didyoumeans_list.append(didyoumean.text)
             # Try alternatives
             for try_next in didyoumeans_list:
-                querydata = {'appid' : self.appid,
-                             'input' : try_next,
-                             'format':'plaintext'}
+                querydata['input'] = try_next
                 response = self.session.post(self.queryurl, data=querydata)
                 tree = ElementTree.XML(response.text.encode('utf-8'))
                 if tree.get('error') == 'true':
-                    self.controller.privmsg(msg.channel, '%s Error.' % self.prefix)
+                    self.controller.privmsg(msg.channel, '{} Error.'.format(self.prefix))
                     return
                 # When a proper result has been obtained:
                 if tree.get('success') == 'true':
@@ -62,7 +60,7 @@ class Plugin:
                     break
             else:
                 # There were no suitable alternatives
-                self.controller.privmsg(msg.channel, '%s Could not interpret input.' % self.prefix)
+                self.controller.privmsg(msg.channel, '{} Could not interpret input.'.format(self.prefix))
                 return
 
         # Can be more than one result so store a list
@@ -80,8 +78,7 @@ class Plugin:
                     if subpod.get('primary') == 'true' or subpod_count == '1':
                         result = subpod.findtext('plaintext')
                         if '\n' in result:
-                            # Adds '...' if result is multiline
-                            result = result.replace('\n',' ')#result.split('\n')[0] + '...'
+                            result = result.replace('\n',' ')
                         if len(result) > 100:
                             result = result[:result.find(' ',100)] + '...'
                         if len(result) > 200:
@@ -107,14 +104,14 @@ class Plugin:
             interpretation = interpretation[:200] + '...'
         # Notify of use of alternate interpretation
         if interpretation != '':
-            self.controller.privmsg(msg.channel, '%s Interpreting as `%s`.' % (self.prefix, interpretation))
+            self.controller.privmsg(msg.channel, '{} Interpreting as `{}\'.'.format(self.prefix, interpretation))
 
         # Add all results to messages and send at once
         messages = []
         for result in results:
-            messages.append('%s %s \002::\002 %s' % (self.prefix, result[0], result[1]))
+            messages.append('{} {} \002::\002 {}'.format(self.prefix, result[0], result[1]))
         if not results:
-            messages.append('%s No primary results.' % self.prefix)
+            messages.append('{} No primary results.'.format(self.prefix))
 
         # Add a goo.gl url to last result
         messages[-1] += ' \002::\002 '
