@@ -140,18 +140,21 @@ class Plugin:
 
     def trigger_ud(self, msg):
         "Usage: ud <search term>. Prints first UrbanDictionary result."
+        if len(msg.args) == 0:
+            self.c.notice(msg.nick, "Please specify a search term")
+            return
 
         url = "http://www.urbandictionary.com/define.php"
-        data = {'term':' '.join(msg.args)}
+        data = {'term': ' '.join(msg.args)}
         soup = bs(requests.post(url,data=data).text, convertEntities=bs.HTML_ENTITIES)
         word = soup.find('td', 'word')
         if not word:
-            self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
+            self.c.privmsg(msg.channel, '{}: No entries were found.'.format(' '.join(msg.args)))
             return
 
         word = self.tag2string(word).strip()
         defi = self.tag2string(soup.find('div', 'definition')).split('<br')[0]
-        self.c.privmsg(msg.channel, '%s: %s'%(word,defi,))
+        self.c.privmsg(msg.channel, '{}: {}'.format(word, defi))
 
     def trigger_tx(self, msg):
         "Usage: tx <expression>. Prints a link to a graphical representation of the supplied LaTeX expression."
@@ -160,10 +163,10 @@ class Plugin:
         self.c.privmsg(msg.channel, 'LaTeX :: %s' % googl.get_short(url, self.c.config))
 
     def tag2string(self, tag):
-        if tag.string == None:
+        if tag.string is None:
             ret = ''
             for item in tag.contents:
-                if type(item) is Tag:
+                if isinstance(item, Tag):
                     ret += self.tag2string(item)
                 else:
                     ret += item
