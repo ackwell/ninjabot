@@ -118,15 +118,20 @@ class Plugin:
             return
 
         url = "https://gdata.youtube.com/feeds/api/videos"
-        params = {'q':' '.join(msg.args), 'max-results':'1', 'v':'2', 'alt':'json'}
+        params = {'q'          : ' '.join(msg.args),
+                  'max-results': '1',
+                  'v'          : '2',
+                  'alt'        : 'json'}
         req = requests.get(url, params=params)
-        entry = req.json['feed']['entry']
-        if len(entry) < 0:
-            self.c.privmsg(msg.channel, '%s: No entries were found.'%' '.join(msg.args))
+        req_json = req.json()
+        if 'entry' not in req_json['feed']:
+            self.c.privmsg(msg.channel, '{}: No entries were found.'.format(' '.join(msg.args)))
             return
+
+        entry = req_json['feed']['entry']
         entry = entry[0]
         link = entry['link'][0]
-        message = u"\002You\0030,4Tube\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
+        message = u"\002You\0030,4Tube\003 ::\002 {} \002::\002 {} \002::\002 {}".format(
             entry['title']['$t'],
             entry['media$group']['media$description']['$t'],
             "http://youtu.be/"+entry['id']['$t'].split(':')[-1],)
