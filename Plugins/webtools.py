@@ -1,6 +1,5 @@
 from apis.BeautifulSoup import BeautifulSoup as bs, BeautifulStoneSoup as bss, Tag
 from apis import googl
-from apis import htmlentities
 import re
 import urllib
 import requests
@@ -49,7 +48,7 @@ class Plugin:
                     r = re.search(r'<title>.*?</title>', req.text, re.I)
                     if r is None:
                         return
-                    title = re.sub(r'</?title>', '', htmlentities.clear_entities(r.group(0)).strip().replace('\n', ''))
+                    title = re.sub(r'</?title>', '', r.group(0).strip().replace('\n', ''))
                     message = 'Title: ' + title
                 else:
                     content_length = head.headers['content-length']
@@ -83,7 +82,7 @@ class Plugin:
             message = u"\002Wikipedia ::\002 {} \002::\002 {}".format(info, googl.get_short(url,self.c.config))
             self.c.privmsg(msg.channel, message)
         else:
-            self.c.privmsg(msg.channel, '{}: No articles were found.'.format(' '.join(msg.args))
+            self.c.privmsg(msg.channel, '{}: No articles were found.'.format(' '.join(msg.args)))
 
 
     def trigger_g(self, msg):
@@ -95,7 +94,7 @@ class Plugin:
         url = 'http://ajax.googleapis.com/ajax/services/search/web'
         params = {'q': ' '.join(msg.args),
                   'v': 1.0}
-        resp_json = requests.get(url, params=params).json
+        resp_json = requests.get(url, params=params).json()
 
         results = resp_json["responseData"]["results"]
         if len(results) == 0:
@@ -105,9 +104,9 @@ class Plugin:
 
         url = googl.get_short(top_res['url'], self.c.config)
 
-        message = u"\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 %s \002::\002 %s \002::\002 %s" % (
-            fixentities(top_res['titleNoFormatting']),
-            fixentities(unicode(re.sub("</?b>", "\002", top_res['content']))),
+        message = u"\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 {} \002::\002 {} \002::\002 {}".format(
+            top_res['titleNoFormatting'],
+            re.sub("</?b>", "\002", top_res['content']),
             url)
         self.c.privmsg(msg.channel, message)
 
