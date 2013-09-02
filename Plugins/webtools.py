@@ -44,7 +44,7 @@ class Plugin:
                 content_type = head.headers['content-type']
 
                 if 'text/html' in content_type:
-                    req = requests.get(url, headers=req_headers)
+                    req = requests.get(url, headers=req_headers, timeout=5)
                     r = re.search(r'<title>.*?</title>', req.text, re.I)
                     if r is None:
                         return
