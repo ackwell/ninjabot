@@ -60,7 +60,12 @@
 
   "webtools": "en-au", 
 
-  "wolfram": "AppID",
+  "wolfram": {
+    "appid": "AppID",
+    "latlong": "latitude,longitude/delete for auto",
+    "location": "name/delete for auto",
+    "units": "metric/nonmetric/delete for auto"
+  },
 
   /* Centralised spot to put API settings. Will need to be fetched manually */
   "apis": {
