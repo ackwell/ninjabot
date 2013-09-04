@@ -50,9 +50,10 @@ class Plugin:
                     if r is None:
                         return
                     title = re.sub(r'</?title>', '', r.group(0).strip().replace('\n', ''))
+                    title = bs(title, convertEntities=bs.HTML_ENTITIES).contents[0]
                     message = 'Title: ' + title
                 else:
-                    content_length = head.headers['content-length']
+                    content_length = head.headers.get('content-length','')
                     if content_length.isdigit():
                         size = self.sizeof_fmt(int(content_length))
                     else:
@@ -60,7 +61,8 @@ class Plugin:
                     message = '{}: {} ({})'.format(filename, content_type, size)
                 self.c.privmsg(msg.channel, message)
         except Exception as e:
-            print e
+            print 'EXCEPTION!'
+            print type(e), e.args, e.message
 
 
     def trigger_w(self, msg):
@@ -107,10 +109,12 @@ class Plugin:
         top_res = results[0]
 
         url = googl.get_short(top_res['url'], self.c.config)
+        content = bs(top_res['content'], convertEntities=bs.HTML_ENTITIES).contents[0]
+        title   = bs(top_res['titleNoFormatting'], convertEntities=bs.HTML_ENTITIES).contents[0]
 
         message = u"\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 {} \002::\002 {} \002::\002 {}".format(
-            top_res['titleNoFormatting'],
-            re.sub("</?b>", "\002", top_res['content']),
+            title,
+            re.sub("</?b>", "\002", content),
             url)
         self.c.privmsg(msg.channel, message)
 
@@ -135,9 +139,12 @@ class Plugin:
         entry = req_json['feed']['entry']
         entry = entry[0]
         link = entry['link'][0]
+        title = bs(entry['title']['$t'], convertEntities=bs.HTML_ENTITIES).contents[0]
+        desc  = bs(entry['media$group']['media$description']['$t'], convertEntities=bs.HTML_ENTITIES).contents[0]
+
         message = u"\002You\0030,4Tube\003 ::\002 {} \002::\002 {} \002::\002 {}".format(
-            entry['title']['$t'],
-            entry['media$group']['media$description']['$t'],
+            title,
+            desc,
             "http://youtu.be/"+entry['id']['$t'].split(':')[-1],)
         self.c.privmsg(msg.channel, message)
 
