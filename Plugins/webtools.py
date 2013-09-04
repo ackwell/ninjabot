@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from apis.BeautifulSoup import BeautifulSoup as bs, BeautifulStoneSoup as bss, Tag
 from apis import googl
 import re
