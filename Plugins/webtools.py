@@ -23,6 +23,14 @@ class Plugin:
             num /= 1024.0
 
 
+    def fix_text(self, text):
+        soup = bs(text, convertEntities=bs.HTML_ENTITIES)
+        fixed = ''.join(map(unicode, soup))
+        fixed = re.sub("</?b>", "\002", fixed)
+        return fixed
+
+
+
     def on_incoming(self, msg):
         if not msg.type == msg.CHANNEL:
             return
@@ -50,7 +58,7 @@ class Plugin:
                     if r is None:
                         return
                     title = re.sub(r'</?title>', '', r.group(0).strip().replace('\n', ''))
-                    title = bs(title, convertEntities=bs.HTML_ENTITIES).contents[0]
+                    title = self.fix_text(title)
                     message = 'Title: ' + title
                 else:
                     content_length = head.headers.get('content-length','')
@@ -108,13 +116,14 @@ class Plugin:
             return
         top_res = results[0]
 
-        url = googl.get_short(top_res['url'], self.c.config)
-        content = bs(top_res['content'], convertEntities=bs.HTML_ENTITIES).contents[0]
-        title   = bs(top_res['titleNoFormatting'], convertEntities=bs.HTML_ENTITIES).contents[0]
+        print(top_res)
+        url     = googl.get_short(top_res['url'], self.c.config)
+        content = self.fix_text(top_res['content'])
+        title   = self.fix_text(top_res['title'])
 
         message = u"\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 {} \002::\002 {} \002::\002 {}".format(
             title,
-            re.sub("</?b>", "\002", content),
+            content,
             url)
         self.c.privmsg(msg.channel, message)
 
@@ -138,9 +147,9 @@ class Plugin:
 
         entry = req_json['feed']['entry']
         entry = entry[0]
-        link = entry['link'][0]
-        title = bs(entry['title']['$t'], convertEntities=bs.HTML_ENTITIES).contents[0]
-        desc  = bs(entry['media$group']['media$description']['$t'], convertEntities=bs.HTML_ENTITIES).contents[0]
+        link  = entry['link'][0]
+        title = self.fix_text(entry['title']['$t'])
+        desc  = self.fix_text(entry['media$group']['media$description']['$t'])
 
         message = u"\002You\0030,4Tube\003 ::\002 {} \002::\002 {} \002::\002 {}".format(
             title,
