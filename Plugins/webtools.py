@@ -68,10 +68,13 @@ class Plugin:
 
                 if 'text/html' in content_type:
                     req = requests.get(url, headers=req_headers, timeout=5)
-                    r = re.search(r'<title>.*?</title>', req.text, re.I)
+                    e = re.search(r'''<\s*meta\s[^>]+?charset=([^>]*?)[;'">]''', req.text, re.I)
+                    if e:
+                        req.encoding = e.group(1)
+                    r = re.search(r'<(title|h1)>(.*?)</\1>', req.text, re.I)
                     if r is None:
                         return
-                    title = re.sub(r'</?title>', '', r.group(0).strip().replace('\n', ''))
+                    title = r.group(2).strip().replace('\n', '')
                     title = self.fix_text(title)
                     message = 'Title: ' + title
                 else:
