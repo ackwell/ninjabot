@@ -22,12 +22,26 @@ class Plugin:
                 return "{:3.1f}{}".format(num, x)
             num /= 1024.0
 
+    def tag2string(self, tag, keep_bold=False):
+        if tag.string is None:
+            ret = ''
+            for item in tag.contents:
+                if isinstance(item, Tag):
+                    if keep_bold and item.name == 'b':
+                        ret += '\002'
+                        ret += self.tag2string(item)
+                        ret += '\002'
+                    else:
+                        ret += self.tag2string(item)
+                else:
+                    ret += item
+            return ret
+        else:
+            return tag.string
 
     def fix_text(self, text):
         soup = bs(text, convertEntities=bs.HTML_ENTITIES)
-        fixed = ''.join(map(unicode, soup))
-        fixed = re.sub("</?b>", "\002", fixed)
-        return fixed
+        return self.tag2string(soup, keep_bold=True)
 
 
 
@@ -181,17 +195,4 @@ class Plugin:
 
         url = "http://www.texify.com/${}$".format(urllib.quote(' '.join(msg.args)))
         self.c.privmsg(msg.channel, 'LaTeX :: {}'.format(googl.get_short(url, self.c.config)))
-
-    def tag2string(self, tag):
-        if tag.string is None:
-            ret = ''
-            for item in tag.contents:
-                if isinstance(item, Tag):
-                    ret += self.tag2string(item)
-                else:
-                    ret += item
-            return ret
-        else:
-            return tag.string
-
 
