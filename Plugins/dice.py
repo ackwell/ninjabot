@@ -23,29 +23,35 @@ class Plugin:
 	def trigger_dice(self, msg):
 		"""
 		Roll a die (or dice).
-		dice <sides=6> <times=1>
+		dice [<sides>d<num>]
 		"""
 
 		# Too many arguments
-		if len(msg.args) > 2:
+		if len(msg.args) > 1:
 			self.bot.notice(msg.nick, 'Invalid number of arguments.')
 			return
 
 		# Default options
-		options = [6, 1]
+		sides, die = 6, 1
 
 		# Convert args to options
-		for arg in enumerate(msg.args):
-			if not arg[1].isnumeric():
-				self.bot.notice(msg.nick, 'Invalid argument %r.' % arg[1])
-				return
+		if len(msg.args) == 1:
 
-			options[arg[0]] = int(arg[1])
+			if len(msg.args[0].split('d')) != 2:
+				self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
+
+			sides, die = msg.args[0].split('d')
+
+			if not sides.isnumeric() or not die.isnumeric():
+				self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
+
+			sides, die = int(sides), int(die)
+
 
 		self.TYPE = self.DEFAULT
 
 		# Upper and lower limits cause "single" calculations
-		if not self.F_LOWER_LIMIT <= options[0] <= self.F_UPPER_LIMIT or not self.D_LOWER_LIMIT <= options[1] <= self.D_UPPER_LIMIT:
+		if not self.F_LOWER_LIMIT <= sides <= self.F_UPPER_LIMIT or not self.D_LOWER_LIMIT <= die <= self.D_UPPER_LIMIT:
 			self.TYPE = self.SINGLE
 
 		import random
@@ -54,16 +60,16 @@ class Plugin:
 			numbers = []
 
 			# Get the numbers
-			for each in range(options[1]):
-				num = random.randint(self.F_LOWER_LIMIT, options[0])
+			for each in range(die):
+				num = random.randint(self.F_LOWER_LIMIT, sides)
 				numbers += [num]
 
 			# Give the results
-			self.bot.privmsg(msg.channel, '%s: %r (total %d)' % (msg.nick, numbers, sum(numbers)))
+			self.bot.privmsg(msg.channel, '%s: %s (total %d)' % (msg.nick, numbers, sum(numbers)))
 
 		elif self.TYPE == self.SINGLE:
 			# Just give the total
-			total = random.randint(options[1] * self.F_LOWER_LIMIT, options[0] * options[1])
+			total = random.randint(die * self.F_LOWER_LIMIT, sides * die)
 
 			# Give the results
 			self.bot.privmsg(msg.channel, '%s: [...] (total %d)' % (msg.nick, total))
