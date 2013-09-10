@@ -40,6 +40,9 @@ class Plugin:
 
 			die, sides = msg.args[0].split('d')
 
+			if not die:
+				die = unicode("1")
+
 			if not sides.isnumeric() or not die.isnumeric():
 				self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
 				return
