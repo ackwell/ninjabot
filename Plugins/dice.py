@@ -1,0 +1,65 @@
+# Dice plugin
+# Written by Cyphar
+# Do whatever you want with this.
+
+class Plugin:
+	# Modes
+	SINGLE = 1
+	MULTIPLE = 2
+	DEFAULT = MULTIPLE
+
+	# Limits
+	LOWER_LIMIT = 1
+	UPPER_LIMIT = 20
+
+	def __init__(self, bot, config):
+		self.bot = bot
+		self.config = config
+
+	def trigger_dice(self, msg):
+		"""
+		Roll a die (or dice).
+		dice <sides=6> <times=1>
+		"""
+
+		# Too many arguments
+		if len(msg.args) > 2:
+			self.bot.privmsg(msg.nick, 'Invalid number of arguments.')
+			return
+
+		# Default options
+		options = [6, 1]
+
+		# Convert args to options
+		for arg in enumerate(msg.args):
+			if not arg[1].isnumeric():
+				self.bot.privmsg(msg.nick, 'Invalid argument %r.' % arg[1])
+				return
+
+			options[arg[0]] = int(arg[1])
+
+		self.TYPE = self.DEFAULT
+
+		# Upper and lower limits cause "single" calculations
+		if not self.LOWER_LIMIT <= options[0] <= self.UPPER_LIMIT or not self.LOWER_LIMIT <= options[1] <= self.UPPER_LIMIT:
+			self.TYPE = self.SINGLE
+
+		import random
+
+		if self.TYPE == self.MULTIPLE:
+			numbers = []
+
+			# Get the numbers
+			for each in range(options[1]):
+				num = random.randint(1, options[0])
+				numbers += [num]
+
+			# Give the results
+			self.bot.privmsg(msg.channel, '%s: %r (total %d)' % (msg.nick, numbers, sum(numbers)))
+
+		elif self.TYPE == self.SINGLE:
+			# Just give the total
+			total = random.randint(options[0] * self.LOWER_LIMIT, options[0] * options[1])
+
+			# Give the results
+			self.bot.privmsg(msg.channel, '%s: [...] (total %d)' % (msg.nick, total))
