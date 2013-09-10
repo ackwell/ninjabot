@@ -59,7 +59,7 @@ class Plugin:
 
 		elif self.TYPE == self.SINGLE:
 			# Just give the total
-			total = random.randint(options[0] * self.LOWER_LIMIT, options[0] * options[1])
+			total = random.randint(options[1] * self.LOWER_LIMIT, options[0] * options[1])
 
 			# Give the results
 			self.bot.privmsg(msg.channel, '%s: [...] (total %d)' % (msg.nick, total))
