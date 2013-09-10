@@ -17,12 +17,12 @@ class Plugin:
 		if 'config_'+command in dir(self):
 			getattr(self, 'config_'+command)(msg)
 		else:
-			self.bot.notice(msg.nick, "The command '%s' does not exist. Check `%sconfig help` for avalable commands."%(command, self.c.command_prefix))
+			self.bot.notice(msg.nick, "The command '%s' does not exist. Check `%sconfig help` for avalable commands." % (command, self.bot.command_prefix))
 
 	def config_help(self, msg):
-		self.bot.notice(msg.nick, "%sconfig set p1 [p2 ...] value: Sets the config path specified to value."%self.bot.command_prefix)
-		self.bot.notice(msg.nick, "%sconfig get p1 [p2 ...]: Retrieves value for specified config path."%self.bot.command_prefix)
-		self.bot.notice(msg.nick, "%sconfig save: Saves the current config to file."%self.bot.command_prefix)
+		self.bot.notice(msg.nick, "%sconfig set p1 [p2 ...] value: Sets the config path specified to value." % self.bot.command_prefix)
+		self.bot.notice(msg.nick, "%sconfig get p1 [p2 ...]: Retrieves value for specified config path." % self.bot.command_prefix)
+		self.bot.notice(msg.nick, "%sconfig save: Saves the current config to file." % self.bot.command_prefix)
 
 	def config_set(self, msg):
 		config = self._get_config(msg.args[:-2])
@@ -34,7 +34,7 @@ class Plugin:
 		if config:
 			self.bot.notice(msg.nick, "'%s' is currently set to '%s'" % ('->'.join(msg.args), str(config)))
 		else:
-			self.bot.notice(msg.nick, "Config path '%s' is not currently set."%'->'.join(msg.args))
+			self.bot.notice(msg.nick, "Config path '%s' is not currently set." % '->'.join(msg.args))
 
 	def config_save(self, msg):
 		f_config = open(self.bot.config_path, 'w')
