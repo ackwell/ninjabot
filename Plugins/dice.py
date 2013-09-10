@@ -21,10 +21,7 @@ class Plugin:
 		self.config = config
 
 	def trigger_dice(self, msg):
-		"""
-		Roll a die (or dice).
-		dice [<sides>d<num>]
-		"""
+		"Roll a die (or dice), using the <num>d<faces> syntax."
 
 		# Too many arguments
 		if len(msg.args) > 1:
