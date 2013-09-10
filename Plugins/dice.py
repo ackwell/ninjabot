@@ -24,7 +24,7 @@ class Plugin:
 
 		# Too many arguments
 		if len(msg.args) > 2:
-			self.bot.privmsg(msg.nick, 'Invalid number of arguments.')
+			self.bot.notice(msg.nick, 'Invalid number of arguments.')
 			return
 
 		# Default options
@@ -33,7 +33,7 @@ class Plugin:
 		# Convert args to options
 		for arg in enumerate(msg.args):
 			if not arg[1].isnumeric():
-				self.bot.privmsg(msg.nick, 'Invalid argument %r.' % arg[1])
+				self.bot.notice(msg.nick, 'Invalid argument %r.' % arg[1])
 				return
 
 			options[arg[0]] = int(arg[1])
