@@ -34,16 +34,24 @@ class Plugin:
 		# Convert args to options
 		if len(msg.args) == 1:
 
-			if len(msg.args[0].split('d')) != 2:
-				self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
-				return
+			if "d" in msg.args[0]:
+				if len(msg.args[0].split('d')) != 2:
+					self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
+					return
 
-			die, sides = msg.args[0].split('d')
+				die, sides = msg.args[0].split('d')
 
-			if not die:
-				die = unicode("1")
+				if not die:
+					die = unicode("1")
 
-			if not sides.isnumeric() or not die.isnumeric():
+				if not sides.isnumeric() or not die.isnumeric():
+					self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
+					return
+
+			elif msg.args[0].isnumeric():
+				die = int(msg.args[0])
+
+			else:
 				self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
 				return
 
