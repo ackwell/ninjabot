@@ -8,9 +8,13 @@ class Plugin:
 	MULTIPLE = 2
 	DEFAULT = MULTIPLE
 
-	# Limits
-	LOWER_LIMIT = 1
-	UPPER_LIMIT = 20
+	# Face size limits
+	F_LOWER_LIMIT = 1
+	F_UPPER_LIMIT = 20
+
+	# Number of dice limits
+	D_LOWER_LIMIT = 1
+	D_UPPER_LIMIT = 20
 
 	def __init__(self, bot, config):
 		self.bot = bot
@@ -41,7 +45,7 @@ class Plugin:
 		self.TYPE = self.DEFAULT
 
 		# Upper and lower limits cause "single" calculations
-		if not self.LOWER_LIMIT <= options[0] <= self.UPPER_LIMIT or not self.LOWER_LIMIT <= options[1] <= self.UPPER_LIMIT:
+		if not self.F_LOWER_LIMIT <= options[0] <= self.F_UPPER_LIMIT or not self.D_LOWER_LIMIT <= options[1] <= self.D_UPPER_LIMIT:
 			self.TYPE = self.SINGLE
 
 		import random
@@ -51,7 +55,7 @@ class Plugin:
 
 			# Get the numbers
 			for each in range(options[1]):
-				num = random.randint(1, options[0])
+				num = random.randint(self.F_LOWER_LIMIT, options[0])
 				numbers += [num]
 
 			# Give the results
@@ -59,7 +63,7 @@ class Plugin:
 
 		elif self.TYPE == self.SINGLE:
 			# Just give the total
-			total = random.randint(options[1] * self.LOWER_LIMIT, options[0] * options[1])
+			total = random.randint(options[1] * self.F_LOWER_LIMIT, options[0] * options[1])
 
 			# Give the results
 			self.bot.privmsg(msg.channel, '%s: [...] (total %d)' % (msg.nick, total))
