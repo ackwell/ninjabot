@@ -40,7 +40,7 @@ class Plugin:
 			if len(msg.args[0].split('d')) != 2:
 				self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
 
-			sides, die = msg.args[0].split('d')
+			die, sides = msg.args[0].split('d')
 
 			if not sides.isnumeric() or not die.isnumeric():
 				self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
