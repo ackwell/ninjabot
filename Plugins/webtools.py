@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from apis.BeautifulSoup import BeautifulSoup as bs, BeautifulStoneSoup as bss, Tag
 from apis import googl
 import re
@@ -20,6 +21,28 @@ class Plugin:
             if num < 1024.0:
                 return "{:3.1f}{}".format(num, x)
             num /= 1024.0
+
+    def tag2string(self, tag, keep_bold=False):
+        if tag.string is None:
+            ret = ''
+            for item in tag.contents:
+                if isinstance(item, Tag):
+                    if keep_bold and item.name == 'b':
+                        ret += '\002'
+                        ret += self.tag2string(item)
+                        ret += '\002'
+                    else:
+                        ret += self.tag2string(item)
+                else:
+                    ret += item
+            return ret
+        else:
+            return tag.string
+
+    def fix_text(self, text):
+        soup = bs(text, convertEntities=bs.HTML_ENTITIES)
+        return self.tag2string(soup, keep_bold=True)
+
 
 
     def on_incoming(self, msg):
@@ -45,13 +68,17 @@ class Plugin:
 
                 if 'text/html' in content_type:
                     req = requests.get(url, headers=req_headers, timeout=5)
-                    r = re.search(r'<title>.*?</title>', req.text, re.I)
+                    e = re.search(r'''<\s*meta\s[^>]+?charset=([^>]*?)[;'">]''', req.text, re.I)
+                    if e:
+                        req.encoding = e.group(1)
+                    r = re.search(r'<(title|h1)>(.*?)</\1>', req.text, re.I)
                     if r is None:
                         return
-                    title = re.sub(r'</?title>', '', r.group(0).strip().replace('\n', ''))
+                    title = r.group(2).strip().replace('\n', '')
+                    title = self.fix_text(title)
                     message = 'Title: ' + title
                 else:
-                    content_length = head.headers['content-length']
+                    content_length = head.headers.get('content-length','')
                     if content_length.isdigit():
                         size = self.sizeof_fmt(int(content_length))
                     else:
@@ -59,7 +86,8 @@ class Plugin:
                     message = '{}: {} ({})'.format(filename, content_type, size)
                 self.c.privmsg(msg.channel, message)
         except Exception as e:
-            print e
+            print 'EXCEPTION!'
+            print type(e), e.args, e.message
 
 
     def trigger_w(self, msg):
@@ -105,11 +133,14 @@ class Plugin:
             return
         top_res = results[0]
 
-        url = googl.get_short(top_res['url'], self.c.config)
+        print(top_res)
+        url     = googl.get_short(top_res['url'], self.c.config)
+        content = self.fix_text(top_res['content'])
+        title   = self.fix_text(top_res['title'])
 
         message = u"\002\0032G\0034o\0038o\0032g\0033l\0034e\003 ::\002 {} \002::\002 {} \002::\002 {}".format(
-            top_res['titleNoFormatting'],
-            re.sub("</?b>", "\002", top_res['content']),
+            title,
+            content,
             url)
         self.c.privmsg(msg.channel, message)
 
@@ -133,10 +164,13 @@ class Plugin:
 
         entry = req_json['feed']['entry']
         entry = entry[0]
-        link = entry['link'][0]
+        link  = entry['link'][0]
+        title = self.fix_text(entry['title']['$t'])
+        desc  = self.fix_text(entry['media$group']['media$description']['$t'])
+
         message = u"\002You\0030,4Tube\003 ::\002 {} \002::\002 {} \002::\002 {}".format(
-            entry['title']['$t'],
-            entry['media$group']['media$description']['$t'],
+            title,
+            desc,
             "http://youtu.be/"+entry['id']['$t'].split(':')[-1],)
         self.c.privmsg(msg.channel, message)
 
@@ -164,17 +198,4 @@ class Plugin:
 
         url = "http://www.texify.com/${}$".format(urllib.quote(' '.join(msg.args)))
         self.c.privmsg(msg.channel, 'LaTeX :: {}'.format(googl.get_short(url, self.c.config)))
-
-    def tag2string(self, tag):
-        if tag.string is None:
-            ret = ''
-            for item in tag.contents:
-                if isinstance(item, Tag):
-                    ret += self.tag2string(item)
-                else:
-                    ret += item
-            return ret
-        else:
-            return tag.string
-
 

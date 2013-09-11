@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from apis import googl
 import xml.etree.ElementTree as ElementTree
 import requests
