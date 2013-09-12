@@ -1,6 +1,7 @@
 # Dice plugin
 # Written by Cyphar
 # Do whatever you want with this.
+import random
 
 class Plugin:
 	# Modes
@@ -68,8 +69,6 @@ class Plugin:
 		if self.F_LOWER_LIMIT > sides or self.D_LOWER_LIMIT > die:
 			self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
 			return
-
-		import random
 
 		if self.TYPE == self.MULTIPLE:
 			numbers = []
