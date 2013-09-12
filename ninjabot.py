@@ -131,6 +131,9 @@ class IRCConnection:
 
 		self.quit(message)
 
+		# Make sure persistent things persist
+		self.write_storage()
+
 		# Close the socket
 		try: self.socket.close()
 		except socket.error: pass
@@ -277,7 +280,10 @@ class ninjabot(IRCConnection):
 		# Ignored users. Again, handled by a plugin.
 		self.ignored = []
 
-		# Start up the shcduler for timer plugins
+		# List of storages that should be written to disk on a timer
+		self.storage = []
+
+		# Start up the scheduler for timer plugins
 		self.scheduler = kronos.ThreadedScheduler()
 		self.scheduler.start()
 		self.timers = []
@@ -367,6 +373,10 @@ class ninjabot(IRCConnection):
 			self.scheduler.cancel(timer)
 		self.timers = []
 
+		# Write storage and reset list to be repopulated by plugins
+		self.write_storage()
+		self.storage = []
+
 		# Get a list of plugins
 		l = []
 		for f in os.listdir('./Plugins'):
@@ -409,6 +419,22 @@ class ninjabot(IRCConnection):
 					self.timers.append(timer)
 				elif func_name == 'on_incoming':
 					self.incoming.append(func)
+
+		# Add timer to periodically write to disk
+		interval = self.config.get('storage', {}).get('writeinterval', 0)
+		alwayswrite = self.config.get('storage', {}).get('alwayswrite', False)
+		if not alwayswrite and interval == 0:
+			interval = 300
+		if interval != 0:
+			self.timers.append(self.scheduler.add_interval_task(self.write_storage, 'STORAGE TASK', 0, interval, kronos.method.threaded, [], None))
+
+	def register_storage(self, store):
+		self.storage.append(store)
+
+	def write_storage(self):
+		print 'Writing storage to disk'
+		for s in self.storage:
+			s.write()
 
 	def kill(self, msg):
 		if not self.is_admin(msg.nick): return
