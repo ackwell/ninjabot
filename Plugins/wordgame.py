@@ -36,6 +36,11 @@ class Plugin:
 
 	def trigger_word(self, msg):
 		"Letters and numbers inspired wordgame for IRC. For detailed help, run `word help`"
+
+		if len(msg.args) < 1:
+			self.c.notice(msg.nick, "Not enough arguments")
+			return
+
 		command = msg.args[0].lower()
 
 		# Commands are only commands if the game is not running or if the wor is a function, has been found or is not a valid word
