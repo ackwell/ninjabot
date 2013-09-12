@@ -1,6 +1,7 @@
 # Dice plugin
 # Written by Cyphar
 # Do whatever you want with this.
+import random
 
 class Plugin:
 	# Modes
@@ -60,11 +61,14 @@ class Plugin:
 
 		self.TYPE = self.DEFAULT
 
-		# Upper and lower limits cause "single" calculations
+		# Upper limits cause "single" calculations
 		if not self.F_LOWER_LIMIT <= sides <= self.F_UPPER_LIMIT or not self.D_LOWER_LIMIT <= die <= self.D_UPPER_LIMIT:
 			self.TYPE = self.SINGLE
 
-		import random
+		# Lower limits cause errors
+		if self.F_LOWER_LIMIT > sides or self.D_LOWER_LIMIT > die:
+			self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
+			return
 
 		if self.TYPE == self.MULTIPLE:
 			numbers = []
