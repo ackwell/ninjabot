@@ -48,9 +48,6 @@ class Plugin:
                     mode, sep, pattern, replacement, flags = [s.replace('\\'+groups[1], groups[1]) if s else '' for s in groups]
 
                     if mode == 's':  # string replace mode
-                        # escape backslashes
-                        replacement = replacement.replace('\\', '\\\\')
-
                         # scan for a matching message in their last messages
                         for message in their_messages:
                             try: # will treat the regex as a normal message if an error occurs, i.e. invalid syntax
@@ -58,17 +55,15 @@ class Plugin:
                                     if 'g' in flags:
                                         body = re.sub(pattern, replacement, message)
                                     elif flags.isdigit():
-                                        matches = re.findall(pattern, message)
-                                        if len(matches) >= int(flags):
-                                            span = matches[int(flags)-1].span()
+                                        flags = int(flags)
+                                        matches = list(re.finditer(pattern, message))
+                                        if len(matches) >= flags:
+                                            span = matches[flags-1].span()
                                             body = message[:span[0]] + replacement + message[span[1]:]
                                         else:
                                             return
                                     else:
                                         body = re.sub(pattern, replacement, message, 1)
-
-                                    # put backslashes back in
-                                    body = body.replace('\\\\', '\\')
 
                                     # send it
                                     if body == "":
