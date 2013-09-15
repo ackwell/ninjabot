@@ -24,17 +24,17 @@ class Plugin:
             # Challenge accepted, spake. --auscompgeek
             body = msg.body
             matches = re.match(r'''(?x)     # verbose mode
-                        ^(s|y|tr)(/)        # starts with the mode, then / (our separator)
+                        ^(s|y|tr)(.)        # starts with the mode, then our separator
                         ((?: # capture pattern
                             (?:\\\2)*       # any number of escaped separators
-                            [^/]*           # any number of non-seps
-                            (?:(?:\\\2)+[^/])*
+                            (?:(?!\2).)*    # any number of non-seps
+                            (?:(?:\\\2)+(?!\2).)*
                         )*)  # ...as many times as possible, end capture pattern
                         \2                  # separator
                         ((?:
                             (?:\\\2)*
-                            [^/]*
-                            (?:(?:\\\2)+[^/])*
+                            (?:(?!\2).)*
+                            (?:(?:\\\2)+(?!\2).)*
                         )*)
                         (?:\2([g0-9])?)?$   # end with optional separator with optional flags
                     ''', body)
