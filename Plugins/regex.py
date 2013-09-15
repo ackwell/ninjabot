@@ -24,17 +24,17 @@ class Plugin:
             # Challenge accepted, spake. --auscompgeek
             body = msg.body
             matches = re.match(r'''(?x)     # verbose mode
-                        ^(s)(/)             # starts with s, then / (our separator)
+                        ^(s|y|tr)(.)        # starts with the mode, then our separator
                         ((?: # capture pattern
                             (?:\\\2)*       # any number of escaped separators
-                            [^/]*           # any number of non-seps
-                            (?:(?:\\\2)+[^/])*
+                            (?:(?!\2).)*    # any number of non-seps
+                            (?:(?:\\\2)+(?!\2).)*
                         )*)  # ...as many times as possible, end capture pattern
                         \2                  # separator
                         ((?:
                             (?:\\\2)*
-                            [^/]*
-                            (?:(?:\\\2)+[^/])*
+                            (?:(?!\2).)*
+                            (?:(?:\\\2)+(?!\2).)*
                         )*)
                         (?:\2([g0-9])?)?$   # end with optional separator with optional flags
                     ''', body)
@@ -77,6 +77,14 @@ class Plugin:
                         else:
                             # match wasn't found
                             # return without adding this to their last messages
+                            return
+                    elif mode == 'tr' or mode == 'y':
+                        if pattern and replacement and len(pattern) == len(replacement):
+                            last_message = their_messages[0]
+                            body = last_message.translate(dict(zip(map(ord, pattern), replacement)))
+                            self.controller.privmsg(msg.channel, '{}: {}'.format(msg.nick, body))
+                        else:
+                            # was invalid, return without adding this to their last messages
                             return
 
             # add it to the last messages dictionary
