@@ -21,7 +21,9 @@
     "command_prefix": "|",
     "notify_insufficient_privs": true,
     "notify_errors": true, 
-    "notify_cnf": true, 
+    "notify_cnf": true,
+    "debug": false, /* When true, will print all socket IO to console */
+    "plugin_default_status": false, /* Default enabled status for plugins. Defaults to a whitelist */
     "quit_message": "Goodbye!"
   }, 
 
@@ -42,7 +44,7 @@
 
   /* Enable/disable plugins. Uses the plugin's module name, i.e. "example"
      for Plugins/example.py.
-     Plugins are assumeed to be enabled unless specified here.
+     Defaults to value set in bot->plugin_default_status
    */
   "plugins": {
     "challengebot": false, 
