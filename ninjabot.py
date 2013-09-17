@@ -105,6 +105,9 @@ class IRCConnection(object):
 		self.buffer = ''
 		self.connected = False
 
+		self.initiate_socket()
+
+	def initiate_socket(self):
 		# Get a socket, toss an error if it can't connect
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		try:
@@ -314,26 +317,29 @@ class Ninjabot(IRCConnection):
 	def on_incoming(self, msg):
 		# Check if it's a command
 		if msg.body.startswith(self.command_prefix):
-			if len(msg.body) == len(self.command_prefix): return
-			# Strip the prefix
-			msg.body = msg.body[len(self.command_prefix):]
-
-			# Get the command and stuff
-			args = msg.body.split()
-			command = args.pop(0)
-			msg.args = args
-
-			# Try to call the trigger
-			if command in self.triggers:
-				self.triggers[command](msg)
-			elif self.config['bot']['notify_cnf']:
-				self.notice(msg.nick, command+' is not a valid command.')
+			self.handle_command(msg)
 
 		# Not a command? Run it through on_incoming then
 		else:
 			for func in self.incoming:
 				temp_msg = func(msg)
 				if temp_msg: msg = temp_msg
+
+	def handle_command(self, msg):
+		if len(msg.body) == len(self.command_prefix): return
+		# Strip the prefix
+		msg.body = msg.body[len(self.command_prefix):]
+
+		# Get the command and stuff
+		args = msg.body.split()
+		command = args.pop(0)
+		msg.args = args
+
+		# Try to call the trigger
+		if command in self.triggers:
+			self.triggers[command](msg)
+		elif self.config['bot']['notify_cnf']:
+			self.notice(msg.nick, command+' is not a valid command.')
 
 	def reload(self, msg):
 		"Reloads various things."
@@ -479,28 +485,14 @@ class Ninjabot(IRCConnection):
 	def schedule(self, time, function, *args, **kwargs):
 		self.scheduler.add_single_task(function, str(hash(function)), time, kronos.method.threaded, args, kwargs)
 
-if __name__ == '__main__':
+def ninjabot_main():
 	args = sys.argv[1:]
 
+	# If it's not wrapped, wrap it
 	if 'wrapped' not in args:
-		# Launch the wrapper
-		print('ninjabot wrapper up and running!')
-		while not False:
-			print('Starting instance...\n')
-			process_args = [sys.executable] + sys.argv + ['wrapped']
-			process = subprocess.Popen(process_args, shell=False)
-			try:
-				status = process.wait()
-			except KeyboardInterrupt:
-				process.kill()
-				status = 1
+		ninjabot_wrap()
 
-			if status != 0:
-				print('\nGoodbye!')
-				quit()
-			else:
-				print('\nRestarting ninjabot')
-
+	# Else, start up the bot
 	print('ninjabot starting up')
 
 	if '-c' in args:
@@ -510,3 +502,25 @@ if __name__ == '__main__':
 
 	bot = Ninjabot(config_filename)
 	bot.start()
+
+def ninjabot_wrap():
+	# Launch the wrapper
+	print('ninjabot wrapper up and running!')
+	while not False:
+		print('Starting instance...\n')
+		process_args = [sys.executable] + sys.argv + ['wrapped']
+		process = subprocess.Popen(process_args, shell=False)
+		try:
+			status = process.wait()
+		except KeyboardInterrupt:
+			process.kill()
+			status = 1
+
+		if status != 0:
+			print('\nGoodbye!')
+			quit()
+		else:
+			print('\nRestarting ninjabot')
+
+if __name__ == '__main__':
+	ninjabot_main()
