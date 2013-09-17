@@ -25,6 +25,21 @@
     "quit_message": "Goodbye!"
   }, 
 
+  /* Options for persistent storage.
+     "path" -> path where data should be stored relative to the root directory containing ninjabot.py
+     "alwayswrite" -> whether the storage api should write data to file everytime something new is added
+     "writeinterval" -> time in seconds between writing changes to disk
+     Note: leaving any option (or the whole section) out will result in default values
+       - data stored in storage/
+       - alwayswrite is false
+       - interval is 300 (5 min)
+   */
+  "storage": {
+      "path": "",
+      "alwayswrite": false,
+      "writeinterval": 0
+  },
+
   /* Enable/disable plugins. Uses the plugin's module name, i.e. "example"
      for Plugins/example.py.
      Plugins are assumeed to be enabled unless specified here.
