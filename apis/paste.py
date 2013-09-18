@@ -3,17 +3,17 @@ import re, json
 
 def write(string, private=True, expire=3600):
     """
-    Write <string> to a new Pastebin
-    Returns pastebin URL or error message
+    Write <string> to a new kdepaste
+    Returns kdepaste URL or error message
     """
     
-    url="http://paste.kde.org/"
-    args={"paste_data": string,
-          "paste_lang": "text",
-          "api_submit":"true",
-          "mode": "json",
+    url='http://paste.kde.org/'
+    args={'paste_data': string,
+          'paste_lang': 'text',
+          'api_submit':'true',
+          'mode': 'json',
 
-          "paste_private": 'yes' if private else 'no',
+          'paste_private': 'yes' if private else 'no',
           'paste_expire': expire
           }
         

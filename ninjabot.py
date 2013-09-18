@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+###############
+# Imports
+###############
 import glob
 import imp
 import json
@@ -15,9 +18,19 @@ import traceback
 from importlib import import_module
 from queue import Queue
 
+###############
+# Errors
+###############
 class ConnectionError(Exception): pass
 
+###############
+# Incoming message parser
+###############
 class Message:
+	"""
+	Parses an IRC message into somewhat more useable data.
+	"""
+
 	OTHER   = 0
 	CHANNEL = 1
 	PRIVATE = 2
@@ -82,8 +95,15 @@ class Message:
 	def ctcp_dequote(self, s):
 		return re.sub(r'\\(.)', lambda m:'\001' if m.group(0)=='\\a' else m.group(1), s)
 
-# Handles connection to the IRC server
+###############
+# IRC connection handler
+###############
 class IRCConnection(object):
+	"""
+	Handles connection to the server, and all the wizz-bang stuff that
+	goes along with that.
+	"""
+
 	def __init__(self):
 		self.connected = False
 		self.socket = None
@@ -219,7 +239,9 @@ class IRCConnection(object):
 
 			self.send_queue()
 
-	# IRC Commands
+	###############
+	# IRC Protocol commands
+	###############
 
 	def invite(self, nick, channel, now=False):
 		self.send('INVITE {0} {1}'.format(nick, channel), now)
@@ -267,11 +289,17 @@ class IRCConnection(object):
 	def user(self, username, realname, now=True):
 		self.send('USER {0} 0 * :{1}'.format(username, realname), now)
 
+###############
+# The bot itself
+###############
 class Ninjabot(IRCConnection):
 	VERSION = '2.0.0-dev.py3k'
 
 	def __init__(self, config_path):
 		super().__init__()
+
+		# Work out out absolute directory path
+		self.dir = os.path.dirname(os.path.abspath(__file__))
 
 		self.config_path = config_path
 		self.load_config()
@@ -367,6 +395,10 @@ class Ninjabot(IRCConnection):
 		config = open(self.config_path, 'rU').read()
 		self.config = json.loads(regexp_remove_comments.sub('', config))
 
+	###############
+	# Plugin handling
+	###############
+
 	def load_plugins(self):
 		self.clear_plugin_data()
 		if 'plugins' not in self.config: return
@@ -375,7 +407,7 @@ class Ninjabot(IRCConnection):
 
 	def clear_plugin_data(self):
 		# Keep track of plugins so they can be loaded/unloaded
-		self.plugins = {}
+		self.plugins = {} # TODO
 		
 		# Triggers, etc
 		self.triggers = {}
@@ -392,6 +424,9 @@ class Ninjabot(IRCConnection):
 		# Write storage and reset list to be repopulated by plugins
 		self.write_storage()
 		self.storage = []
+
+		# Clear out the cache of APIs, they will be reloaded on request
+		self.apis = {}
 
 	def register_inbuilt_triggers(self):
 		self.triggers['reload'] = self.reload
@@ -410,8 +445,7 @@ class Ninjabot(IRCConnection):
 
 	def load_all_from_path(self, path):
 		# Get the directory to load from
-		ninjabot_dir = os.path.dirname(os.path.abspath(__file__))
-		load_path = os.path.join(ninjabot_dir, *path.split('.'))
+		load_path = os.path.join(self.dir, *path.split('.'))
 
 		# Loop over files in the directory, attempting to load any .py files
 		for file_ in os.listdir(load_path):
@@ -423,17 +457,19 @@ class Ninjabot(IRCConnection):
 		# Get the plugin's config, if it exists
 		# THIS NEEDS CHANGING
 		config = None
-		if module in self.config:
-			config = self.config[module]
+		config_name = module.replace('plugins.', '')
+		if config_name in self.config:
+			config = self.config[config_name]
 
 		try:
 			# Not pretty, but best I can be assed to do.
 			# Anything more requires tomfoolery with sys.modules
 			plugin = imp.reload(import_module(module)).Plugin(self, config)
 		except AttributeError:
-			print('Could not load {}. Skipping.'.format(module))
+			print('Could not load {0}. Skipping.'.format(module))
 			return
 		except:
+			print('Error while loading {0}. Skipping. Trace:'.format(module))
 			self.report_error()
 			return
 
@@ -450,6 +486,30 @@ class Ninjabot(IRCConnection):
 				self.timers.append(timer)
 			elif func_name == 'on_incoming':
 				self.incoming.append(func)
+
+	###############
+	# API stuff
+	###############
+
+	def request_api(self, module, required=True, include_prefix=True):
+		if include_prefix:
+			module = 'apis.' + module
+
+		if module in self.apis:
+			return self.apis[module]
+
+		try:
+			api = import_module(module)
+		except ImportError:
+			if required: raise
+			else: return None
+
+		self.apis[module] = api
+		return api
+
+	###############
+	# Storage stuff
+	###############
 
 	def setup_storage_write(self):
 		# Add timer to periodically write to disk
@@ -468,6 +528,10 @@ class Ninjabot(IRCConnection):
 		for s in self.storage:
 			s.write()
 
+	###############
+	# Things that hurt the bot (you should feel bad)
+	###############
+
 	def kill(self, msg):
 		if not self.is_admin(msg.nick): return
 		message = self.config['bot']['quit_message']
@@ -479,6 +543,10 @@ class Ninjabot(IRCConnection):
 		if not self.is_admin(msg.nick): return
 		self.exit_status = 0
 		self.kill(msg)
+
+	###############
+	# Miscelaneous functions
+	###############
 
 	def report_error(self):
 		error = traceback.format_exc()
@@ -502,6 +570,7 @@ class Ninjabot(IRCConnection):
 	def schedule(self, time, function, *args, **kwargs):
 		self.scheduler.add_single_task(function, str(hash(function)), time, kronos.method.threaded, args, kwargs)
 
+# Entry point
 def ninjabot_main():
 	args = sys.argv[1:]
 
@@ -520,6 +589,7 @@ def ninjabot_main():
 	bot = Ninjabot(config_filename)
 	bot.start()
 
+# Wrap another process of the bot to allow restarts
 def ninjabot_wrap():
 	# Launch the wrapper
 	print('ninjabot wrapper up and running!')
