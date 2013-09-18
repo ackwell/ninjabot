@@ -12,9 +12,9 @@ class Git(object):
         pass
 
     def pull(self):
-        output = subprocess.check_output(['git', 'pull'])
+        output = subprocess.check_output(['git', 'pull']).decode('utf-8')
         return output.strip()
 
     def current_revision(self):
-        output = subprocess.check_output(['git', 'rev-list', 'HEAD', '-n', '1'])
+        output = subprocess.check_output(['git', 'rev-list', 'HEAD', '-n', '1']).decode('utf-8')
         return output.strip()

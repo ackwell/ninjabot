@@ -1,4 +1,3 @@
-# from apis import git
 import os.path
 import platform
 import time
@@ -8,7 +7,7 @@ SOURCE = 'SOURCE https://github.com/ackwell/ninjabot'
 class Plugin:
     def __init__(self, bot, config):
         self.bot = bot
-        # self.git = git.Git()
+        self.git = self.bot.request_api('git').Git()
 
     def on_incoming(self, msg):
         if not msg.ctcp: return
@@ -16,14 +15,15 @@ class Plugin:
         args = msg.ctcp.split()
         command = args.pop(0).lower()
 
-        # if command == 'version':
-        #     revision = self.git.current_revision()
-        #     if not revision:
-        #         revision = '<unknown>'
-        #     python_info = 'Python %s' % platform.python_version()
-        #     platform_info = platform.platform()
-        #     node_info = platform.node()
-        #     self.bot.notice(msg.nick, '\x01VERSION ninjabot revision %s, running on %s, %s, %s\x01' % (revision, node_info, python_info, platform_info))
+        if command == 'version':
+            revision = self.git.current_revision()
+            if not revision:
+                revision = '<unknown>'
+            version = '{0} ({1})'.format(self.bot.VERSION, revision)
+            python_info = 'Python %s' % platform.python_version()
+            platform_info = platform.platform()
+            node_info = platform.node()
+            self.bot.notice(msg.nick, '\x01VERSION ninjabot {0}, running on {1}, {2}, {3}\x01'.format(version, node_info, python_info, platform_info))
 
         if command == 'source':
             src = SOURCE

@@ -482,7 +482,7 @@ class Ninjabot(IRCConnection):
 				self.triggers[m_trigger.group(1).lower()] = func
 			elif m_timer:
 				t = int(m_timer.group(1))
-				timer = self.scheduler.add_interval_task(func, mod+func_name, 0, t, kronos.method.threaded, [], None)
+				timer = self.scheduler.add_interval_task(func, module+func_name, 0, t, kronos.method.threaded, [], None)
 				self.timers.append(timer)
 			elif func_name == 'on_incoming':
 				self.incoming.append(func)
