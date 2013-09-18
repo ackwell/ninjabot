@@ -23,7 +23,6 @@
     "notify_errors": true, 
     "notify_cnf": true,
     "debug": false, /* When true, will print all socket IO to console */
-    "plugin_default_status": false, /* Default enabled status for plugins. Defaults to a whitelist */
     "quit_message": "Goodbye!"
   }, 
 
@@ -42,13 +41,19 @@
       "writeinterval": 0
   },
 
-  /* Enable/disable plugins. Uses the plugin's module name, i.e. "example"
-     for Plugins/example.py.
-     Defaults to value set in bot->plugin_default_status
+  /* Plugin whitelist, supports directory structure.
+     "<plugin_name>": <boolean> will enable/disable that particular plugin.
+     "<package_name>": {...} will add the package_name context to any contained fules
+     "<package_name": "*" will attempt to enable every plugin in the package
+
+     For example, the following two rules are equivalent:
+     "core.ctcp": true
+     "core": {"ctcp": true}
+     And to load everything from core,
+     "core": "*"
    */
   "plugins": {
-    "challengebot": false, 
-    "example": false
+    "core": "*"
   }, 
   
   /* Plugin-specific settings. Uses same naming scheme as the "plugins"
