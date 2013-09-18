@@ -499,7 +499,7 @@ class Ninjabot(IRCConnection):
 			return self.apis[module]
 
 		try:
-			api = import_module(module)
+			api = imp.reload(import_module(module))
 		except ImportError:
 			if required: raise
 			else: return None

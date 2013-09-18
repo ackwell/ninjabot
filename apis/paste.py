@@ -1,4 +1,5 @@
-from urllib import urlopen, urlencode
+from urllib.request import urlopen
+from urllib.parse import urlencode
 import re, json
 
 def write(string, private=True, expire=3600):
@@ -16,8 +17,9 @@ def write(string, private=True, expire=3600):
           'paste_private': 'yes' if private else 'no',
           'paste_expire': expire
           }
-        
-    u = urlopen(url,urlencode(args)).read()
+    post_data = urlencode(args).encode('utf-8')
+
+    u = urlopen(url, post_data).read().decode('utf-8')
     j = json.loads(u)['result']
     if 'error' in j.keys():
         return j['error']
