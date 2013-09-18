@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import glob
+import imp
 import json
 import kronos
 import os
@@ -159,7 +161,7 @@ class IRCConnection(object):
 
 			# For debug
 			if 'debug' in self.config['bot'] and self.config['bot']['debug']:
-				print('SENT: ' + message)
+				print('SENT: ' + message.encode('ascii', 'backslashreplace').decode())
 
 		# Else, queue it
 		else:
@@ -204,7 +206,7 @@ class IRCConnection(object):
 			for line in lines:
 				# Debug
 				if 'debug' in self.config['bot'] and self.config['bot']['debug']:
-					print(line)
+					print(line.encode('ascii', 'backslashreplace').decode())
 
 				message = Message(line)
 
@@ -266,6 +268,8 @@ class IRCConnection(object):
 		self.send('USER {0} 0 * :{1}'.format(username, realname), now)
 
 class Ninjabot(IRCConnection):
+	VERSION = '2.0.0-dev.py3k'
+
 	def __init__(self, config_path):
 		super().__init__()
 
@@ -364,16 +368,21 @@ class Ninjabot(IRCConnection):
 		self.config = json.loads(regexp_remove_comments.sub('', config))
 
 	def load_plugins(self):
+		self.clear_plugin_data()
+		if 'plugins' not in self.config: return
+		self.recurse_plugin_config(self.config['plugins'], 'plugins')
+		self.setup_storage_write()
+
+	def clear_plugin_data(self):
+		# Keep track of plugins so they can be loaded/unloaded
+		self.plugins = {}
+		
+		# Triggers, etc
 		self.triggers = {}
 		self.incoming = []
 
-		# Register base functions
-		self.triggers['reload'] = self.reload
-		self.triggers['kill'] = self.kill
-		self.triggers['restart'] = self.restart
-
-		# TEMP
-		return
+		# Register the inbuilt commands
+		self.register_inbuilt_triggers()
 
 		# Stop any running timers
 		for timer in self.timers:
@@ -384,57 +393,65 @@ class Ninjabot(IRCConnection):
 		self.write_storage()
 		self.storage = []
 
-		# Get a list of plugins
-		l = []
-		for f in os.listdir('./Plugins'):
-			if f.endswith('.py'):
-				l.append(f[:-3])
+	def register_inbuilt_triggers(self):
+		self.triggers['reload'] = self.reload
+		self.triggers['kill'] = self.kill
+		self.triggers['restart'] = self.restart
 
-		# Get the default state for plugins
-		default_should_load = False
-		if 'plugin_default_status' in self.config['bot']:
-			default_should_load = self.config['bot']['plugin_default_status']
+	def recurse_plugin_config(self, config, path):
+		for key, value in config.items():
+			new_path = path + '.' + key
+			if value == '*':
+				self.load_all_from_path(new_path)
+			elif isinstance(value, dict):
+				self.recurse_plugin_config(value, new_path)
+			elif value:
+				self.load_plugin(new_path)
 
-		# Try to import them
-		for mod in l:
-			# Only load mods that have been enabled
-			should_load = default_should_load
-			if 'plugins' in self.config and mod in self.config['plugins']:
-				should_load = self.config['plugins'][mod]
-			if not should_load:
-				continue
+	def load_all_from_path(self, path):
+		# Get the directory to load from
+		ninjabot_dir = os.path.dirname(os.path.abspath(__file__))
+		load_path = os.path.join(ninjabot_dir, *path.split('.'))
 
-			# Get the plugin's config, if it exists
-			config = None
-			if mod in self.config:
-				config = self.config[mod]
+		# Loop over files in the directory, attempting to load any .py files
+		for file_ in os.listdir(load_path):
+			if file_.endswith('.py'):
+				# Strip the file extension and load the plugin
+				self.load_plugin(path + '.' + file_[:-3])
 
-			try:
-				# Not pretty, but best I can be assed to do.
-				# Anything more requires tomfoolery with sys.modules
-				plugin = reload(import_module('Plugins.' + mod)).Plugin(self, config)
-			# Probably the __init__ file...
-			except AttributeError:
-				continue
-			except:
-				self.report_error()
-				continue
+	def load_plugin(self, module):
+		# Get the plugin's config, if it exists
+		# THIS NEEDS CHANGING
+		config = None
+		if module in self.config:
+			config = self.config[module]
 
-			# Register plugin functions
-			for func_name in dir(plugin):
-				m_trigger = re.match(r'trigger_(.+)', func_name)
-				m_timer = re.match(r'timer_([0-9]+)', func_name)
+		try:
+			# Not pretty, but best I can be assed to do.
+			# Anything more requires tomfoolery with sys.modules
+			plugin = imp.reload(import_module(module)).Plugin(self, config)
+		except AttributeError:
+			print('Could not load {}. Skipping.'.format(module))
+			return
+		except:
+			self.report_error()
+			return
 
-				func = getattr(plugin, func_name)
-				if m_trigger:
-					self.triggers[m_trigger.group(1).lower()] = func
-				elif m_timer:
-					t = int(m_timer.group(1))
-					timer = self.scheduler.add_interval_task(func, mod+func_name, 0, t, kronos.method.threaded, [], None)
-					self.timers.append(timer)
-				elif func_name == 'on_incoming':
-					self.incoming.append(func)
+		for func_name in dir(plugin):
+			m_trigger = re.match(r'trigger_(\w+)', func_name)
+			m_timer = re.match(r'timer_(\d+)', func_name)
 
+			func = getattr(plugin, func_name)
+			if m_trigger:
+				self.triggers[m_trigger.group(1).lower()] = func
+			elif m_timer:
+				t = int(m_timer.group(1))
+				timer = self.scheduler.add_interval_task(func, mod+func_name, 0, t, kronos.method.threaded, [], None)
+				self.timers.append(timer)
+			elif func_name == 'on_incoming':
+				self.incoming.append(func)
+
+	def setup_storage_write(self):
 		# Add timer to periodically write to disk
 		interval = self.config.get('storage', {}).get('writeinterval', 0)
 		alwayswrite = self.config.get('storage', {}).get('alwayswrite', False)
@@ -467,8 +484,8 @@ class Ninjabot(IRCConnection):
 		error = traceback.format_exc()
 		print(error)
 		self.errors.append(error)
-		if self.config['bot']['notify_errors']:
-			self.privmsg(','.join(self.config['bot']['channels']), "An error occured. Please ask an admin to check error log {0}.".format(len(self.errors)-1))
+		if self.config['bot']['notify_errors'] and self.connected:
+			self.privmsg(','.join(self.config['bot']['channels']), "An error occurred. Please ask an admin to check error log {0}.".format(len(self.errors)-1))
 
 	def is_admin(self, nickname, silent=False):
 		if nickname in self.admins:
