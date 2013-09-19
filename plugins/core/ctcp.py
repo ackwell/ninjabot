@@ -20,7 +20,7 @@ class Plugin:
             if not revision:
                 revision = '<unknown>'
             version = '{0} ({1})'.format(self.bot.VERSION, revision)
-            python_info = 'Python %s' % platform.python_version()
+            python_info = 'Python ' + platform.python_version()
             platform_info = platform.platform()
             node_info = platform.node()
             self.bot.notice(msg.nick, '\x01VERSION ninjabot {0}, running on {1}, {2}, {3}\x01'.format(version, node_info, python_info, platform_info))

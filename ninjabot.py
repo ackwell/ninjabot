@@ -215,7 +215,7 @@ class IRCConnection(object):
 		except socket.error: self.disconnect('Connection reset by peer.')
 
 		# Some IRCd don't use \r in the delimiter
-		lines = re.split(r'\r?\n', self.buffer + new_data.decode('UTF-8'))
+		lines = re.split(r'\r?\n', self.buffer + new_data.decode('UTF-8', 'ignore'))
 		self.buffer = lines.pop()
 		return lines
 
