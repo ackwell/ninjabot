@@ -347,6 +347,10 @@ class Ninjabot(IRCConnection):
 		sys.exit(self.exit_status)
 
 	def on_incoming(self, msg):
+		# Ignore the ignored.
+		if msg.nick in self.ignored:
+			return
+
 		# Check if it's a command
 		if msg.body.startswith(self.command_prefix):
 			self.handle_command(msg)
