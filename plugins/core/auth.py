@@ -7,6 +7,9 @@ class Plugin:
 			raise ValueError('core.auth->mode is set to an unsupported value')
 		self.mode = config['mode'].lower()
 
+		# Clear out the bot's admins on load. Prevents carry-over on plugin reload
+		self.bot.admins = []
+
 	def on_incoming(self, msg):
 		getattr(self, 'ns_'+self.mode)(msg)
 
