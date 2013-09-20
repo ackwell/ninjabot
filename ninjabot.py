@@ -460,7 +460,7 @@ class Ninjabot(IRCConnection):
 	def load_plugin(self, module):
 		# Get the plugin's config, if it exists
 		# THIS NEEDS CHANGING
-		config = None
+		config = {}
 		config_name = module.replace('plugins.', '')
 		if config_name in self.config:
 			config = self.config[config_name]
