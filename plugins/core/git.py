@@ -3,7 +3,7 @@
 
 import time
 
-class Plugin:
+class Plugin(object):
     def __init__(self, bot, config):
         self.bot = bot
         self.git = self.bot.request_api('git').Git()

@@ -1,5 +1,5 @@
 # Removed OP/Voice stuff for now
-class Plugin:
+class Plugin(object):
 	def __init__(self, bot, config):
 		self.bot = bot
 		self.admins = config['admins']

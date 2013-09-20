@@ -1,7 +1,7 @@
 # Plugin to allow editing of the config at runtime
 import json
 
-class Plugin:
+class Plugin(object):
 	def __init__(self, bot, config):
 		self.bot = bot
 
