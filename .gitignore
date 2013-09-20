@@ -1,3 +1,10 @@
+# Ignore everything but the core/ plugins folder. The rest will be in sub repositories.
+plugins/*
+!plugins/core
+!plugins/example.py
+
+# The usual suspects
 .*
-*.pyc
 *~
+__pycache__
+*.pyc
