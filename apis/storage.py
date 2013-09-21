@@ -28,8 +28,8 @@ class Storage(object):
             if not self._config.get('storage', {}).get('alwayswrite', False):
                 bot.register_storage(self)
         except Exception as e:
-            print 'EXCEPTION!'
-            print type(e), e.args, e.message
+            print('EXCEPTION!')
+            print(type(e), e.args, e.message)
 
     def put(self, key, value):
         self._store[key] = value
