@@ -59,7 +59,7 @@
   /* Plugin-specific settings. Uses same naming scheme as the "plugins"
      section above. Value will be passed to the plugin on initialisation
    */
-  "authtools":{
+  "core.auth": {
     "admins": [
       "admin1",
       "admin2"
@@ -68,29 +68,5 @@
        More will be added as I discover them. (They require different parameters)
      */
     "mode": "acc"
-  },
-
-  "mafia": {
-    "town_channel_name": "##nbm-town-",
-    "mafia_channel_name": "##nbm-mafia-"
-  },
-  
-  "challengebot": {
-    "course": 37, 
-    "cookie": "NCSS website cookie"
-  }, 
-
-  "webtools": "en-au", 
-
-  "wolfram": {
-    "appid": "AppID",
-    "latlong": "latitude,longitude/delete for auto",
-    "location": "name/delete for auto",
-    "units": "metric/nonmetric/delete for auto"
-  },
-
-  /* Centralised spot to put API settings. Will need to be fetched manually */
-  "apis": {
-    "googl": "googl API key"
   }
 }

@@ -572,7 +572,15 @@ class Ninjabot(IRCConnection):
 		return False
 
 	def schedule(self, time, function, *args, **kwargs):
-		self.scheduler.add_single_task(function, str(hash(function)), time, kronos.method.threaded, args, kwargs)
+		task = self.scheduler.add_single_task(function, str(hash(function)), time, kronos.method.threaded, args, kwargs)
+		self.timers.append(task)
+		return task
+
+	def cancel_schedule(self, task):
+		try: self.timers.remove(task)
+		except ValueError: pass
+		try: self.scheduler.cancel(task)
+		except ValueError: pass
 
 # Entry point
 def ninjabot_main():

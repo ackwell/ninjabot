@@ -27,7 +27,8 @@ bot, and not much else. Additional plugins can be obtained from the following re
 * [ninjabot-misc](https://github.com/ackwell/ninjabot-misc)
 
 To include any of these, navigate to the `plugins/` folder and `git clone` them in. Make
-sure to enable them in your config!
+sure to enable them in your config! The config examples assume that you have removed the
+`ninjabot-` from the folder name.
 
 Of course, feel free to write your own, that's the true power of this bot. If you write a plugin
 that you think would benefit the core codebase or any of the additional plugin repos, by all means,
