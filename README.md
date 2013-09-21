@@ -23,6 +23,7 @@ Plugins
 ninjabot comes with a core set of plugins which provide enough functionality to manage the
 bot, and not much else. Additional plugins can be obtained from the following repositories:
 
+* [ninjabot-games](https://github.com/ackwell/ninjabot-games)
 * [ninjabot-misc](https://github.com/ackwell/ninjabot-misc)
 
 To include any of these, navigate to the `plugins/` folder and `git clone` them in. Make
