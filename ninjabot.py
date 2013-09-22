@@ -3,7 +3,8 @@
 ###############
 # Imports
 ###############
-import glob
+import asynchat
+import asyncore
 import imp
 import json
 import kronos
@@ -12,7 +13,6 @@ import re
 import socket
 import subprocess
 import sys
-import time
 import traceback
 
 from importlib import import_module
@@ -98,21 +98,23 @@ class Message:
 ###############
 # IRC connection handler
 ###############
-class IRCConnection(object):
+class IRCConnection(asynchat.async_chat):
 	"""
 	Handles connection to the server, and all the wizz-bang stuff that
 	goes along with that.
 	"""
 
 	def __init__(self):
+		super().__init__()
 		self.connected = False
-		self.socket = None
+
+		self.set_terminator(b'\r\n')
 
 		# Flood protection
+		self.queue_sched = kronos.ThreadedScheduler()
+		self.queue_sched.add_interval_task(self.send_queue, 'FLOOD_SEND_QUEUE', 0, 1, kronos.method.threaded, [], None)
+		self.queue_sched.start()
 		self.message_queue = Queue()
-		self.sent_chars = 0
-		self.sent_time_last = time.time()
-		self.sent_time = 0
 
 	# Connect to the IRC server
 	def connect(self, host, port, nickname, username='', realname='', password=''):
@@ -127,19 +129,13 @@ class IRCConnection(object):
 		self.buffer = ''
 		self.connected = False
 
-		self.initiate_socket()
+		# Attempt to connect
+		self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+		super().connect((self.host, self.port))
+		asyncore.loop(timeout=0.2)
 
-	def initiate_socket(self):
-		# Get a socket, toss an error if it can't connect
-		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		try:
-			self.socket.connect((self.host, self.port))
-		except socket.error:
-			self.socket.close()
-			self.socket = None
-			raise ConnectionError('Error connecting to socket.')
-		self.socket.settimeout(0.2)
-
+	# Called by superclass when the connection is establshed
+	def handle_connect(self):
 		self.connected = True
 
 		# Initiate the IRC protocol
@@ -149,24 +145,23 @@ class IRCConnection(object):
 
 	# Disconnect from the IRC server
 	def disconnect(self, message):
+		print('disconnect')
 		# Bit hard to disconnect if there's not connection in the first place...
 		if not self.connected: return
 
 		self.quit(message)
 
-		# Ensure that things are kept persistant
+		self.handle_close()
+
+	def handle_close(self):
 		self.write_storage()
-
-		# Close the socket
-		try: self.socket.close()
+		try: self.close()
 		except socket.error: pass
-		self.socket = None
-
 		self.connected = False
 
 	# Sends the message to the server. Queues by default.
-	def send(self, message, now=False):
-		if self.socket is None: raise ConnectionError('Not connected.')
+	def irc_send(self, message, now=False):
+		if not self.connected: raise ConnectionError('Not connected.')
 
 		# If it's important, or has already been queued
 		if now:
@@ -176,7 +171,7 @@ class IRCConnection(object):
 			message += '\r\n'
 			# Convert the message to a bytes buffer for the socket
 			message_bytes = bytes(message, 'UTF-8')
-			try: self.socket.sendall(message_bytes)
+			try: self.push(message_bytes)
 			except socket.error: self.disconnect('Connection reset by peer.')
 
 			# For debug
@@ -189,105 +184,90 @@ class IRCConnection(object):
 
 	# Flood prevention. Send some stuff from the queue.
 	def send_queue(self):
-		time_now = time.time()
-		self.sent_time += time_now - self.sent_time_last
-		self.sent_time_last = time_now
-		if self.sent_time > 1.0:
-			self.sent_time = 0
-			self.sent_chars = 0
-
+		sent_chars = 0
 		# This will still flood if abused.
 		while not self.message_queue.empty():
-			if self.sent_chars <= 500:
+			if sent_chars <= 500:
 				message = self.message_queue.get()
-				self.send(message, now=True)
-				self.sent_chars += len(message)
+				self.irc_send(message, now=True)
+				sent_chars += len(message)
 			else:
 				break
 
-	# Recieve data from the server
-	def recieve(self):
-		new_data = b''
-		try:
-			new_data = self.socket.recv(2**14)
-			if not new_data: self.disconnect('Connection reset by peer.')
-		except socket.timeout: pass
-		except socket.error: self.disconnect('Connection reset by peer.')
+	# Called by superclass with data from the socket
+	def collect_incoming_data(self, data):
+		self.buffer += data.decode('UTF-8', 'ignore')
 
-		# Some IRCd don't use \r in the delimiter
-		lines = re.split(r'\r?\n', self.buffer + new_data.decode('UTF-8', 'ignore'))
-		self.buffer = lines.pop()
-		return lines
+	# Called by superclass when terminator (\r\n) found
+	def found_terminator(self):
+		line = self.buffer
+		self.buffer = ''
 
-	def process_loop(self):
-		while self.connected:
-			lines = self.recieve()
+		# Debug
+		if 'debug' in self.config['bot'] and self.config['bot']['debug']:
+			print(line.encode('ascii', 'backslashreplace').decode())
 
-			for line in lines:
-				# Debug
-				if 'debug' in self.config['bot'] and self.config['bot']['debug']:
-					print(line.encode('ascii', 'backslashreplace').decode())
+		message = Message(line)
 
-				message = Message(line)
+		# Handle PINGs ASAP
+		if message.command == 'PING':
+			self.pong(message.body)
+			return
 
-				# Handle PINGs ASAP
-				if message.command == 'PING':
-					self.pong(message.body)
-					continue
+		self.message_recieved(message)
 
-				yield message
-
-			self.send_queue()
+	def message_recieved(self, message):
+		raise NotImplementedError()
 
 	###############
 	# IRC Protocol commands
 	###############
 
 	def invite(self, nick, channel, now=False):
-		self.send('INVITE {0} {1}'.format(nick, channel), now)
+		self.irc_send('INVITE {0} {1}'.format(nick, channel), now)
 
 	def join(self, channel, key='', now=False):
-		self.send('JOIN {0}{1}'.format(channel, key and (' ' + key)), now)
+		self.irc_send('JOIN {0}{1}'.format(channel, key and (' ' + key)), now)
 
 	def kick(self, channels, users, comment='', now=False):
 		if isinstance(channels, list): channels = ','.join(channels)
 		if isinstance(users, list): users = ','.join(users)
-		self.send('KICK {0} {1}{2}'.format(
+		self.irc_send('KICK {0} {1}{2}'.format(
 			channels, users, comment and (' :' + comment)
 		), now)
 
 	def mode(self, target, mode, params='', now=False):
-		self.send('MODE {0} {1}{2}'.format(target, mode, params and (' ' + params)))
+		self.irc_send('MODE {0} {1}{2}'.format(target, mode, params and (' ' + params)))
 
 	def names(self, channels, now=False):
 		if isinstance(channels, list): channels = ','.join(channels)
-		self.send('NAMES {0}'.format(channels), now)
+		self.irc_send('NAMES {0}'.format(channels), now)
 
 	def nick(self, nickname, now=False):
-		self.send('NICK ' + nickname, now)
+		self.irc_send('NICK ' + nickname, now)
 
 	def notice(self, targets, message, now=False):
 		if isinstance(targets, list): targets = ','.join(targets)
-		self.send('NOTICE {0} :{1}'.format(targets, message), now)
+		self.irc_send('NOTICE {0} :{1}'.format(targets, message), now)
 
 	def pass_(self, password, now=True):
-		self.send('PASS ' + password, now)
+		self.irc_send('PASS ' + password, now)
 
 	def ping(self, target, target2="", now=True):
-		self.send('PING {0}{1}'.format(target, target2 and (' ' + target2)), now)
+		self.irc_send('PING {0}{1}'.format(target, target2 and (' ' + target2)), now)
 
 	def pong(self, target, target2="", now=True):
-		self.send('PONG {0}{1}'.format(target, target2 and (' ' + target2)), now)
+		self.irc_send('PONG {0}{1}'.format(target, target2 and (' ' + target2)), now)
 
 	def privmsg(self, targets, message, now=False):
 		if isinstance(targets, list): targets = ','.join(targets)
-		self.send('PRIVMSG {0} :{1}'.format(targets, message), now)
+		self.irc_send('PRIVMSG {0} :{1}'.format(targets, message), now)
 
 	def quit(self, message, now=True):
-		self.send('QUIT' + (message and (' :' + message)), now)
+		self.irc_send('QUIT' + (message and (' :' + message)), now)
 
 	def user(self, username, realname, now=True):
-		self.send('USER {0} 0 * :{1}'.format(username, realname), now)
+		self.irc_send('USER {0} 0 * :{1}'.format(username, realname), now)
 
 ###############
 # The bot itself
@@ -303,6 +283,7 @@ class Ninjabot(IRCConnection):
 
 		self.config_path = config_path
 		self.load_config()
+		self.command_prefix = self.config['bot']['command_prefix']
 
 		# List of errors n' stuff
 		self.errors = []
@@ -328,23 +309,24 @@ class Ninjabot(IRCConnection):
 
 	def start(self):
 		self.connect(**self.config['server'])
+		# The above call will return when the bot is shutting down
+		# Kill off the process with the right exis status
+		sys.exit(self.exit_status)
+
+	def handle_connect(self):
+		super().handle_connect()
 
 		# Connect to channels specified in config
 		for channel in self.config['bot']['channels']:
 			self.join(channel)
 
-		self.command_prefix = self.config['bot']['command_prefix']
-
-		# Generator that spews messages from the server
-		for msg in self.process_loop():
-			# Catch any errors from the plugins
-			try:
-				self.on_incoming(msg)
-			except:
-				self.report_error()
-
-		# Loop has exited - exit the process
-		sys.exit(self.exit_status)
+	# Called by the connection class with messages from the server
+	def message_recieved(self, msg):
+		# Catch any errors from the plugins
+		try:
+			self.on_incoming(msg)
+		except:
+			self.report_error()
 
 	def on_incoming(self, msg):
 		# Ignore the ignored.
