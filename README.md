@@ -15,26 +15,35 @@ directory.
 
 You will then want to edit the config file with your details and API keys. If you don't
 have an API key for a particular service, it is recommended you disable the plugin.
-Plugins can be disabled by (as outlined in the example config file) adding `"module_name": false`
-to the `plugins` section of the config.
+The config file contains instructions on how to enable and disable plugins
 
 Plugins
 -------
 
-ninjabot comes with an (ever expanding) base set of plugins which should be more than
-enough to get you started, but the true power of the bot comes when you make your own.
+ninjabot comes with a core set of plugins which provide enough functionality to manage the
+bot, and not much else. Additional plugins can be obtained from the following repositories:
 
-To get started writing plugins, check `Plugins/example.py`, it shows the general structure
-of a plugin, and contains a quickstart on the more common controller functions. For further
-info, the best thing to do is to take a look though the main bot code, a plugin is able to
-leverage any functionality that can be accessed through the controller class.
+* [ninjabot-games](https://github.com/ackwell/ninjabot-games)
+* [ninjabot-misc](https://github.com/ackwell/ninjabot-misc)
 
-For further examples, it is probably worth taking a look through the plugins included
-with the bot. `Plugins/regex.py` is a good example of how to use the on_incoming hook.
-`Plugins/uno.py` is an example of a large-scale plugin with it's own help system, etc.
+To include any of these, navigate to the `plugins/` folder and `git clone` them in. Make
+sure to enable them in your config! The config examples assume that you have removed the
+`ninjabot-` from the folder name.
 
-If you write a plugin which you think would benefit the main code base, by all means, send
-a pull request! Additions are always welcome.
+Of course, feel free to write your own, that's the true power of this bot. If you write a plugin
+that you think would benefit the core codebase or any of the additional plugin repos, by all means,
+send a pull request! Additions are always welcome.
 
-Please note: Due to the recent/ongoing revamp, the plugin API avaliable is not nessicarily stable,
-and as such could change at any time. I will announce any breaking changes in teh changelog.
+Writing Plugins
+---------------
+
+To get started writing plugins, check `plugins/example.py`, it shows the general structure
+of a plugin, and contains a quickstart on the more common bot commands. (It's a bit outdated,
+but still relevant. I should update that...). For further info, the best thing to do it to take
+a look through the main bot code. A plugin can leverage any functionality that can be accessed
+through the Ninjabot class (passed to plugins as `bot`).
+
+Good examples of working plugins are floating around. I'd suggest taking a look at the 'Uno'
+plugin in ninjabot-games, as it's quite large, with it's own help system and the like.
+
+Happy botting!

@@ -21,7 +21,8 @@
     "command_prefix": "|",
     "notify_insufficient_privs": true,
     "notify_errors": true, 
-    "notify_cnf": true, 
+    "notify_cnf": true,
+    "debug": false, /* When true, will print all socket IO to console */
     "quit_message": "Goodbye!"
   }, 
 
@@ -40,19 +41,25 @@
       "writeinterval": 0
   },
 
-  /* Enable/disable plugins. Uses the plugin's module name, i.e. "example"
-     for Plugins/example.py.
-     Plugins are assumeed to be enabled unless specified here.
+  /* Plugin whitelist, supports directory structure.
+     "<plugin_name>": <boolean> will enable/disable that particular plugin.
+     "<package_name>": {...} will add the package_name context to any contained rules
+     "<package_name": "*" will attempt to enable every plugin in the package
+
+     For example, the following two rules are equivalent:
+     "core.ctcp": true
+     "core": {"ctcp": true}
+     And to load everything from core,
+     "core": "*"
    */
   "plugins": {
-    "challengebot": false, 
-    "example": false
+    "core": "*"
   }, 
   
   /* Plugin-specific settings. Uses same naming scheme as the "plugins"
      section above. Value will be passed to the plugin on initialisation
    */
-  "authtools":{
+  "core.auth": {
     "admins": [
       "admin1",
       "admin2"
@@ -61,29 +68,5 @@
        More will be added as I discover them. (They require different parameters)
      */
     "mode": "acc"
-  },
-
-  "mafia": {
-    "town_channel_name": "##nbm-town-",
-    "mafia_channel_name": "##nbm-mafia-"
-  },
-  
-  "challengebot": {
-    "course": 37, 
-    "cookie": "NCSS website cookie"
-  }, 
-
-  "webtools": "en-au", 
-
-  "wolfram": {
-    "appid": "AppID",
-    "latlong": "latitude,longitude/delete for auto",
-    "location": "name/delete for auto",
-    "units": "metric/nonmetric/delete for auto"
-  },
-
-  /* Centralised spot to put API settings. Will need to be fetched manually */
-  "apis": {
-    "googl": "googl API key"
   }
 }

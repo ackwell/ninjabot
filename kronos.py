@@ -276,11 +276,11 @@ class Scheduler:
         while self.running:
             try:
                 self.sched.run()
-            except Exception,x:
-                print >>sys.stderr, "ERROR DURING SCHEDULER EXECUTION",x
-                print >>sys.stderr, "".join(
-                    traceback.format_exception(*sys.exc_info()))
-                print >>sys.stderr, "-" * 20
+            except Exception as x:
+                print("ERROR DURING SCHEDULER EXECUTION",x, file=sys.stderr)
+                print("".join(
+                    traceback.format_exception(*sys.exc_info())), file=sys.stderr)
+                print("-" * 20, file=sys.stderr)
             # queue is empty; sleep a short while before checking again
             if self.running:
                 time.sleep(5)
@@ -300,7 +300,7 @@ class Task:
         """Execute the task action in the scheduler's thread."""
         try:
             self.execute()
-        except Exception,x:
+        except Exception as x:
             self.handle_exception(x)
         self.reschedule(schedulerref())
 
@@ -315,9 +315,9 @@ class Task:
 
     def handle_exception(self, exc):
         """Handle any exception that occured during task execution."""
-        print >>sys.stderr, "ERROR DURING TASK EXECUTION", exc
-        print >>sys.stderr, "".join(traceback.format_exception(*sys.exc_info()))
-        print >>sys.stderr, "-" * 20
+        print("ERROR DURING TASK EXECUTION", exc, file=sys.stderr)
+        print("".join(traceback.format_exception(*sys.exc_info())), file=sys.stderr)
+        print("-" * 20, file=sys.stderr)
 
 
 class SingleTask(Task):
@@ -468,7 +468,7 @@ try:
             # do the execute() call and exception handling here.
             try:
                 self.execute()
-            except Exception,x:
+            except Exception as x:
                 self.handle_exception(x)
 
     class ThreadedIntervalTask(ThreadedTaskMixin, IntervalTask):
@@ -535,7 +535,7 @@ if hasattr(os, "fork"):
                 # we are the child
                 try:
                     self.execute()
-                except Exception,x:
+                except Exception as x:
                     self.handle_exception(x)
                 os._exit(0)
             else:
@@ -563,18 +563,18 @@ if hasattr(os, "fork"):
 
 if __name__=="__main__":
     def testaction(arg):
-        print ">>>TASK",arg,"sleeping 3 seconds"
+        print(">>>TASK",arg,"sleeping 3 seconds")
         time.sleep(3)
-        print "<<<END_TASK",arg
+        print("<<<END_TASK",arg)
 
     s=ThreadedScheduler()
     s.add_interval_task( testaction, "test action 1", 0, 4, method.threaded, ["task 1"], None )
     s.start()
     
-    print "Scheduler started, waiting 15 sec...."
+    print("Scheduler started, waiting 15 sec....")
     time.sleep(15)
     
-    print "STOP SCHEDULER"
+    print("STOP SCHEDULER")
     s.stop()
     
-    print "EXITING"
+    print("EXITING")
