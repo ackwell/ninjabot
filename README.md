@@ -20,19 +20,13 @@ The config file contains instructions on how to enable and disable plugins
 Plugins
 -------
 
-ninjabot comes with a core set of plugins which provide enough functionality to manage the
-bot, and not much else. Additional plugins can be obtained from the following repositories:
+ninjabot comes with a core set of plugins which provide enough functionality to manage the bot,
+as well as various other plugins that have been written for it. By default, only the core set
+will be enabled, however the others can be enabled simply from the config.
 
-* [ninjabot-games](https://github.com/ackwell/ninjabot-games)
-* [ninjabot-misc](https://github.com/ackwell/ninjabot-misc)
-
-To include any of these, navigate to the `plugins/` folder and `git clone` them in. Make
-sure to enable them in your config! The config examples assume that you have removed the
-`ninjabot-` from the folder name.
-
-Of course, feel free to write your own, that's the true power of this bot. If you write a plugin
-that you think would benefit the core codebase or any of the additional plugin repos, by all means,
-send a pull request! Additions are always welcome.
+Of course, feel free to write your own plugins, that's the true power of this bot. If you write
+a plugin that you think would benefit the core codebase or any of the additional plugin repos,
+by all means, send a pull request! Additions are always welcome.
 
 Writing Plugins
 ---------------
@@ -44,6 +38,6 @@ a look through the main bot code. A plugin can leverage any functionality that c
 through the Ninjabot class (passed to plugins as `bot`).
 
 Good examples of working plugins are floating around. I'd suggest taking a look at the 'Uno'
-plugin in ninjabot-games, as it's quite large, with it's own help system and the like.
+plugin in the games section, as it's quite large, with it's own help system and the like.
 
 Happy botting!
