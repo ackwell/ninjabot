@@ -36,20 +36,18 @@ class Plugin(object):
 
 	def _sed(self, msg, any_seperator):
 		# Check if the message matches the s/blah/blah/ syntax
-		regex = r'''(?x) # verbose mode
-			^(s|y|tr)(SEPARATOR)   # starts with the mode, then our separator
-			((?: # capture pattern
-				(?:\\\2)*    # any number of escaped separators
-				(?:(?!\2).)* # any number of non-seps
-				(?:(?:\\\2)+(?!\2).)*
-			)*)  # ...as many times as possible, end capture pattern
-			\2             # separator
+		regex = r'''(?x)  # verbose mode
+			^(s|y|tr)(SEPARATOR) # starts with the mode, then our separator
+			((?:  # capture pattern
+				(?:\\\2)*        # any number of escaped separators
+				(?:(?!\2).)      # a non-sep
+			)+?)  # ...as many times as possible, end capture pattern
+			\2                   # separator
 			((?:
 				(?:\\\2)*
-				(?:(?!\2).)*
-				(?:(?:\\\2)+(?!\2).)*
-			)*)
-			(?:\2([g0-9])?)?$   # end with optional separator with optional flags
+				(?:(?!\2).)
+			)*?)
+			(?:\2([g0-9])?)?$    # end with optional separator with optional flags
 		'''.replace('SEPARATOR', r'.' if any_seperator else r'\W')
 
 		matches = re.match(regex, msg.body)
