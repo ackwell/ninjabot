@@ -394,7 +394,7 @@ class Ninjabot(IRCConnection):
 	def clear_plugin_data(self):
 		# Keep track of plugins so they can be loaded/unloaded
 		self.plugins = {} # TODO
-		
+
 		# Triggers, etc
 		self.triggers = {}
 		self.incoming = []

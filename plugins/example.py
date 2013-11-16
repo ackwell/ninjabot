@@ -54,12 +54,12 @@ class Plugin:
 #
 # class ninjabot
 #     is_admin (self, nickname, silent=False)
-#	      Checks if nickname is an admin. 
+#	      Checks if nickname is an admin.
 #	      If silent is False, a NOTICE will be sent to nick informing they do not meet the
 #	      access level restriction. This setting is overidden by
 #       config->bot->notify_insufficient_privs
 #	      The various access level lists are maintained my Pugins/authtools.py
-#	
+#
 #	  notice(self, targets, message)
 #   privmsg(self, targets, message)
 #		  Sends an IRC NOTICE/PRIVMSG to targets, containing message and CTCP ctcp.

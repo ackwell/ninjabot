@@ -28,7 +28,7 @@ class Plugin:
 
 	def __init__(self, bot, config):
 		self.bot = bot
-		
+
 		# Config
 		self.join_phase_time = 2
 		if 'join_phase' in config:
@@ -119,7 +119,7 @@ class Plugin:
 		self.channel = msg.channel
 		self.bot.privmsg(self.channel, "New game of {} starting! Type `{}uno join` to join the fun! Game will start in {} minute{}...".format(self.uno, self.bot.command_prefix, self.join_phase_time, ''  if self.join_phase_time == 1 else 's'))
 		self.uno_join(msg)
-		
+
 		# Schedule the end of the join phase
 		self.schedule_task = self.bot.schedule(self.join_phase_time*60, self._begin)
 
@@ -492,7 +492,7 @@ class Plugin:
 		for card in sorted(self.hands[player]):
 			out += self._render_card(card, colourblind)
 		return out
-		
+
 	COLOUR_MAP = {
 		'r':'00,04',
 		'g':'00,03',
