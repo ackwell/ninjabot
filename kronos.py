@@ -27,7 +27,7 @@ For more control you can use one of the following Task classes
 and use schedule_task or schedule_task_abs:
 
     IntervalTask    ThreadedIntervalTask    ForkedIntervalTask
-    SingleTask      ThreadedSingleTask      ForkedSingleTask 
+    SingleTask      ThreadedSingleTask      ForkedSingleTask
     WeekdayTask     ThreadedWeekdayTask     ForkedWeekdayTask
     MonthdayTask    ThreadedMonthdayTask    ForkedMonthdayTask
 
@@ -122,8 +122,8 @@ class Scheduler:
     def add_interval_task(self, action, taskname, initialdelay, interval,
             processmethod, args, kw):
         """Add a new Interval Task to the schedule.
-        
-        A very short initialdelay or one of zero cannot be honored, you will 
+
+        A very short initialdelay or one of zero cannot be honored, you will
         see a slight delay before the task is first executed. This is because
         the scheduler needs to pick it up in its loop.
 
@@ -147,7 +147,7 @@ class Scheduler:
         self.schedule_task(task, initialdelay)
         return task
 
-    def add_single_task(self, action, taskname, initialdelay, processmethod, 
+    def add_single_task(self, action, taskname, initialdelay, processmethod,
             args, kw):
         """Add a new task to the scheduler that will only be executed once."""
         if initialdelay < 0:
@@ -169,7 +169,7 @@ class Scheduler:
         self.schedule_task(task, initialdelay)
         return task
 
-    def add_daytime_task(self, action, taskname, weekdays, monthdays, timeonday, 
+    def add_daytime_task(self, action, taskname, weekdays, monthdays, timeonday,
             processmethod, args, kw):
         """Add a new Day Task (Weekday or Monthday) to the schedule."""
         if weekdays and monthdays:
@@ -209,9 +209,9 @@ class Scheduler:
 
     def schedule_task(self, task, delay):
         """Add a new task to the scheduler with the given delay (seconds).
-        
+
         Low-level method for internal use.
-        
+
         """
 
         if self.running:
@@ -228,9 +228,9 @@ class Scheduler:
 
     def schedule_task_abs(self, task, abstime):
         """Add a new task to the scheduler for the given absolute time value.
-        
+
         Low-level method for internal use.
-        
+
         """
         if self.running:
             # lock the sched queue, if needed
@@ -269,7 +269,7 @@ class Scheduler:
         def _getqueuetoptime(self):
             return self.sched.queue[0][0]
         def _clearschedqueue(self):
-            self.sched.queue[:] = []                    
+            self.sched.queue[:] = []
 
     def _run(self):
         # Low-level run method to do the actual scheduling loop.
@@ -364,7 +364,7 @@ class DayTaskRescheduler:
 
     def reschedule(self, scheduler):
         """Reschedule this task according to the daytime for the task.
-        
+
         The task is scheduled for tomorrow, for the given daytime.
 
         """
@@ -377,7 +377,7 @@ class DayTaskRescheduler:
 class WeekdayTask(DayTaskRescheduler, Task):
     """A task that is called at specific days in a week (1-7), at a fixed time
     on the day.
-    
+
     """
 
     def __init__(self, name, weekdays, timeonday, action, args=None, kw=None):
@@ -399,9 +399,9 @@ class WeekdayTask(DayTaskRescheduler, Task):
 
 
 class MonthdayTask(DayTaskRescheduler, Task):
-    """A task that is called at specific days in a month (1-31), at a fixed 
+    """A task that is called at specific days in a month (1-31), at a fixed
     time on the day.
-    
+
     """
 
     def __init__(self, name, monthdays, timeonday, action, args=None, kw=None):
@@ -437,7 +437,7 @@ try:
             self.thread = threading.Thread(target=self._run)
             self.thread.setDaemon(True)
             self.thread.start()
-            
+
         def stop(self):
             """Stop the scheduler and wait for the thread to finish."""
             Scheduler.stop(self)
@@ -449,7 +449,7 @@ try:
         def _acquire_lock(self):
             """Lock the thread's task queue."""
             self._lock.acquire()
-            
+
         def _release_lock(self):
             """Release the lock on th ethread's task queue."""
             self._lock.release()
@@ -476,7 +476,7 @@ try:
         pass
 
     class ThreadedSingleTask(ThreadedTaskMixin, SingleTask):
-        """Single Task that executes in its own thread.""" 
+        """Single Task that executes in its own thread."""
         pass
 
     class ThreadedWeekdayTask(ThreadedTaskMixin, WeekdayTask):
@@ -570,11 +570,11 @@ if __name__=="__main__":
     s=ThreadedScheduler()
     s.add_interval_task( testaction, "test action 1", 0, 4, method.threaded, ["task 1"], None )
     s.start()
-    
+
     print("Scheduler started, waiting 15 sec....")
     time.sleep(15)
-    
+
     print("STOP SCHEDULER")
     s.stop()
-    
+
     print("EXITING")

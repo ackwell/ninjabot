@@ -7,7 +7,7 @@ def write(string, private=True, expire=3600):
     Write <string> to a new kdepaste
     Returns kdepaste URL or error message
     """
-    
+
     url='http://paste.kde.org/'
     args={'paste_data': string,
           'paste_lang': 'text',

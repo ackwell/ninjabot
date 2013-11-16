@@ -5,10 +5,10 @@
 {
 	/* Server connection details */
 	"server": {
-    "host": "irc.example.com",  
+    "host": "irc.example.com",
     "port": 6667,
-    "nickname": "ninjabot", 
-    "username": "ninjabot_un", 
+    "nickname": "ninjabot",
+    "username": "ninjabot_un",
     "realname": "ninjabot_rn"
     /*"password": "server password"*/ /* Optional */
   },
@@ -17,14 +17,14 @@
   "bot": {
     "channels": [
       "##ninjabot_test"
-    ], 
+    ],
     "command_prefix": "|",
     "notify_insufficient_privs": true,
-    "notify_errors": true, 
+    "notify_errors": true,
     "notify_cnf": true,
     "debug": false, /* When true, will print all socket IO to console */
     "quit_message": "Goodbye!"
-  }, 
+  },
 
   /* Options for persistent storage.
      "path" -> path where data should be stored relative to the root directory containing ninjabot.py
@@ -54,8 +54,8 @@
    */
   "plugins": {
     "core": "*"
-  }, 
-  
+  },
+
   /* Plugin-specific settings. Uses same naming scheme as the "plugins"
      section above. Value will be passed to the plugin on initialisation
    */
@@ -63,7 +63,7 @@
     "admins": [
       "admin1",
       "admin2"
-    ], 
+    ],
     /* Specifies the NS command to use. Rizon uses 'status', freenode uses 'acc'.
        More will be added as I discover them. (They require different parameters)
      */
