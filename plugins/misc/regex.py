@@ -12,6 +12,7 @@ Config:
 from collections import defaultdict as ddict, deque
 import re
 
+
 class Plugin(object):
 	def __init__(self, bot, config):
 		self.bot = bot

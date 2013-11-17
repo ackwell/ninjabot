@@ -3,6 +3,7 @@
 # Do whatever you want with this.
 import random
 
+
 class Plugin:
 	# Modes
 	SINGLE = 1

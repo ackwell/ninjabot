@@ -18,6 +18,7 @@ import traceback
 from importlib import import_module
 from queue import Queue
 
+
 ###############
 # Errors
 ###############
@@ -299,6 +300,7 @@ class IRCConnection(asynchat.async_chat):
 
 	def user(self, username, realname, now=True):
 		self.irc_send('USER {0} 0 * :{1}'.format(username, realname), now)
+
 
 ###############
 # The bot itself
@@ -625,6 +627,7 @@ class Ninjabot(IRCConnection):
 		except ValueError:
 			pass
 
+
 # Entry point
 def ninjabot_main():
 	args = sys.argv[1:]
@@ -643,6 +646,7 @@ def ninjabot_main():
 
 	bot = Ninjabot(config_filename)
 	bot.start()
+
 
 # Wrap another process of the bot to allow restarts
 def ninjabot_wrap():

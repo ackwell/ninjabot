@@ -14,6 +14,7 @@ import random
 import time
 from collections import defaultdict
 
+
 class Plugin:
 
 	#modes
@@ -236,6 +237,7 @@ class Plugin:
 		'b':'Blue',
 		'y':'Yellow'
 	}
+
 	def uno_play(self, msg):
 		"Play a card. syntax is `play <colour> <card>. For wilds, specify a colour they should become."
 		if not self.mode == self.PLAYING:
@@ -519,9 +521,9 @@ class Plugin:
 		'y':'01,08',
 		'w':'00,01'
 	}
+
 	def _render_card(self, card, colourblind=False):
 		if colourblind:
 			return '[{}]'.format(card)
 		else:
 			return '\003{}\002[{}]\002\003'.format(self.COLOUR_MAP[card[0]],card[1:])
-

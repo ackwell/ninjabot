@@ -7,6 +7,7 @@
 import os
 import subprocess
 
+
 class Git(object):
 	def __init__(self):
 		pass

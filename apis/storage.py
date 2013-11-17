@@ -3,11 +3,12 @@
 import os
 import pickle
 
+
 class Storage(object):
 	def __init__(self, plugin, bot):
 		try:
 			# Set the filename based on the plugin name
-			self._fname  = '.'.join(plugin.__module__.split('.')[1:])
+			self._fname = '.'.join(plugin.__module__.split('.')[1:])
 			self._base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..')
 			self._config = bot.config
 			if self._config.get('storage', {}).get('path', False):
