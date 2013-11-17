@@ -13,7 +13,8 @@ class Plugin(object):
 		if len(msg.args) == 0:
 			err = -1
 		else:
-			try: err = int(msg.args[0])
+			try:
+				err = int(msg.args[0])
 			except:
 				self.bot.notice(msg.nick, 'Please specify a valid error index.')
 				return

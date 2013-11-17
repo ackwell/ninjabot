@@ -331,7 +331,10 @@ class Plugin:
 
 		self.bot.notice(msg.nick, "Top card: {}".format(self._render_card(self.discard[-1])))
 
-	def uno_draw(self, msg): "Draw a card from the deck.";self.uno_pickup(msg)
+	def uno_draw(self, msg):
+		"Draw a card from the deck."
+		self.uno_pickup(msg)
+
 	def uno_pickup(self, msg):
 		"Draw a card from the deck."
 		if not self.players[self.current_player] == msg.nick:
@@ -494,7 +497,9 @@ class Plugin:
 			self._skip = 1
 
 	def _draw_card(self, player, number=1, silent=False):
-		if not silent: self.bot.privmsg(self.channel, "{} draws {} card{}.".format(player, number, 's' if number>1 else ''))
+		if not silent:
+			self.bot.privmsg(self.channel, "{} draws {} card{}.".format(player, number, 's' if number>1 else ''))
+
 		for i in range(number):
 			if len(self.deck) == 0:
 				for card in self.discard[:-1]:
@@ -504,7 +509,9 @@ class Plugin:
 				random.shuffle(self.deck)
 				self.bot.privmsg(self.channel, "Discard pile shuffled and added to deck.")
 			self.hands[player].append(self.deck.pop())
-		if not silent: self.bot.notice(player, "Your hand: {}.".format(self._render_hand(player)))
+
+		if not silent:
+			self.bot.notice(player, "Your hand: {}.".format(self._render_hand(player)))
 
 	def _render_hand(self, player, colourblind=-1):
 		if colourblind == -1:
