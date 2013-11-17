@@ -101,8 +101,10 @@ class Plugin:
 			self.bot.notice(msg.nick, 'Avaliable sub-commands are: {}.'.format(' '.join(com)))
 			self.bot.notice(msg.nick, 'For more information, run `{}uno help <command>`.'.format(self.bot.command_prefix))
 		else:
-			try: self.bot.notice(msg.nick, getattr(self, 'uno_'+msg.args[0]).__doc__)
-			except AttributeError: self.bot.notice(msg.nick, "That command does not exist. For a list of commands, run {}uno help.".format(self.bot.command_prefix))
+			try:
+				self.bot.notice(msg.nick, getattr(self, 'uno_'+msg.args[0]).__doc__)
+			except AttributeError:
+				self.bot.notice(msg.nick, "That command does not exist. For a list of commands, run {}uno help.".format(self.bot.command_prefix))
 
 	def uno_start(self, msg):
 		"Starts a game of UNO!"
@@ -200,6 +202,7 @@ class Plugin:
 		if self.players.index(nick) <= self.current_player:
 			self.current_player -= 1
 		self.players.remove(nick)
+
 		if self.mode == self.PLAYING:
 			self.bot.privmsg(self.channel, "Their hand was {}. It has been shuffled into the deck.".format(self._render_hand(nick, colourblind=False)))
 			for card in self.hands[nick]:
@@ -238,18 +241,25 @@ class Plugin:
 		if not self.mode == self.PLAYING:
 			self.bot.notice(msg.nick, "There's no game of {} currently in progress!".format(self.uno))
 			return
+
 		if not self.players[self.current_player] == msg.nick:
 			self.bot.notice(msg.nick, "It's not your turn!")
 			return
+
 		if len(msg.args) == 0:
 			self.bot.notice(msg.nick, "Not enough arguments specified.")
 			return
+
 		colour = msg.args.pop(0).lower()
-		try: colour = self.CARD_MAP[colour]
-		except KeyError: pass
+		try:
+			colour = self.CARD_MAP[colour]
+		except KeyError:
+			pass
+
 		if colour not in 'rgby':
 			self.bot.notice(msg.nick, "Invalid colour specified.")
 			return
+
 		if self.force_colour and colour != self.topcolour:
 			if self.turn != 1:
 				self.bot.notice(msg.nick, "You must place a {} card, or pick up.".format(self.NAME_MAP[self.topcolour]))
@@ -258,8 +268,11 @@ class Plugin:
 			self.force_colour = False
 
 		ctype = "".join(msg.args).lower()
-		try: ctype = self.CARD_MAP[ctype]
-		except KeyError: pass
+		try:
+			ctype = self.CARD_MAP[ctype]
+		except KeyError:
+			pass
+
 		ctype = ctype.upper()
 		if ctype not in 'RSDW4012356789':
 			self.bot.notice(msg.nick, "Invalid card type specified.")
@@ -281,8 +294,11 @@ class Plugin:
 		self.hands[msg.nick].remove(card)
 
 		card = colour+ctype
-		try: lname = self.NAME_MAP[ctype]
-		except KeyError: lname = ctype
+		try:
+			lname = self.NAME_MAP[ctype]
+		except KeyError:
+			lname = ctype
+
 		self.bot.privmsg(self.channel, "{} plays a {} {}.".format(msg.nick, self.NAME_MAP[colour], lname))
 
 		cards_left = len(self.hands[msg.nick])
@@ -358,10 +374,12 @@ class Plugin:
 
 	def _begin(self):
 		print('BEGIN')
+
 		if len(self.players) < 2:
 			self.bot.privmsg(self.channel, "{} needs at least 2 people to play! Game halted.".format(self.uno))
 			self._reset(False)
 			return
+
 		self.mode = self.PLAYING
 		self._set_up()
 
@@ -375,6 +393,7 @@ class Plugin:
 		self.start_player = ''
 		self.mode = self.COOLDOWN if CD and self.cooldown_time else self.INACTIVE
 		self.turn = 0
+
 		if self.mode == self.COOLDOWN:
 			self.schedule_task = self.bot.schedule(self.cooldown_time * 60, self._cooldown_complete)
 			self.bot.privmsg(self.channel, "{} game finished. Hope you had fun! Uno can be played again in about {} minute{}.".format(self.uno, self.cooldown_time, '' if self.cooldown_time == 1 else 's'))
