@@ -33,8 +33,8 @@ class Plugin(object):
 			self.timeouts[i] = time
 
 		if time:
-			self.bot.notice(msg.nick, "Ignored {0}{1}.".format(i, ' for {0} minutes'.format(time)))
-			self.bot.notice(i, "You have been ignored{0}.".format(' for {0} minutes'.format(time)))
+			self.bot.notice(msg.nick, "Ignored {} for {} minutes.".format(i, time))
+			self.bot.notice(i, "You have been ignored for {0} minutes.".format(time))
 
 	def trigger_allow(self, msg):
 		"Usage: `allow <user>`. Removes <user> from the ignore list."

@@ -22,7 +22,7 @@ class Plugin(object):
 		# Keep this many past messages saved for each user
 		self.backlog = 5
 		if 'backlog' in config:
-			self.backlog = config[backlog]
+			self.backlog = config['backlog']
 
 	def on_incoming(self, msg):
 		# Only accept messages over the channel
