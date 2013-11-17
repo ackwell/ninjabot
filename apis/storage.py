@@ -17,10 +17,11 @@ class Storage(dict):
 		else:
 			self._path = 'storage'
 
-		self._full_path = os.path.normpath(os.path.join(self._base_path, self._path, self._fname))
+		self._path = os.path.join(self._base_path, self._path)
+		self._full_path = os.path.normpath(os.path.join(self._path, self._fname))
 
-		if not os.path.exists(os.path.dirname(self._full_path)):
-			os.makedirs(os.path.dirname(self._full_path))
+		if not os.path.exists(self._path):
+			os.makedirs(self._path)
 
 		if os.path.exists(self._full_path):
 			with open(self._full_path, 'rb') as fh:
