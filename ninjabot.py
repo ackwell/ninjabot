@@ -22,7 +22,9 @@ from queue import Queue
 ###############
 # Errors
 ###############
-class ConnectionError(Exception): pass
+class ConnectionError(Exception):
+    pass
+
 
 ###############
 # Incoming message parser
@@ -104,7 +106,8 @@ class Message:
 			self.type = Message.OTHER
 
 	def ctcp_dequote(self, s):
-		return re.sub(r'\\(.)', lambda m:'\001' if m.group(0)=='\\a' else m.group(1), s)
+		return re.sub(r'\\(.)', lambda m: '\001' if m.group(0) == '\\a' else m.group(1), s)
+
 
 ###############
 # IRC connection handler
@@ -439,7 +442,7 @@ class Ninjabot(IRCConnection):
 
 	def clear_plugin_data(self):
 		# Keep track of plugins so they can be loaded/unloaded
-		self.plugins = {} # TODO
+		self.plugins = {}  # TODO
 
 		# Triggers, etc
 		self.triggers = {}

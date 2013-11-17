@@ -9,15 +9,15 @@ def write(string, private=True, expire=3600):
 	Returns kdepaste URL or error message
 	"""
 
-	url='http://paste.kde.org/'
-	args= {
-			'paste_data': string,
-			'paste_lang': 'text',
-			'api_submit':'true',
-			'mode': 'json',
+	url = 'http://paste.kde.org/'
+	args = {
+		'paste_data': string,
+		'paste_lang': 'text',
+		'api_submit': 'true',
+		'mode': 'json',
 
-			'paste_private': 'yes' if private else 'no',
-			'paste_expire': expire
+		'paste_private': 'yes' if private else 'no',
+		'paste_expire': expire
 	}
 	post_data = urlencode(args).encode('utf-8')
 
