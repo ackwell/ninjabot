@@ -667,7 +667,7 @@ def ninjabot_wrap():
 
 		if status != 0:
 			print('\nGoodbye!')
-			sys.quit()
+			sys.exit()
 		else:
 			print('\nRestarting ninjabot')
 
