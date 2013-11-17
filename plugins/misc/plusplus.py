@@ -1,80 +1,74 @@
 from apis import storage
 
 class Plugin:
-    def __init__(self, bot, config):
-        self.bot = bot
-        self.config = config
-        self.store = storage.Storage(self, bot)
+	def __init__(self, bot, config):
+		self.bot = bot
+		self.config = config
+		self.store = storage.Storage(self, bot)
 
-    def on_incoming(self, msg):
-        text = msg.body.split()
-        if not text or len(text) > 2:
-            return
+	def on_incoming(self, msg):
+		text = msg.body.split()
+		if not text or len(text) > 2:
+			return
 
-        # Space between ++ and word:
-        if len(text) == 2:
-            word = text[0]
-            incr = text[1]
-            if not incr.strip('+'):
-                amount = len(incr)/2
-            elif not incr.strip('-'):
-                amount = -len(incr)/2
-            else:
-                return
+		# Space between ++ and word:
+		if len(text) == 2:
+			word = text[0]
+			incr = text[1]
+			if not incr.strip('+'):
+				amount = len(incr)/2
+			elif not incr.strip('-'):
+				amount = -len(incr)/2
+			else:
+				return
 
-        if len(text) == 1:
-            word = text[0]
-            if word.endswith('++'):
-                amount = (len(word) - len(word.rstrip('+')))/2
-                word = word.rstrip('++')
-            elif word.endswith('--'):
-                amount = -(len(word) - len(word.rstrip('-')))/2
-                word = word.rstrip('--')
-            else:
-                return
+		if len(text) == 1:
+			word = text[0]
+			if word.endswith('++'):
+				amount = (len(word) - len(word.rstrip('+')))/2
+				word = word.rstrip('++')
+			elif word.endswith('--'):
+				amount = -(len(word) - len(word.rstrip('-')))/2
+				word = word.rstrip('--')
+			else:
+				return
 
-        if not word:
-            return
+		if not word:
+			return
 
-        if word not in self.store:
-            self.store[word] = 0
+		if word not in self.store:
+			self.store[word] = 0
 
-        self.store[word] += amount
+		self.store[word] += amount
 
-        return
+		return
 
-    def trigger_rep(self, msg):
-        if msg.args:
-            counts = {}
-            for word in msg.args:
-                counts[word] = self.store.get(word, 0)
-        else:
-            c = self.store.get_dict()
-            counts = {}
-            for key in c:
-                if c[key]:
-                    counts[key] = c[key]
+	def trigger_rep(self, msg):
+		if msg.args:
+			counts = {}
+			for word in msg.args:
+				counts[word] = self.store.get(word, 0)
+		else:
+			c = self.store.get_dict()
+			counts = {}
+			for key in c:
+				if c[key]:
+					counts[key] = c[key]
 
-        if counts:
-            ret = []
-            length = 0
-            for word, count in sorted(counts.items(), key=lambda x:(-x[1], x[0])):
-                ret.append('{}: {}'.format(word, count))
-                length += len(ret[-1]) + 2
-                if length > 180:
-                    ret.append('...')
-                    break
-            ret = ', '.join(ret)
-        else:
-            ret = 'No rep has been given!'
+		if counts:
+			ret = []
+			length = 0
+			for word, count in sorted(counts.items(), key=lambda x:(-x[1], x[0])):
+				ret.append('{}: {}'.format(word, count))
+				length += len(ret[-1]) + 2
+				if length > 180:
+					ret.append('...')
+					break
+			ret = ', '.join(ret)
+		else:
+			ret = 'No rep has been given!'
 
-        self.bot.privmsg(msg.channel, ret)
+		self.bot.privmsg(msg.channel, ret)
 
-    def trigger_karma(self, msg):
-        self.trigger_rep(msg)
-
-
-
-
-
-
+	def trigger_karma(self, msg):
+		self.trigger_rep(msg)

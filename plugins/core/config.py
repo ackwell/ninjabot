@@ -7,7 +7,8 @@ class Plugin(object):
 
 	def trigger_config(self, msg):
 		"Runtime config editing. for more info, check `config help`"
-		if not self.bot.is_admin(msg.nick): return
+		if not self.bot.is_admin(msg.nick):
+			return
 
 		if len(msg.args) == 0:
 			self.bot.notice(msg.nick, "No command specified.")
@@ -57,9 +58,9 @@ class Plugin(object):
 			self.bot.notice(msg.nick, "Config path '{0}' is not currently set.".format('->'.join(msg.args)))
 
 	def config_save(self, msg):
-		f_config = open(self.bot.config_path, 'w')
-		f_config.write(json.dumps(self.bot.config, indent=2))
-		f_config.close()
+		with open(self.bot.config_path, 'w') as f_config:
+			f_config.write(json.dumps(self.bot.config, indent=2))
+
 		self.bot.notice(msg.nick, "Config saved sucessfully.")
 
 	def _get_config(self, path, create=True):

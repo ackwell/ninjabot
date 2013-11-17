@@ -37,7 +37,7 @@ class Plugin:
 
 			if "d" in msg.args[0]:
 				if len(msg.args[0].split('d')) != 2:
-					self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
+					self.bot.notice(msg.nick, 'Invalid argument {:s}'.format(msg.args[0]))
 					return
 
 				die, sides = msg.args[0].split('d')
@@ -46,14 +46,14 @@ class Plugin:
 					die = "1"
 
 				if not sides.isnumeric() or not die.isnumeric():
-					self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
+					self.bot.notice(msg.nick, 'Invalid argument {:s}'.format(msg.args[0]))
 					return
 
 			elif msg.args[0].isnumeric():
 				die = int(msg.args[0])
 
 			else:
-				self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
+				self.bot.notice(msg.nick, 'Invalid argument {:s}'.format(msg.args[0]))
 				return
 
 			sides, die = int(sides), int(die)
@@ -62,7 +62,7 @@ class Plugin:
 
 		# Lower limits cause errors
 		if self.F_LOWER_LIMIT > sides or self.D_LOWER_LIMIT > die:
-			self.bot.notice(msg.nick, 'Invalid argument %s' % msg.args[0])
+			self.bot.notice(msg.nick, 'Invalid argument {:s}'.format(msg.args[0]))
 			return
 
 		# Upper limits cause "single" calculations
@@ -78,11 +78,11 @@ class Plugin:
 				numbers += [num]
 
 			# Give the results
-			self.bot.privmsg(msg.channel, '%s: %s (total %d)' % (msg.nick, numbers, sum(numbers)))
+			self.bot.privmsg(msg.channel, '{:s}: {:r} (total {:d})'.format(msg.nick, numbers, sum(numbers)))
 
 		elif self.TYPE == self.SINGLE:
 			# Just give the total
 			total = random.randint(die * self.F_LOWER_LIMIT, sides * die)
 
 			# Give the results
-			self.bot.privmsg(msg.channel, '%s: [...] (total %d)' % (msg.nick, total))
+			self.bot.privmsg(msg.channel, '{:s}: [...] (total {:d})'.format(msg.nick, total))

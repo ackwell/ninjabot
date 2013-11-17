@@ -7,7 +7,8 @@ class Plugin(object):
 
 	def trigger_error(self, msg):
 		"Pastebins the latest latest error message. If an index is specified, will return that error instead."
-		if not self.bot.is_admin(msg.nick): return
+		if not self.bot.is_admin(msg.nick):
+			return
 
 		if len(msg.args) == 0:
 			err = -1
@@ -16,6 +17,7 @@ class Plugin(object):
 			except:
 				self.bot.notice(msg.nick, 'Please specify a valid error index.')
 				return
+
 		try:
 			if err in self.cache:
 				m = self.cache[err]
@@ -24,5 +26,5 @@ class Plugin(object):
 				if err > 0 and 'err' not in m:
 					self.cache[err] = m
 			self.bot.notice(msg.nick, 'Error report: ' + m)
-			return
-		except IndexError: self.bot.notice(msg.nick, 'No error with that index exists')
+		except IndexError:
+			self.bot.notice(msg.nick, 'No error with that index exists')
