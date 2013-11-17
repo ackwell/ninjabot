@@ -10,7 +10,8 @@ class Plugin(object):
         self.git = self.bot.request_api('git').Git()
 
     def on_incoming(self, msg):
-        if not msg.ctcp: return
+        if not msg.ctcp:
+			return
 
         args = msg.ctcp.split()
         command = args.pop(0).lower()
