@@ -423,7 +423,7 @@ class Ninjabot(IRCConnection):
 		# Need to remove comments, else JSON throws a hissy
 		regexp_remove_comments = re.compile(r'/\*.*?\*/', re.DOTALL)
 
-		with open(self.config_path, 'rU') as fconfig:
+		with open(self.config_path) as fconfig:
 			config = fconfig.read()
 			self.config = json.loads(regexp_remove_comments.sub('', config))
 
