@@ -18,10 +18,13 @@ import traceback
 from importlib import import_module
 from queue import Queue
 
+
 ###############
 # Errors
 ###############
-class ConnectionError(Exception): pass
+class ConnectionError(Exception):
+    pass
+
 
 ###############
 # Incoming message parser
@@ -103,7 +106,8 @@ class Message:
 			self.type = Message.OTHER
 
 	def ctcp_dequote(self, s):
-		return re.sub(r'\\(.)', lambda m:'\001' if m.group(0)=='\\a' else m.group(1), s)
+		return re.sub(r'\\(.)', lambda m: '\001' if m.group(0) == '\\a' else m.group(1), s)
+
 
 ###############
 # IRC connection handler
@@ -300,6 +304,7 @@ class IRCConnection(asynchat.async_chat):
 	def user(self, username, realname, now=True):
 		self.irc_send('USER {0} 0 * :{1}'.format(username, realname), now)
 
+
 ###############
 # The bot itself
 ###############
@@ -418,7 +423,7 @@ class Ninjabot(IRCConnection):
 		# Need to remove comments, else JSON throws a hissy
 		regexp_remove_comments = re.compile(r'/\*.*?\*/', re.DOTALL)
 
-		with open(self.config_path, 'rU') as fconfig:
+		with open(self.config_path) as fconfig:
 			config = fconfig.read()
 			self.config = json.loads(regexp_remove_comments.sub('', config))
 
@@ -437,7 +442,7 @@ class Ninjabot(IRCConnection):
 
 	def clear_plugin_data(self):
 		# Keep track of plugins so they can be loaded/unloaded
-		self.plugins = {} # TODO
+		self.plugins = {}  # TODO
 
 		# Triggers, etc
 		self.triggers = {}
@@ -625,6 +630,7 @@ class Ninjabot(IRCConnection):
 		except ValueError:
 			pass
 
+
 # Entry point
 def ninjabot_main():
 	args = sys.argv[1:]
@@ -644,6 +650,7 @@ def ninjabot_main():
 	bot = Ninjabot(config_filename)
 	bot.start()
 
+
 # Wrap another process of the bot to allow restarts
 def ninjabot_wrap():
 	# Launch the wrapper
@@ -660,7 +667,7 @@ def ninjabot_wrap():
 
 		if status != 0:
 			print('\nGoodbye!')
-			quit()
+			sys.exit()
 		else:
 			print('\nRestarting ninjabot')
 

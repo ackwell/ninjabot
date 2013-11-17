@@ -1,5 +1,6 @@
 # This is an example plugin.
 
+
 class Plugin:
 	# All functions are optional. If a function doesn't exist, it simply won't be loaded.
 

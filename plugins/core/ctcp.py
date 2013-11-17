@@ -1,8 +1,8 @@
-import os.path
 import platform
 import time
 
 SOURCE = 'SOURCE https://github.com/ackwell/ninjabot'
+
 
 class Plugin(object):
 	def __init__(self, bot, config):

@@ -1,5 +1,6 @@
 from apis import storage
 
+
 class Plugin:
 	def __init__(self, bot, config):
 		self.bot = bot
@@ -58,7 +59,7 @@ class Plugin:
 		if counts:
 			ret = []
 			length = 0
-			for word, count in sorted(counts.items(), key=lambda x:(-x[1], x[0])):
+			for word, count in sorted(counts.items(), key=lambda x: (-x[1], x[0])):
 				ret.append('{}: {}'.format(word, count))
 				length += len(ret[-1]) + 2
 				if length > 180:

@@ -12,6 +12,7 @@ Config:
 from collections import defaultdict as ddict, deque
 import re
 
+
 class Plugin(object):
 	def __init__(self, bot, config):
 		self.bot = bot
@@ -21,7 +22,7 @@ class Plugin(object):
 		# Keep this many past messages saved for each user
 		self.backlog = 5
 		if 'backlog' in config:
-			self.backlog = config[backlog]
+			self.backlog = config['backlog']
 
 	def on_incoming(self, msg):
 		# Only accept messages over the channel
@@ -65,10 +66,10 @@ class Plugin(object):
 				their_messages = self.last_messages[msg.nick]
 				mode, sep, pattern, replacement, flags = [s.replace('\\'+groups[1], groups[1]) if s else '' for s in groups]
 
-				if mode == 's': # String replace mode
+				if mode == 's':  # String replace mode
 					# Scan for a matching message in their last messages
 					for message in their_messages:
-						try: # Treat the rexes as a normal message if an error occurs, i.e. invalid syntax
+						try:  # Treat the rexes as a normal message if an error occurs, i.e. invalid syntax
 							if re.search(pattern, message):
 								if 'g' in flags:
 									body = re.sub(pattern, replacement, message)

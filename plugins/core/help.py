@@ -22,4 +22,3 @@ class Plugin(object):
 
 	def non_existent_help(self, msg):
 		self.bot.notice(msg.nick, "Either that trigger does not exist, or it has no documentation.")
-

@@ -3,6 +3,7 @@
 
 import time
 
+
 class Plugin(object):
 	def __init__(self, bot, config):
 		self.bot = bot
