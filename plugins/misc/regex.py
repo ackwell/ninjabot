@@ -35,6 +35,11 @@ class Plugin(object):
 		self._sed(msg, True)
 
 	def _sed(self, msg, any_seperator):
+		# TODO: This code **needs** to be fixed. Consider looking at the source
+		#       code of GNU sed or other tools for ideas. Regex should *not* be
+		#       used for parsing. Use something more sane and measured.
+		#       - Cyphar
+
 		# Check if the message matches the s/blah/blah/ syntax
 		regex = r'''(?x)  # verbose mode
 			^(s|y|tr)(SEPARATOR) # starts with the mode, then our separator
