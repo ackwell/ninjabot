@@ -1,6 +1,7 @@
 from urllib.request import urlopen
 from urllib.parse import urlencode
-import re, json
+import json
+
 
 def write(string, private=True, expire=3600):
 	"""

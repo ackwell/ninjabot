@@ -4,7 +4,6 @@
 # N.B. this has been written 100% with *nix in mind, don't bother trying to use it in windows
 # ... yes, i'm talking to you, saxon >.>
 
-import os
 import subprocess
 
 
