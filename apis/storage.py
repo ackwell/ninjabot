@@ -22,7 +22,8 @@ class Storage(object):
 				os.makedirs(os.path.dirname(self._full_path))
 
 			if os.path.exists(self._full_path):
-				self._store = pickle.load(open(self._full_path, 'rb'))
+				with open(self._full_path, 'rb') as fh:
+					self._store = pickle.load(fh)
 			else:
 				self._store = {}
 
@@ -53,4 +54,5 @@ class Storage(object):
 		return key in self._store
 
 	def write(self):
-		pickle.dump(self._store, open(self._full_path, 'wb'))
+		with open(self._full_path, 'wb') as fh:
+			pickle.dump(self._store, fh)
