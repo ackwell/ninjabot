@@ -13,7 +13,8 @@ class Plugin(object):
 
 	def trigger_ignore(self, msg):
 		"Usage: `ignore <user> [time]`. Ignores the specified person for [time] (minutes). If [time] is not specified, will remain ignored untill removed."
-		if not self.bot.is_admin(msg.nick):return
+		if not self.bot.is_admin(msg.nick):
+			return
 
 		if len(msg.args) == 0: self.bot.notice(msg.nick, "No nick was specified.")
 		i = msg.args.pop(0)
@@ -28,8 +29,9 @@ class Plugin(object):
 				return
 			self.timeouts[i] = time
 
-		self.bot.notice(msg.nick, "Ignored {0}{1}.".format(i, ' for {0} minutes'.format(time) if time else ''))
-		self.bot.notice(i, "You have been ignored{0}.".format(' for {0} minutes'.format(time) if time else ''))
+		if time:
+			self.bot.notice(msg.nick, "Ignored {0}{1}.".format(i, ' for {0} minutes'.format(time)))
+			self.bot.notice(i, "You have been ignored{0}.".format(' for {0} minutes'.format(time)))
 
 	def trigger_allow(self, msg):
 		"Usage: `allow <user>`. Removes <user> from the ignore list."
@@ -41,14 +43,14 @@ class Plugin(object):
 
 		person = msg.args.pop(0)
 		if not person in self.bot.ignored:
-			self.bot.notice(msg.nick, "%s is not on the ignore list." % person)
+			self.bot.notice(msg.nick, "{:s} is not on the ignore list.".format(person))
 
 		self.bot.ignored.remove(person)
 
 		if person in self.timeouts:
 			del self.timeouts[person]
 
-		self.bot.notice(msg.nick, "%s is no longer ignored." % person)
+		self.bot.notice(msg.nick, "{:s} is no longer ignored.".format(person))
 		self.bot.notice(person, "You are no longer ignored.")
 
 	def timer_60(self):

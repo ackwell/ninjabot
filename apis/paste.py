@@ -22,9 +22,14 @@ def write(string, private=True, expire=3600):
 
 	u = urlopen(url, post_data).read().decode('utf-8')
 	j = json.loads(u)['result']
+
 	if 'error' in j.keys():
 		return j['error']
-	o = 'http://paste.kde.org/%s/%s'%(j['id'], j['hash'] if private else '')
+
+	o = ''
+	if private:
+		o = 'http://paste.kde.org/{:s}/{:s}'.format(j['id'], j['hash'])
+
 	return o
 
 #removed the read() function, as it's a lot easier with KDE paste so there's no point really.
