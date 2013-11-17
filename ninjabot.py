@@ -58,9 +58,16 @@ class Message:
 
 		# Split the args into command/channel/body
 		self.command = args.pop(0)
-		if len(args) == 1: self.channel = ''
-		else: self.channel = args.pop(0)
-		self.body = trailing if trailing else ' '.join(args)
+
+		if len(args) == 1:
+			self.channel = ''
+		else:
+			self.channel = args.pop(0)
+
+		self.body = trailing
+
+		if not self.body:
+			self.body = ' '.join(args)
 
 		# Save any additional arguments
 		if len(args) >= 1:
@@ -88,9 +95,12 @@ class Message:
 
 		# Set what type of message it is
 		if self.command == 'PRIVMSG':
-			if self.channel.startswith('#'): self.type = Message.CHANNEL
-			else: self.type = Message.PRIVATE
-		else: self.type = Message.OTHER
+			if self.channel.startswith('#'):
+				self.type = Message.CHANNEL
+			else:
+				self.type = Message.PRIVATE
+		else:
+			self.type = Message.OTHER
 
 	def ctcp_dequote(self, s):
 		return re.sub(r'\\(.)', lambda m:'\001' if m.group(0)=='\\a' else m.group(1), s)
@@ -139,15 +149,19 @@ class IRCConnection(asynchat.async_chat):
 		self.connected = True
 
 		# Initiate the IRC protocol
-		if self.password: self.pass_(self.password, now=True)
+		if self.password:
+			self.pass_(self.password, now=True)
+
 		self.nick(self.nickname, now=True)
 		self.user(self.username, self.realname, now=True)
 
 	# Disconnect from the IRC server
 	def disconnect(self, message):
 		print('disconnect')
+
 		# Bit hard to disconnect if there's not connection in the first place...
-		if not self.connected: return
+		if not self.connected:
+			return
 
 		self.quit(message)
 
@@ -155,13 +169,18 @@ class IRCConnection(asynchat.async_chat):
 
 	def handle_close(self):
 		self.write_storage()
-		try: self.close()
-		except socket.error: pass
+
+		try:
+			self.close()
+		except socket.error:
+			pass
+
 		self.connected = False
 
 	# Sends the message to the server. Queues by default.
 	def irc_send(self, message, now=False):
-		if not self.connected: raise ConnectionError('Not connected.')
+		if not self.connected:
+			raise ConnectionError('Not connected.')
 
 		# If it's important, or has already been queued
 		if now:
@@ -171,8 +190,10 @@ class IRCConnection(asynchat.async_chat):
 			message += '\r\n'
 			# Convert the message to a bytes buffer for the socket
 			message_bytes = bytes(message, 'UTF-8')
-			try: self.push(message_bytes)
-			except socket.error: self.disconnect('Connection reset by peer.')
+			try:
+				self.push(message_bytes)
+			except socket.error:
+				self.disconnect('Connection reset by peer.')
 
 			# For debug
 			if 'debug' in self.config['bot'] and self.config['bot']['debug']:
@@ -230,8 +251,12 @@ class IRCConnection(asynchat.async_chat):
 		self.irc_send('JOIN {0}{1}'.format(channel, key and (' ' + key)), now)
 
 	def kick(self, channels, users, comment='', now=False):
-		if isinstance(channels, list): channels = ','.join(channels)
-		if isinstance(users, list): users = ','.join(users)
+		if isinstance(channels, list):
+			channels = ','.join(channels)
+
+		if isinstance(users, list):
+			users = ','.join(users)
+
 		self.irc_send('KICK {0} {1}{2}'.format(
 			channels, users, comment and (' :' + comment)
 		), now)
@@ -240,14 +265,18 @@ class IRCConnection(asynchat.async_chat):
 		self.irc_send('MODE {0} {1}{2}'.format(target, mode, params and (' ' + params)))
 
 	def names(self, channels, now=False):
-		if isinstance(channels, list): channels = ','.join(channels)
+		if isinstance(channels, list):
+			channels = ','.join(channels)
+
 		self.irc_send('NAMES {0}'.format(channels), now)
 
 	def nick(self, nickname, now=False):
 		self.irc_send('NICK ' + nickname, now)
 
 	def notice(self, targets, message, now=False):
-		if isinstance(targets, list): targets = ','.join(targets)
+		if isinstance(targets, list):
+			targets = ','.join(targets)
+
 		self.irc_send('NOTICE {0} :{1}'.format(targets, message), now)
 
 	def pass_(self, password, now=True):
@@ -260,7 +289,9 @@ class IRCConnection(asynchat.async_chat):
 		self.irc_send('PONG {0}{1}'.format(target, target2 and (' ' + target2)), now)
 
 	def privmsg(self, targets, message, now=False):
-		if isinstance(targets, list): targets = ','.join(targets)
+		if isinstance(targets, list):
+			targets = ','.join(targets)
+
 		self.irc_send('PRIVMSG {0} :{1}'.format(targets, message), now)
 
 	def quit(self, message, now=True):
@@ -341,10 +372,14 @@ class Ninjabot(IRCConnection):
 		else:
 			for func in self.incoming:
 				temp_msg = func(msg)
-				if temp_msg: msg = temp_msg
+
+				if temp_msg:
+					msg = temp_msg
 
 	def handle_command(self, msg):
-		if len(msg.body) == len(self.command_prefix): return
+		if len(msg.body) == len(self.command_prefix):
+			return
+
 		# Strip the prefix
 		msg.body = msg.body[len(self.command_prefix):]
 
@@ -361,10 +396,14 @@ class Ninjabot(IRCConnection):
 
 	def reload(self, msg):
 		"Reloads various things."
-		if not self.is_admin(msg.nick): return
+		if not self.is_admin(msg.nick):
+			return
 
 		# For legacy reasons, if nothing provided, assume reloading plugins
-		arg = msg.args[0].lower() if len(msg.args) else 'plugins'
+		arg = "plugins"
+		if msg.args:
+			arg = msg.args[0].lower()
+
 		if arg == "plugins":
 			self.load_plugins()
 		elif arg == "config":
@@ -378,8 +417,10 @@ class Ninjabot(IRCConnection):
 	def load_config(self):
 		# Need to remove comments, else JSON throws a hissy
 		regexp_remove_comments = re.compile(r'/\*.*?\*/', re.DOTALL)
-		config = open(self.config_path, 'rU').read()
-		self.config = json.loads(regexp_remove_comments.sub('', config))
+
+		with open(self.config_path, 'rU') as fconfig:
+			config = fconfig.read()
+			self.config = json.loads(regexp_remove_comments.sub('', config))
 
 	###############
 	# Plugin handling
@@ -387,7 +428,10 @@ class Ninjabot(IRCConnection):
 
 	def load_plugins(self):
 		self.clear_plugin_data()
-		if 'plugins' not in self.config: return
+
+		if 'plugins' not in self.config:
+			return
+
 		self.recurse_plugin_config(self.config['plugins'], 'plugins')
 		self.setup_storage_write()
 
@@ -487,8 +531,10 @@ class Ninjabot(IRCConnection):
 		try:
 			api = imp.reload(import_module(module))
 		except ImportError:
-			if required: raise
-			else: return None
+			if required:
+				raise
+			else:
+				return None
 
 		self.apis[module] = api
 		return api
@@ -501,6 +547,7 @@ class Ninjabot(IRCConnection):
 		# Add timer to periodically write to disk
 		interval = self.config.get('storage', {}).get('writeinterval', 0)
 		alwayswrite = self.config.get('storage', {}).get('alwayswrite', False)
+
 		if not alwayswrite and interval == 0:
 			interval = 300
 		if interval != 0:
@@ -519,14 +566,20 @@ class Ninjabot(IRCConnection):
 	###############
 
 	def kill(self, msg):
-		if not self.is_admin(msg.nick): return
+		if not self.is_admin(msg.nick):
+			return
+
 		message = self.config['bot']['quit_message']
+
 		if len(msg.args):
 			message = ' '.join(msg.args)
+
 		self.disconnect(message)
 
 	def restart(self, msg):
-		if not self.is_admin(msg.nick): return
+		if not self.is_admin(msg.nick):
+			return
+
 		self.exit_status = 0
 		self.kill(msg)
 
@@ -538,14 +591,17 @@ class Ninjabot(IRCConnection):
 		error = traceback.format_exc()
 		print(error)
 		self.errors.append(error)
+
 		if self.config['bot']['notify_errors'] and self.connected:
 			self.privmsg(','.join(self.config['bot']['channels']), "An error occurred. Please ask an admin to check error log {0}.".format(len(self.errors)-1))
 
 	def is_admin(self, nickname, silent=False):
 		if nickname in self.admins:
 			return True
+
 		if self.config['bot']['notify_insufficient_privs'] and not silent:
 			self.notice(nickname, "You have insufficient privilages to perform that action.")
+
 		return False
 
 	def is_ignored(self, nickname):
@@ -559,10 +615,15 @@ class Ninjabot(IRCConnection):
 		return task
 
 	def cancel_schedule(self, task):
-		try: self.timers.remove(task)
-		except ValueError: pass
-		try: self.scheduler.cancel(task)
-		except ValueError: pass
+		try:
+			self.timers.remove(task)
+		except ValueError:
+			pass
+
+		try:
+			self.scheduler.cancel(task)
+		except ValueError:
+			pass
 
 # Entry point
 def ninjabot_main():
