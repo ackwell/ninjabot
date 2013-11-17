@@ -339,7 +339,7 @@ class IntervalTask(Task):
 		scheduler.schedule_task(self, self.interval)
 
 
-	class DayTaskRescheduler:
+class DayTaskRescheduler:
 	"""A mixin class that contains the reschedule logic for the DayTasks."""
 
 	def __init__(self, timeonday):
