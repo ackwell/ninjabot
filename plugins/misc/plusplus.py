@@ -50,11 +50,10 @@ class Plugin:
 			for word in msg.args:
 				counts[word] = self.store.get(word, 0)
 		else:
-			c = self.store.get_dict()
 			counts = {}
-			for key in c:
-				if c[key]:
-					counts[key] = c[key]
+			for key in self.store:
+				if self.store[key]:
+					counts[key] = self.store[key]
 
 		if counts:
 			ret = []
