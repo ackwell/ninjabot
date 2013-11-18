@@ -79,10 +79,10 @@ class Plugin:
 				numbers += [num]
 
 			# Give the results
-			self.bot.privmsg(msg.channel, '{:s}: {:r} (total {:d})'.format(msg.nick, numbers, sum(numbers)))
+			self.bot.privmsg(msg.channel, '{:s}: {:s} (total {:d})'.format(msg.nick, numbers, sum(numbers)))
 
 		elif self.TYPE == self.SINGLE:
-			# Just give the total
+			# Just give the total (not actually very accurate)
 			total = random.randint(die * self.F_LOWER_LIMIT, sides * die)
 
 			# Give the results
