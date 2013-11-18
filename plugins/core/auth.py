@@ -1,6 +1,6 @@
 # Removed OP/Voice stuff for now
 class Plugin(object):
-	def __init__(self, bot, config):
+	def load(self, bot, config):
 		self.bot = bot
 		self.admins = config['admins']
 		if not 'ns_'+config['mode'] in dir(self):

@@ -18,7 +18,7 @@ class Plugin:
 	D_LOWER_LIMIT = 1
 	D_UPPER_LIMIT = 20
 
-	def __init__(self, bot, config):
+	def load(self, bot, config):
 		self.bot = bot
 		self.config = config
 

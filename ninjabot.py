@@ -23,7 +23,11 @@ from queue import Queue
 # Errors
 ###############
 class ConnectionError(Exception):
-    pass
+	pass
+
+
+class MissingAPIError(Exception):
+	pass
 
 
 ###############
@@ -438,6 +442,7 @@ class Ninjabot(IRCConnection):
 			return
 
 		self.recurse_plugin_config(self.config['plugins'], 'plugins')
+		self.initiate_plugins()
 		self.setup_storage_write()
 
 	def clear_plugin_data(self):
@@ -476,7 +481,7 @@ class Ninjabot(IRCConnection):
 			elif isinstance(value, dict):
 				self.recurse_plugin_config(value, new_path)
 			elif value:
-				self.load_plugin(new_path)
+				self.load(new_path)
 
 	def load_all_from_path(self, path):
 		# Get the directory to load from
@@ -486,28 +491,33 @@ class Ninjabot(IRCConnection):
 		for file_ in os.listdir(load_path):
 			if file_.endswith('.py'):
 				# Strip the file extension and load the plugin
-				self.load_plugin(path + '.' + file_[:-3])
+				self.load(path + '.' + file_[:-3])
 
-	def load_plugin(self, module):
-		# Get the plugin's config, if it exists
-		# THIS NEEDS CHANGING
-		config = {}
-		config_name = module.replace('plugins.', '')
-		if config_name in self.config:
-			config = self.config[config_name]
-
+	def load(self, path):
 		try:
 			# Not pretty, but best I can be assed to do.
 			# Anything more requires tomfoolery with sys.modules
-			plugin = imp.reload(import_module(module)).Plugin(self, config)
-		except AttributeError:
-			print('Could not load {0}. Skipping.'.format(module))
-			return
+			module = imp.reload(import_module(path))
 		except:
-			print('Error while loading {0}. Skipping. Trace:'.format(module))
+			print("Error while loading {0}. Skipping. Trace:".format(path))
 			self.report_error()
 			return
 
+		self.load_plugin(path, module)
+		self.load_apis(path, module)
+
+	def load_plugin(self, path, module):
+		try:
+			plugin = module.Plugin()
+		except AttributeError:
+			# No plugin found, but it might be an API plugin. Fail silently.
+			return
+
+		# Register the plugin itself. Don't need the 'plugins.' for every single one.
+		name = path.replace('plugins.', '')
+		self.plugins[name] = plugin
+
+		# Loop over the plugin's functions and register the ones we want
 		for func_name in dir(plugin):
 			m_trigger = re.match(r'trigger_(\w+)', func_name)
 			m_timer = re.match(r'timer_(\d+)', func_name)
@@ -517,32 +527,43 @@ class Ninjabot(IRCConnection):
 				self.triggers[m_trigger.group(1).lower()] = func
 			elif m_timer:
 				t = int(m_timer.group(1))
-				timer = self.scheduler.add_interval_task(func, module+func_name, 0, t, kronos.method.threaded, [], None)
+				timer = self.scheduler.add_interval_task(func, path+func_name, 0, t, kronos.method.threaded, [], None)
 				self.timers.append(timer)
 			elif func_name == 'on_incoming':
 				self.incoming.append(func)
+
+	def load_apis(self, path, module):
+		try:
+			apis = module.APIS
+		except AttributeError:
+			# No API found (not really surprising), fail silently.
+			return
+
+		# We have a dict of APIs, keep record of them.
+		for name, api in apis.items():
+			self.apis[name] = api
+
+	def initiate_plugins(self):
+		for name, plugin in self.plugins.items():
+			# Get the plugin's config, if it exists
+			config = {}
+			if name in self.config:
+				config = self.config[name]
+
+			plugin.load(self, config)
 
 	###############
 	# API stuff
 	###############
 
-	def request_api(self, module, required=True, include_prefix=True):
-		if include_prefix:
-			module = 'apis.' + module
-
-		if module in self.apis:
-			return self.apis[module]
-
-		try:
-			api = imp.reload(import_module(module))
-		except ImportError:
+	def request_api(self, name, required=True):
+		if name in self.apis:
+			return self.apis[name]
+		else:
 			if required:
-				raise
+				raise MissingAPIError("The required API '{0}' was not found.".format(name))
 			else:
 				return None
-
-		self.apis[module] = api
-		return api
 
 	###############
 	# Storage stuff

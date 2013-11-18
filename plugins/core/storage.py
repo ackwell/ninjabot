@@ -34,7 +34,7 @@ class Storage(dict):
 		return '<Store location="{}">'.format(self._full_path)
 
 	def put(self, key, value):
-		warnings.warn('This method is depreciated; just use the storage object directly')
+		warnings.warn('This method is deprecated; just use the storage object directly')
 		self[key] = value
 
 	def __setitem__(self, *args, **kwargs):
@@ -43,9 +43,14 @@ class Storage(dict):
 			self.write()
 
 	def get_dict(self):
-		warnings.warn('This method is depreciated; just use the storage object directly')
+		warnings.warn('This method is deprecated; just use the storage object directly')
 		return self
 
 	def write(self):
 		with open(self._full_path, 'wb') as fh:
 			pickle.dump(self, fh)
+
+
+APIS = {
+	'core.storage': Storage
+}

@@ -26,7 +26,7 @@ class Plugin:
 	FORWARD = 1
 	BACKWARD = -1
 
-	def __init__(self, bot, config):
+	def load(self, bot, config):
 		self.bot = bot
 
 		# Config
