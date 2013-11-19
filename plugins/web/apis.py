@@ -26,9 +26,11 @@ class WebAPI:
 		else:
 			return tag.string
 
-	def convert_html_entities(self, text):
+	def cull_html(self, text):
 		soup = BeautifulSoup(text)
-		return self.tag_to_string(soup, keep_bold=True)
+		result = self.tag_to_string(soup, keep_bold=True)
+		# Doing this to strip out any newlines.
+		return ' '.join(result.split())
 
 
 APIS = {
