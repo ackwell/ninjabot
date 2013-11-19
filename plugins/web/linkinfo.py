@@ -4,6 +4,7 @@ Watches incoming channel messages for URLs, and posts information on those it fi
 
 import re
 import requests
+from bs4 import BeautifulSoup
 
 
 class Plugin(object):
@@ -12,7 +13,7 @@ class Plugin(object):
 		self.utils = self.bot.request_api('web.utils')
 
 		# Matches against standard-compliant URLs in a string
-		self.url_re = re.compile(r'https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]')
+		self.url_re = re.compile(r'\(*?https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]')
 
 	def on_incoming(self, msg):
 		if not msg.type == msg.CHANNEL:
@@ -23,7 +24,7 @@ class Plugin(object):
 			urls = self.url_re.findall(msg.body)
 			for url in urls:
 				# Catch edge case where url is in brackets
-				if url.startswith('(') and url.endswith(')'):
+				while url.startswith('(') and url.endswith(')'):
 					url = url[1:-1]
 
 				head = requests.head(url)
@@ -39,17 +40,13 @@ class Plugin(object):
 
 					req = requests.get(url, headers=req_headers, timeout=5)
 
-					# Searches for the charset tag. Yes, it's regex. Deal with it.
-					encoding = re.search(r'''<\s*meta\s[^>]+?charset=([^>]*?)[;'">]''', req.text, re.I)
-					if encoding:
-						req.encoding = encoding.group(1)
+					soup = BeautifulSoup(req.text)
 
 					# Look for the <title> tag or an <h1>, whichever is first
-					search = re.search(r'<(title|h1)>(.*?)</\1>', req.text, re.I)
-					if search is None:
+					title = soup.find(['title', 'h1'])
+					if title is None:
 						return
-					title = search.group(2).strip().replace('\n', '')
-					title = self.utils.convert_html_entities(title)
+					title = self.utils.tag_to_string(title)
 					message = "Title: " + title
 
 				# Other resources

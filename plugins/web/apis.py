@@ -5,7 +5,7 @@ For obvious reasons, a lot of the web tool plugins share code, this is
 just a central API file to keep that in.
 """
 
-from bs4 import BeautifulSoup as bs, Tag
+from bs4 import BeautifulSoup, Tag
 
 
 class WebAPI:
@@ -27,7 +27,7 @@ class WebAPI:
 			return tag.string
 
 	def convert_html_entities(self, text):
-		soup = bs(text)
+		soup = BeautifulSoup(text)
 		return self.tag_to_string(soup, keep_bold=True)
 
 
