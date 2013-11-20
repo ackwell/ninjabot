@@ -32,7 +32,7 @@ class MissingAPIError(Exception):
 
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
 
@@ -171,7 +171,6 @@ class IRCConnection(asynchat.async_chat):
 
 	# Disconnect from the IRC server
 	def disconnect(self, message):
-		print('disconnect')
 		self.logger.info('disconnect')
 
 		# Bit hard to disconnect if there's not connection in the first place...
