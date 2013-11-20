@@ -1,9 +1,8 @@
 import unittest
 from unittest.mock import patch, MagicMock
 
+
 # we patch makedirs to make sure no directories are ever created
-
-
 @patch('os.makedirs')
 class TestStorage(unittest.TestCase):
 	def test_init_default_config(self, makedirs):
