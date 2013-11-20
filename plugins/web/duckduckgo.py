@@ -1,5 +1,5 @@
 """
-Uses DuckDuckGo's instand answer API to find search results.
+Uses DuckDuckGo's instant answer API to find search results.
 """
 
 import requests
@@ -22,23 +22,46 @@ class Plugin(object):
 			'q': ' '.join(msg.args),
 			'format': 'json',
 			'no_html': '1',
+			'no_redirect': '1',
 			'skip_disambig': '1'
 		}
 		request_json = requests.get(url, params=params).json()
 
-		results  = request_json['Results']
-		abstract = request_json['AbstractText']
-		source   = request_json['AbstractSource']
-
-		# If there was a result in the response, use the link from it instead
+		content = ''
 		url = ''
-		if len(results):
-			result = results[0]
-			url = "{} ({})".format(self.shorten(result['FirstURL']), result['Text'])
-		else:
-			url = self.shorten(request_json['AbstractURL'])
 
-		message = u"\002DuckDuck\0033Go\003 ::\002 [{}] {} \002::\002 {}".format(source, abstract, url)
+		type_ = request_json['Type']
+		if type_ == 'A':
+			content = "[{}] {}".format(request_json['AbstractSource'], request_json['AbstractText'])
+
+			# If there is a result with the response, use it's URL instead.
+			results  = request_json['Results']
+			if len(results):
+				result = results[0]
+				url = "{} ({})".format(self.shorten(result['FirstURL']), result['Text'])
+			else:
+				url = self.shorten(request_json['AbstractURL'])
+
+		elif type_ == 'C':
+			...
+
+		elif type_ == 'N':
+			...
+
+		elif type_ == 'E':
+			# It might be a !bang redirect, or a calculation or similar.
+			if request_json['Redirect']:
+				source = 'Redirect'
+				answer = self.shorten(request_json['Redirect'])
+			else:
+				source = request_json['AnswerType']
+				answer = request_json['Answer']
+			content = "[{}] {}".format(source, answer)
+
+		if url:
+			url = " \002::\002 " + url
+
+		message = u"\002DuckDuck\0033Go\003 ::\002 {}{}".format(content, url)
 		self.bot.privmsg(msg.channel, message)
 
 	def trigger_duckduckgo(self, msg):
