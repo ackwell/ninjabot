@@ -1,11 +1,9 @@
-from apis import storage
-
 
 class Plugin:
-	def __init__(self, bot, config):
+	def load(self, bot, config):
 		self.bot = bot
 		self.config = config
-		self.store = storage.Storage(self, bot)
+		self.store = self.bot.request_api('core.storage')(self, bot)
 
 	def on_incoming(self, msg):
 		text = msg.body.split()

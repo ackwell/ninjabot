@@ -1,5 +1,5 @@
-ninjabot-misc
-=============
+plugins/misc
+============
 
 A motley collection of miscelaneous plugins for ninjabot.
 

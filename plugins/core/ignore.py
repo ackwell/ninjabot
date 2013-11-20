@@ -1,5 +1,5 @@
 class Plugin(object):
-	def __init__(self, bot, config):
+	def load(self, bot, config):
 		self.bot = bot
 		self.timeouts = {}
 

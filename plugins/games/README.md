@@ -1,5 +1,5 @@
-ninjabot-games
-==============
+plugins/games
+=============
 
 A collection of IRC game plugins for ninjabot.
 

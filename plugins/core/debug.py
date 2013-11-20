@@ -1,9 +1,9 @@
 
 class Plugin(object):
-	def __init__(self, bot, config):
+	def load(self, bot, config):
 		self.bot = bot
 		self.cache = {}
-		self.paste = self.bot.request_api('paste')
+		self.paste = self.bot.request_api('core.paste')
 
 	def trigger_error(self, msg):
 		"Pastebins the latest latest error message. If an index is specified, will return that error instead."
