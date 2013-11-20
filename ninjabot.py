@@ -315,7 +315,7 @@ class IRCConnection(asynchat.async_chat):
 class Ninjabot(IRCConnection):
 	VERSION = '2.0.0-dev.py3k'
 
-	def __init__(self, config_path):
+	def __init__(self, config_path, test_mode=False):
 		super().__init__()
 
 		# Work out out absolute directory path
