@@ -32,7 +32,7 @@ class Storage(collections.UserDict):
 			bot.register_storage(self)
 
 	def __repr__(self):
-		return '<Store location="{}">'.format(self._full_path)
+		return '<Storage location="{}">'.format(self._full_path)
 
 	def put(self, key, value):
 		warnings.warn('This method is depreciated; just use the storage object directly')
