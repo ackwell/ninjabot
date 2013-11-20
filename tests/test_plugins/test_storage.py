@@ -12,20 +12,16 @@ class TestStorage(unittest.TestCase):
 		bot = MagicMock(name='bot', config={}, spec=ninjabot.Ninjabot)
 		plugin = MagicMock(name='plugin', __module__='plugins.misc.test')
 
-		from apis import storage
+		from plugins.core import storage
 		store = storage.Storage(plugin, bot)
 
 		self.assertEqual(store._fname, 'misc.test')
-		self.assert_(store._base_path.endswith('ninjabot'))
+		self.assert_(store._base_path.endswith('ninjabot/plugins'))
 		self.assertEqual(store._config, {})
-		self.assert_(store._path.endswith('ninjabot/storage'))
-		self.assert_(store._full_path.endswith, 'ninjabot/storage/misc.test')
+		self.assert_(store._path.endswith('ninjabot/plugins/storage'))
+		self.assert_(store._full_path.endswith, 'ninjabot/plugins/storage/misc.test')
 
 		bot.register_storage.assert_called_with(store)
-
-			# fh.write(
-			#     b'\x80\x03}q\x00X\x05\x00\x00\x00worldq'
-			#     b'\x01X\x0c\x00\x00\x00is wonderfulq\x02s.')
 
 	def test_init_custom_config(self, makedirs):
 		import tempfile
@@ -38,20 +34,20 @@ class TestStorage(unittest.TestCase):
 		bot = MagicMock(name='bot', config=config, spec=ninjabot.Ninjabot)
 		plugin = MagicMock(name='plugin', __module__='plugins.misc.test')
 
-		from apis import storage
+		from plugins.core import storage
 		store = storage.Storage(plugin, bot)
 		store
 		# TODO; fill in rest
 
-	@patch('apis.storage.Storage.write')
-	def test_alwayswrite(self, makedirs, write):
+	@patch('plugins.core.storage.Storage.write')
+	def test_alwayswrite(self, write, makedirs):
 		import ninjabot
 		config = {'storage': {'alwayswrite': True}}
 
 		bot = MagicMock(name='bot', config=config, spec=ninjabot.Ninjabot)
 		plugin = MagicMock(name='plugin', __module__='plugins.misc.test')
 
-		from apis import storage
+		from plugins.core import storage
 		store = storage.Storage(plugin, bot)
 		store['hello'] = 'world'
 
@@ -63,7 +59,7 @@ class TestStorage(unittest.TestCase):
 		bot = MagicMock(name='bot', config={}, spec=ninjabot.Ninjabot)
 		plugin = MagicMock(name='plugin', __module__='plugins.misc.test')
 
-		from apis import storage
+		from plugins.core import storage
 		store = storage.Storage(plugin, bot)
 
 		import tempfile
