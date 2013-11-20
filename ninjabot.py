@@ -8,6 +8,7 @@ import asyncore
 import imp
 import json
 import kronos
+import logging
 import os
 import re
 import socket
@@ -28,6 +29,11 @@ class ConnectionError(Exception):
 
 class MissingAPIError(Exception):
 	pass
+
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
 
 
 ###############
@@ -166,6 +172,7 @@ class IRCConnection(asynchat.async_chat):
 	# Disconnect from the IRC server
 	def disconnect(self, message):
 		print('disconnect')
+		self.logger.info('disconnect')
 
 		# Bit hard to disconnect if there's not connection in the first place...
 		if not self.connected:
@@ -203,9 +210,7 @@ class IRCConnection(asynchat.async_chat):
 			except socket.error:
 				self.disconnect('Connection reset by peer.')
 
-			# For debug
-			if 'debug' in self.config['bot'] and self.config['bot']['debug']:
-				print('SENT: ' + message.encode('ascii', 'backslashreplace').decode())
+			self.logger.debug('SENT: ' + message.encode('ascii', 'backslashreplace').decode())
 
 		# Else, queue it
 		else:
@@ -232,9 +237,7 @@ class IRCConnection(asynchat.async_chat):
 		line = self.buffer
 		self.buffer = ''
 
-		# Debug
-		if 'debug' in self.config['bot'] and self.config['bot']['debug']:
-			print(line.encode('ascii', 'backslashreplace').decode())
+		self.logger.debug(line.encode('ascii', 'backslashreplace').decode())
 
 		message = Message(line)
 
@@ -324,6 +327,16 @@ class Ninjabot(IRCConnection):
 		self.config_path = config_path
 		self.load_config()
 		self.command_prefix = self.config['bot']['command_prefix']
+
+		self.logger = logger.getChild('Ninjabot')
+		if not test_mode:
+			if self.config.get('bot', {}).get('debug', False):
+			 	logging_level = logging.DEBUG
+			else:
+		 		logging_level = logging.INFO
+		else:
+			logging_level = logging.CRITICAL
+		self.logger.setLevel(logging_level)
 
 		# List of errors n' stuff
 		self.errors = []
@@ -499,7 +512,7 @@ class Ninjabot(IRCConnection):
 			# Anything more requires tomfoolery with sys.modules
 			module = imp.reload(import_module(path))
 		except:
-			print("Error while loading {0}. Skipping. Trace:".format(path))
+			self.logger.info("Error while loading {0}. Skipping. Trace:".format(path))
 			self.report_error()
 			return
 
@@ -583,7 +596,7 @@ class Ninjabot(IRCConnection):
 		self.storage.append(store)
 
 	def write_storage(self):
-		print('Writing storage to disk')
+		self.logger.info('Writing storage to disk')
 		for s in self.storage:
 			s.write()
 
@@ -615,7 +628,7 @@ class Ninjabot(IRCConnection):
 
 	def report_error(self):
 		error = traceback.format_exc()
-		print(error)
+		logging.error(error)
 		self.errors.append(error)
 
 		if self.config['bot']['notify_errors'] and self.connected:
@@ -661,7 +674,7 @@ def ninjabot_main():
 		ninjabot_wrap()
 
 	# Else, start up the bot
-	print('ninjabot starting up')
+	logger.info('ninjabot starting up')
 
 	if '-c' in args:
 		config_filename = args[args.index('-c') + 1]
@@ -675,9 +688,9 @@ def ninjabot_main():
 # Wrap another process of the bot to allow restarts
 def ninjabot_wrap():
 	# Launch the wrapper
-	print('ninjabot wrapper up and running!')
+	logger.info('ninjabot wrapper up and running!')
 	while not False:
-		print('Starting instance...\n')
+		logger.info('Starting instance...\n')
 		process_args = [sys.executable] + sys.argv + ['wrapped']
 		process = subprocess.Popen(process_args, shell=False)
 		try:
@@ -687,10 +700,10 @@ def ninjabot_wrap():
 			status = 1
 
 		if status != 0:
-			print('\nGoodbye!')
+			logger.info('\nGoodbye!')
 			sys.exit()
 		else:
-			print('\nRestarting ninjabot')
+			logger.info('\nRestarting ninjabot')
 
 if __name__ == '__main__':
 	ninjabot_main()
