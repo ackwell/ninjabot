@@ -12,7 +12,6 @@ def main():
     suite = loader.discover(TEST_DIR)
 
     runner = unittest.TextTestRunner(verbosity=2)
-    # wait a second or so for things to start
 
     end = runner.run(suite)
     if len(end.errors) > 0 or len(end.failures) > 0:
