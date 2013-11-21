@@ -32,8 +32,6 @@ class MissingAPIError(Exception):
 
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
 
 
 ###############
@@ -328,13 +326,10 @@ class Ninjabot(IRCConnection):
 		self.command_prefix = self.config['bot']['command_prefix']
 
 		self.logger = logger.getChild('Ninjabot')
-		if not test_mode:
-			if self.config.get('bot', {}).get('debug', False):
-			 	logging_level = logging.DEBUG
-			else:
-		 		logging_level = logging.INFO
+		if self.config.get('bot', {}).get('debug', False):
+		 	logging_level = logging.DEBUG
 		else:
-			logging_level = logging.CRITICAL
+	 		logging_level = logging.INFO
 		self.logger.setLevel(logging_level)
 
 		# List of errors n' stuff
@@ -671,6 +666,9 @@ def ninjabot_main():
 	# If it's not wrapped, wrap it
 	if 'wrapped' not in args:
 		ninjabot_wrap()
+
+	logger.setLevel(logging.INFO)
+	logger.addHandler(logging.StreamHandler())
 
 	# Else, start up the bot
 	logger.info('ninjabot starting up')
