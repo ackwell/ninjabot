@@ -289,7 +289,7 @@ class TestIRCCommands(IRCConnectionTestCase):
 	def test_names_normal(self, irc_send):
 		self.connection.names('channel')
 
-		irc_send.assert_called_with('NAMES channel')
+		irc_send.assert_called_with('NAMES channel', False)
 
 	def test_nick(self, irc_send):
 		self.connection.nick('username')
@@ -352,7 +352,6 @@ class TestIRCCommands(IRCConnectionTestCase):
 		self.connection.user('username', 'realname')
 
 		irc_send.assert_called_with('USER username 0 * :realname', True)
-
 
 
 if __name__ == '__main__':

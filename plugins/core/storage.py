@@ -13,7 +13,7 @@ class Storage(collections.UserDict):
 
 		# Set the filename based on the plugin name
 		self._fname = plugin.__module__.partition('.')[-1]
-		self._base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
+		self._base_path = os.path.join(os.path.dirname(__file__), '..', '..')
 		self._base_path = os.path.abspath(self._base_path)
 
 		self._config = bot.config.get('storage', {})

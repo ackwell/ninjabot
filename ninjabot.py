@@ -32,8 +32,6 @@ class MissingAPIError(Exception):
 
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
 
 
 ###############
@@ -140,6 +138,8 @@ class IRCConnection(asynchat.async_chat):
 		self.queue_sched.start()
 		self.message_queue = Queue()
 
+		self.logger = logger.getChild('IRCConnection')
+
 	# Connect to the IRC server
 	def connect(self, host, port, nickname, username='', realname='', password=''):
 		self.host = host
@@ -182,8 +182,6 @@ class IRCConnection(asynchat.async_chat):
 		self.handle_close()
 
 	def handle_close(self):
-		self.write_storage()
-
 		try:
 			self.close()
 		except socket.error:
@@ -272,7 +270,9 @@ class IRCConnection(asynchat.async_chat):
 		), now)
 
 	def mode(self, target, mode, params='', now=False):
-		self.irc_send('MODE {0} {1}{2}'.format(target, mode, params and (' ' + params)))
+		self.irc_send('MODE {0} {1}{2}'.format(
+			target, mode, params and (' ' + params)
+		), now)
 
 	def names(self, channels, now=False):
 		if isinstance(channels, list):
@@ -304,8 +304,9 @@ class IRCConnection(asynchat.async_chat):
 
 		self.irc_send('PRIVMSG {0} :{1}'.format(targets, message), now)
 
-	def quit(self, message, now=True):
-		self.irc_send('QUIT' + (message and (' :' + message)), now)
+	def quit(self, message='', now=True):
+		message = message or self.nickname
+		self.irc_send('QUIT :{0}'.format(message), now)
 
 	def user(self, username, realname, now=True):
 		self.irc_send('USER {0} 0 * :{1}'.format(username, realname), now)
@@ -328,13 +329,10 @@ class Ninjabot(IRCConnection):
 		self.command_prefix = self.config['bot']['command_prefix']
 
 		self.logger = logger.getChild('Ninjabot')
-		if not test_mode:
-			if self.config.get('bot', {}).get('debug', False):
-			 	logging_level = logging.DEBUG
-			else:
-		 		logging_level = logging.INFO
+		if self.config.get('bot', {}).get('debug', False):
+		 	logging_level = logging.DEBUG
 		else:
-			logging_level = logging.CRITICAL
+	 		logging_level = logging.INFO
 		self.logger.setLevel(logging_level)
 
 		# List of errors n' stuff
@@ -371,6 +369,10 @@ class Ninjabot(IRCConnection):
 		# Connect to channels specified in config
 		for channel in self.config['bot']['channels']:
 			self.join(channel)
+
+	def handle_close(self):
+		self.write_storage()
+		return super().handle_close()
 
 	# Called by the connection class with messages from the server
 	def message_recieved(self, msg):
@@ -671,6 +673,9 @@ def ninjabot_main():
 	# If it's not wrapped, wrap it
 	if 'wrapped' not in args:
 		ninjabot_wrap()
+
+	logger.setLevel(logging.INFO)
+	logger.addHandler(logging.StreamHandler())
 
 	# Else, start up the bot
 	logger.info('ninjabot starting up')

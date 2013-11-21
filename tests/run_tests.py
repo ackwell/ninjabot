@@ -15,7 +15,9 @@ def main():
 
     end = runner.run(suite)
     if len(end.errors) > 0 or len(end.failures) > 0:
-        sys.exit('{} errors appear to have occured.'.format(len(end.errors)))
+        sys.exit('{} failures appear to have occured.'.format(
+            len(end.errors) + len(end.failures)
+        ))
 
 
 if __name__ == '__main__':

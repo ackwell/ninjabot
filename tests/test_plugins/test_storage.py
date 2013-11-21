@@ -1,10 +1,13 @@
+from common import NinjabotTestCase
+
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 
 
 # we patch makedirs to make sure no directories are ever created
 @patch('os.makedirs')
-class TestStorage(unittest.TestCase):
+class TestStorage(NinjabotTestCase):
 	def test_init_default_config(self, makedirs):
 		import ninjabot
 
@@ -15,10 +18,10 @@ class TestStorage(unittest.TestCase):
 		store = storage.Storage(plugin, bot)
 
 		self.assertEqual(store._fname, 'misc.test')
-		self.assert_(store._base_path.endswith('ninjabot/plugins'))
+		self.assertEndsWith(store._base_path, 'ninjabot')
 		self.assertEqual(store._config, {})
-		self.assert_(store._path.endswith('ninjabot/plugins/storage'))
-		self.assert_(store._full_path.endswith, 'ninjabot/plugins/storage/misc.test')
+		self.assertEndsWith(store._path, os.path.join('ninjabot', 'storage'))
+		self.assertEndsWith(store._full_path, os.path.join('ninjabot', 'storage', 'misc.test'))
 
 		bot.register_storage.assert_called_with(store)
 
