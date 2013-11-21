@@ -1,9 +1,8 @@
+from common import ROOT, NinjabotTestCase
+
 import os
 import unittest
 from unittest.mock import MagicMock, patch
-
-
-ROOT = os.path.join(os.path.dirname(__file__), '..')
 
 
 class FakePlugin(object):
@@ -20,7 +19,7 @@ class FakePlugin(object):
         pass
 
 
-class TestPluginUtils(unittest.TestCase):
+class TestPluginUtils(NinjabotTestCase):
     def setUp(self):
         import ninjabot
 

@@ -1,9 +1,7 @@
+from common import ROOT, NinjabotTestCase
 import os
 import unittest
 from unittest.mock import MagicMock
-
-
-ROOT = os.path.join(os.path.dirname(__file__), '..')
 
 
 class FakeAPI(object):
@@ -14,7 +12,7 @@ APIS = {
 }
 
 
-class TestAPIUtils(unittest.TestCase):
+class TestAPIUtils(NinjabotTestCase):
     def setUp(self):
         import ninjabot
         self.bot = ninjabot.Ninjabot(

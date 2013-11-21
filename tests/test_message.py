@@ -1,17 +1,10 @@
-import os
+from common import NinjabotTestCase
 import unittest
 
 
-with open(os.path.join(os.path.dirname(__file__), 'test_message_data.txt')) as fh:
-    TEST_MESSAGE_DATA = fh.readlines()
-
-
-class TestMessage(unittest.TestCase):
+class TestMessage(NinjabotTestCase):
     def test_init_privmsg(self):
         from ninjabot import Message
-
-        # import pudb
-        # pu.db
 
         message_data = ':Nickname!username@hostname COMMAND channel_name :trailing'
         instance = Message(message_data)
