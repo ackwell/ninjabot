@@ -16,10 +16,10 @@ class TestStorage(NinjabotTestCase):
 		store = storage.Storage(plugin, bot)
 
 		self.assertEqual(store._fname, 'misc.test')
-		self.assert_(store._base_path.endswith('ninjabot/plugins'))
+		self.assertTrue(store._base_path.endswith('ninjabot'))
 		self.assertEqual(store._config, {})
-		self.assert_(store._path.endswith('ninjabot/plugins/storage'))
-		self.assert_(store._full_path.endswith, 'ninjabot/plugins/storage/misc.test')
+		self.assertTrue(store._path.endswith('ninjabot/storage'))
+		self.assertTrue(store._full_path.endswith, 'ninjabot/storage/misc.test')
 
 		bot.register_storage.assert_called_with(store)
 
