@@ -37,7 +37,7 @@ class Plugin(object):
 
 	def _sed(self, msg, any_seperator):
 		# TODO: This code **needs** to be fixed. Consider looking at the source
-		#       code of GNU sed or other tools for ideas. Regex should *not* be
+		#       code of sed or other tools for ideas. Regex should *not* be
 		#       used for parsing. Use something more sane and measured.
 		#       - Cyphar
 
@@ -69,7 +69,7 @@ class Plugin(object):
 				if mode == 's':  # String replace mode
 					# Scan for a matching message in their last messages
 					for message in their_messages:
-						try:  # Treat the rexes as a normal message if an error occurs, i.e. invalid syntax
+						try:  # Treat the regex as a normal message if an error occurs, i.e. invalid syntax
 							if re.search(pattern, message):
 								if 'g' in flags:
 									body = re.sub(pattern, replacement, message)

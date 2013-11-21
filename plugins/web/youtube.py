@@ -1,5 +1,5 @@
 """
-Plugin to search youtube and retuen the first result, along with some info.
+Plugin to search youtube and return the first result, along with some info.
 """
 
 import requests

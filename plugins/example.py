@@ -14,16 +14,16 @@ class Plugin:
 		self.bot = bot
 		self.config = config
 
-	# The on_incoming function is called every time a message is recieved by the bot.
-	# This inclused PRIVMSG, NOTICE, etc.
+	# The on_incoming function is called every time a message is received by the bot.
+	# This includes PRIVMSG, NOTICE, etc.
 	# If you wish to change the message, return the edited message object.
 	def on_incoming(self, msg):
 		return msg
 
 	# Trigger responses can be defined by creating a function named trigger_<name>, where
-	# <name> is an arbitary string. The trigger can then be called over IRC by the prefix
+	# <name> is an arbitrary string. The trigger can then be called over IRC by the prefix
 	# set in the config file, followed by <name>. For triggers, msg has an additional
-	# property 'args', which is a dictonary of the arguments passed to it.
+	# property 'args', which is a dictionary of the arguments passed to it.
 	def trigger_example(self, msg):
 		"This docstring will be displayed by the help function"
 		self.bot.privmsg(msg.channel, 'This is an example command response')
@@ -34,19 +34,19 @@ class Plugin:
 		self.bot.privmsg(self.bot.channel, 'Example of a timed function, executed every 10 seconds.')
 
 # API reference:
-# ninjabot doesn't have a full-on API, intead provididing all the functions in the ninjabot
+# ninjabot doesn't have a full-on API, instead providing all the functions in the ninjabot
 # and parent classes. Below is a short listing of the more useful functions. For more info,
-# take a look through ninjabot.py. The active instanc of the bot is passed to the __init__
+# take a look through ninjabot.py. The active instance of the bot is passed to the __init__
 # on load, use that reference for all calls.
 #
 # class Message
 #   A Message instance will be passed to all non-timer event functions.
 #
 #	  channel, nick, host, body, ctcp
-#	  	  Various vars set from the message data. Pretty self explanitory.
+#	  	  Various vars set from the message data. Pretty self explanatory.
 #
 #	  args
-#		  Only avaliable in trigger_ functions. Attempting to access it in other functions
+#		  Only available in trigger_ functions. Attempting to access it in other functions
 #		  will cause your plugin to generate an error.
 #		  A list of arguments to the trigger, omitting the trigger and prefix. I.E., for
 #			  <prefix>example_trigger arg1 arg2 arg3
@@ -57,7 +57,7 @@ class Plugin:
 #     is_admin (self, nickname, silent=False)
 #	      Checks if nickname is an admin.
 #	      If silent is False, a NOTICE will be sent to nick informing they do not meet the
-#	      access level restriction. This setting is overidden by
+#	      access level restriction. This setting is overridden by
 #       config->bot->notify_insufficient_privs
 #	      The various access level lists are maintained my Pugins/authtools.py
 #

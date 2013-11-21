@@ -44,7 +44,7 @@
   /* Plugin whitelist, supports directory structure.
      "<plugin_name>": <boolean> will enable/disable that particular plugin.
      "<package_name>": {...} will add the package_name context to any contained rules
-     "<package_name": "*" will attempt to enable every plugin in the package
+     "<package_name>": "*" will attempt to enable every plugin in the package
 
      For example, the following two rules are equivalent:
      "core.ctcp": true

@@ -73,14 +73,14 @@ class Plugin:
 		"\002\0034U\0033N\0032O\0038!\003:\002 Uno for IRC. For detailed help, run `uno help`"
 
 		if len(msg.args) == 0:
-			self.bot.notice(msg.nick, "Please specify an UNO command. Check `{}uno help` for avaliable commands.".format(self.bot.command_prefix))
+			self.bot.notice(msg.nick, "Please specify an UNO command. Check `{}uno help` for available commands.".format(self.bot.command_prefix))
 			return
 
 		command = msg.args.pop(0).lower()
 		if 'uno_'+command in dir(self):
 			getattr(self, 'uno_'+command)(msg)
 		else:
-			self.bot.notice(msg.nick, "The command '{}' does not exist. Check `{}uno help` for avalable commands.".format(command, self.bot.command_prefix))
+			self.bot.notice(msg.nick, "The command '{}' does not exist. Check `{}uno help` for available commands.".format(command, self.bot.command_prefix))
 
 	def on_incoming(self, msg):
 		"Check for nick changes"
@@ -91,14 +91,14 @@ class Plugin:
 				del self.hands[msg.nick]
 
 	def uno_help(self, msg):
-		"Prints the help text. Further command help can be displayed by specifng a command."
+		"Prints the help text. Further command help can be displayed by specifying a command."
 		if len(msg.args) == 0:
 			self.bot.notice(msg.nick, '{} is an IRC implementation of the popular card game of the same name.'.format(self.uno))
 			com = []
 			for d in dir(self):
 				if d.startswith('uno_'):
 					com.append(d.split('_')[1])
-			self.bot.notice(msg.nick, 'Avaliable sub-commands are: {}.'.format(' '.join(com)))
+			self.bot.notice(msg.nick, 'Available sub-commands are: {}.'.format(' '.join(com)))
 			self.bot.notice(msg.nick, 'For more information, run `{}uno help <command>`.'.format(self.bot.command_prefix))
 		else:
 			try:
@@ -140,7 +140,7 @@ class Plugin:
 		self._reset()
 
 	def uno_join(self, msg):
-		"Join a running game of uno. Only avaliable during the joining phase."
+		"Join a running game of uno. Only available during the joining phase."
 		if msg.channel != self.channel:
 			self.bot.notice(msg.nick, "Please join {} to join the game of {}.".format(self.channel, self.uno))
 			return
@@ -174,7 +174,7 @@ class Plugin:
 			elif msg.args[0].lower() != 'confirm':
 				return
 		elif msg.nick not in self.players:
-			self.bot.notice(msg.nick, "You can't leave something you havn't joined!")
+			self.bot.notice(msg.nick, "You can't leave something you haven't joined!")
 			return
 
 		self.bot.privmsg(self.channel, "{} has left the game.".format(msg.nick))
@@ -409,7 +409,7 @@ class Plugin:
 
 	# Set up the game!
 	def _set_up(self):
-		#shuffe the cards and the player order (man python makes one's life easy :D)
+		#Shuffle the cards and the player order (man python makes one's life easy :D)
 		random.shuffle(self.players)
 		self.deck = self.full_deck[:]
 		random.shuffle(self.deck)

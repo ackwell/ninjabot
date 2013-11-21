@@ -33,7 +33,7 @@ class Plugin(object):
 
 		response = BeautifulStoneSoup(requests.post(url, data=params).text)
 
-		# Damn BS4 is case sensitive, hence all the 'regex's.
+		# Damn BS4 is case sensitive, hence all the regex.
 		if response.find(re.compile('text', re.I)):
 			index = 0
 			if "may refer to:" in response.find(re.compile('description', re.I)).string:
