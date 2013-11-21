@@ -302,8 +302,9 @@ class IRCConnection(asynchat.async_chat):
 
 		self.irc_send('PRIVMSG {0} :{1}'.format(targets, message), now)
 
-	def quit(self, message, now=True):
-		self.irc_send('QUIT' + (message and (' :' + message)), now)
+	def quit(self, message='', now=True):
+		message = message or self.nickname
+		self.irc_send('QUIT :{0}'.format(message), now)
 
 	def user(self, username, realname, now=True):
 		self.irc_send('USER {0} 0 * :{1}'.format(username, realname), now)
