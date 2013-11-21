@@ -17,3 +17,9 @@ class NinjabotTestCase(unittest.TestCase):
         import ninjabot
         ninjabot.logger.handlers = []
         return super().__init__(*args, **kwargs)
+
+    def assertEndsWith(self, val, end_val):
+        return self.assertMultiLineEqual(
+            end_val,
+            val[-len(end_val):]
+        )

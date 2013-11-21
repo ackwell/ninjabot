@@ -1,4 +1,6 @@
 from common import NinjabotTestCase
+
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 
@@ -16,10 +18,10 @@ class TestStorage(NinjabotTestCase):
 		store = storage.Storage(plugin, bot)
 
 		self.assertEqual(store._fname, 'misc.test')
-		self.assertTrue(store._base_path.endswith('ninjabot'))
+		self.assertEndsWith(store._base_path, 'ninjabot')
 		self.assertEqual(store._config, {})
-		self.assertTrue(store._path.endswith('ninjabot/storage'))
-		self.assertTrue(store._full_path.endswith, 'ninjabot/storage/misc.test')
+		self.assertEndsWith(store._path, os.path.join('ninjabot', 'storage'))
+		self.assertEndsWith(store._full_path, os.path.join('ninjabot', 'storage', 'misc.test'))
 
 		bot.register_storage.assert_called_with(store)
 
