@@ -3,11 +3,11 @@ class Plugin(object):
 		self.bot = bot
 
 	def trigger_help(self, msg):
-		"Usage: help [trigger]. Lists avaliable triggers. If trigger is specified, will print help for that trigger (if avaliable)."
+		"Usage: help [trigger]. Lists available triggers. If trigger is specified, will print help for that trigger (if available)."
 
 		prefix = self.bot.command_prefix
 		if len(msg.args) == 0:
-			self.bot.notice(msg.nick, 'Avaliable triggers:')
+			self.bot.notice(msg.nick, 'Available triggers:')
 			self.bot.notice(msg.nick, prefix+(', '+prefix).join(sorted(self.bot.triggers.keys())))
 			self.bot.notice(msg.nick, 'For further info, type {0}help <trigger>'.format(prefix))
 		else:

@@ -41,7 +41,7 @@ logger.addHandler(logging.StreamHandler())
 ###############
 class Message:
 	"""
-	Parses an IRC message into somewhat more useable data.
+	Parses an IRC message into somewhat more usable data.
 	"""
 
 	OTHER   = 0
@@ -158,7 +158,7 @@ class IRCConnection(asynchat.async_chat):
 		super().connect((self.host, self.port))
 		asyncore.loop(timeout=0.2)
 
-	# Called by superclass when the connection is establshed
+	# Called by superclass when the connection is established
 	def handle_connect(self):
 		self.connected = True
 
@@ -362,7 +362,7 @@ class Ninjabot(IRCConnection):
 	def start(self):
 		self.connect(**self.config['server'])
 		# The above call will return when the bot is shutting down
-		# Kill off the process with the right exis status
+		# Kill off the process with the right exit status
 		sys.exit(self.exit_status)
 
 	def handle_connect(self):
@@ -433,7 +433,7 @@ class Ninjabot(IRCConnection):
 			self.notice(msg.nick, arg+" cannot be reloaded.")
 			return
 
-		self.notice(msg.nick, "Reloaded %s sucessfully." % arg)
+		self.notice(msg.nick, "Reloaded %s successfully." % arg)
 
 	def load_config(self):
 		# Need to remove comments, else JSON throws a hissy
@@ -622,7 +622,7 @@ class Ninjabot(IRCConnection):
 		self.kill(msg)
 
 	###############
-	# Miscelaneous functions
+	# Miscellaneous functions
 	###############
 
 	def report_error(self):
@@ -638,7 +638,7 @@ class Ninjabot(IRCConnection):
 			return True
 
 		if self.config['bot']['notify_insufficient_privs'] and not silent:
-			self.notice(nickname, "You have insufficient privilages to perform that action.")
+			self.notice(nickname, "You have insufficient privileges to perform that action.")
 
 		return False
 

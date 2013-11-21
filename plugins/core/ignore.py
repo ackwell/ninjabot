@@ -13,7 +13,7 @@ class Plugin(object):
 				del self.timeouts[msg.nick]
 
 	def trigger_ignore(self, msg):
-		"Usage: `ignore <user> [time]`. Ignores the specified person for [time] (minutes). If [time] is not specified, will remain ignored untill removed."
+		"Usage: `ignore <user> [time]`. Ignores the specified person for [time] (minutes). If [time] is not specified, will remain ignored until removed."
 		if not self.bot.is_admin(msg.nick):
 			return
 

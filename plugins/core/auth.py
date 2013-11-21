@@ -60,4 +60,4 @@ class Plugin(object):
 			self.bot.notice(msg.nick, 'You are not an admin')
 			return
 		self.bot.admins.remove(msg.nick)
-		self.bot.notice(msg.nick, 'You have been sucessfully deauthed.')
+		self.bot.notice(msg.nick, 'You have been successfully deauthed.')

@@ -7,7 +7,7 @@ class Plugin(object):
 		self.bot = bot
 
 	def trigger_config(self, msg):
-		"Runtime config editing. for more info, check `config help`"
+		"Runtime config editing. For more info, check `config help`"
 		if not self.bot.is_admin(msg.nick):
 			return
 
@@ -19,7 +19,7 @@ class Plugin(object):
 		if 'config_'+command in dir(self):
 			getattr(self, 'config_'+command)(msg)
 		else:
-			self.bot.notice(msg.nick, "The command '{0}' does not exist. Check `{1}config help` for avalable commands.".format(command, self.bot.command_prefix))
+			self.bot.notice(msg.nick, "The command '{0}' does not exist. Check `{1}config help` for available commands.".format(command, self.bot.command_prefix))
 
 	def config_help(self, msg):
 		self.bot.notice(msg.nick, "{0}config set p1 [p2 ...] value: Sets the config path specified to value.".format(self.bot.command_prefix))
@@ -29,7 +29,7 @@ class Plugin(object):
 	def config_set(self, msg):
 		config = self._get_config(msg.args[:-2])
 		config[msg.args[-2]] = eval(msg.args[-1])
-		self.bot.notice(msg.nick, "Setting changed sucessfully")
+		self.bot.notice(msg.nick, "Setting changed successfully")
 
 	def config_append(self, msg):
 		config = self._get_config(msg.args[:-1])
@@ -37,7 +37,7 @@ class Plugin(object):
 			self.bot.notice(msg.nick, "Trying to append to non-list item. Aborted.")
 			return
 		config.append(msg.args[-1])
-		self.bot.notice(msg.nick, "Setting updated sucessfully")
+		self.bot.notice(msg.nick, "Setting updated successfully")
 
 	def config_remove(self, msg):
 		config = self._get_config(msg.args[:-1])
@@ -49,7 +49,7 @@ class Plugin(object):
 			self.bot.notice(msg.nick, "Value to be removed is not in specified item. Aborting.")
 			return
 		config.remove(msg.args[-1])
-		self.bot.notice(msg.nick, "Setting updated sucessfully")
+		self.bot.notice(msg.nick, "Setting updated successfully")
 
 	def config_get(self, msg):
 		config = self._get_config(msg.args[:], create=False)
@@ -62,7 +62,7 @@ class Plugin(object):
 		with open(self.bot.config_path, 'w') as f_config:
 			f_config.write(json.dumps(self.bot.config, indent=2))
 
-		self.bot.notice(msg.nick, "Config saved sucessfully.")
+		self.bot.notice(msg.nick, "Config saved successfully.")
 
 	def _get_config(self, path, create=True):
 		config = self.bot.config
