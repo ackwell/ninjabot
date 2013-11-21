@@ -271,8 +271,88 @@ class TestIRCCommands(IRCConnectionTestCase):
 
 		irc_send.assert_called_with('KICK channel username', False)
 
-	def test_mode(self, irc_send):
-		pass
+	def test_mode_without_params(self, irc_send):
+		self.connection.mode('username', 'OP')
+
+		irc_send.assert_called_with('MODE username OP', False)
+
+	def test_mode_with_params(self, irc_send):
+		self.connection.mode('username', 'OP', 'PARAMS', False)
+
+		irc_send.assert_called_with('MODE username OP PARAMS', False)
+
+	def test_names_with_list(self, irc_send):
+		self.connection.names(['chan', 'nel'])
+
+		irc_send.assert_called_with('NAMES chan,nel', False)
+
+	def test_names_normal(self, irc_send):
+		self.connection.names('channel')
+
+		irc_send.assert_called_with('NAMES channel')
+
+	def test_nick(self, irc_send):
+		self.connection.nick('username')
+
+		irc_send.assert_called_with('NICK username', False)
+
+	def test_notice_with_list(self, irc_send):
+		self.connection.notice(['user', 'name'], 'message')
+
+		irc_send.assert_called_with('NOTICE user,name :message', False)
+
+	def test_notice_without_list(self, irc_send):
+		self.connection.notice('username', 'message')
+
+		irc_send.assert_called_with('NOTICE username :message', False)
+
+	# both PING, PONG and PASS are ideally send off right away
+
+	def test_pass_(self, irc_send):
+		self.connection.pass_('password')
+
+		irc_send.assert_called_with('PASS password', True)
+
+	def test_ping_with_second_target(self, irc_send):
+		self.connection.ping('first', 'second')
+
+		irc_send.assert_called_with('PING first second', True)
+
+	def test_ping_without_second_target(self, irc_send):
+		self.connection.ping('first')
+
+		irc_send.assert_called_with('PING first', True)
+
+	def test_pong_with_second_target(self, irc_send):
+		self.connection.pong('first', 'second')
+
+		irc_send.assert_called_with('PONG first second', True)
+
+	def test_pong_without_second_target(self, irc_send):
+		self.connection.pong('first')
+
+		irc_send.assert_called_with('PONG first', True)
+
+	def test_privmsg_with_list(self, irc_send):
+		self.connection.privmsg(['user', 'name'], 'message')
+
+		irc_send.assert_called_with('PRIVMSG user,name :message', False)
+
+	def test_privmsg_normal(self, irc_send):
+		self.connection.privmsg('username', 'message')
+
+		irc_send.assert_called_with('PRIVMSG username :message', False)
+
+	def test_quit(self, irc_send):
+		self.connection.quit('message')
+
+		irc_send.assert_called_with('QUIT :message', True)
+
+	def test_user(self, irc_send):
+		self.connection.user('username', 'realname')
+
+		irc_send.assert_called_with('USER username 0 * :realname', True)
+
 
 
 if __name__ == '__main__':
