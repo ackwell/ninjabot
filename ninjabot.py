@@ -138,6 +138,8 @@ class IRCConnection(asynchat.async_chat):
 		self.queue_sched.start()
 		self.message_queue = Queue()
 
+		self.logger = logger.getChild('IRCConnection')
+
 	# Connect to the IRC server
 	def connect(self, host, port, nickname, username='', realname='', password=''):
 		self.host = host
@@ -180,8 +182,6 @@ class IRCConnection(asynchat.async_chat):
 		self.handle_close()
 
 	def handle_close(self):
-		self.write_storage()
-
 		try:
 			self.close()
 		except socket.error:
@@ -270,7 +270,9 @@ class IRCConnection(asynchat.async_chat):
 		), now)
 
 	def mode(self, target, mode, params='', now=False):
-		self.irc_send('MODE {0} {1}{2}'.format(target, mode, params and (' ' + params)))
+		self.irc_send('MODE {0} {1}{2}'.format(
+			target, mode, params and (' ' + params)
+		), now)
 
 	def names(self, channels, now=False):
 		if isinstance(channels, list):
@@ -367,6 +369,10 @@ class Ninjabot(IRCConnection):
 		# Connect to channels specified in config
 		for channel in self.config['bot']['channels']:
 			self.join(channel)
+
+	def handle_close(self):
+		self.write_storage()
+		return super().handle_close()
 
 	# Called by the connection class with messages from the server
 	def message_recieved(self, msg):
