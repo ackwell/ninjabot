@@ -10,7 +10,7 @@ class Plugin:
 	# to utilise the bot's functions.
 	# The plugin will also be passed a dictionary of it's config. More settings can be
 	# accessed via bot.config
-	def __init__(self, bot, config):
+	def load(self, bot, config):
 		self.bot = bot
 		self.config = config
 
