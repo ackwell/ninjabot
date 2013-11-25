@@ -22,6 +22,15 @@ class Plugin:
 		self.bot = bot
 		self.config = config
 
+	def dice_random(self, num, size):
+		"""Gives a nice normal distribution for dice"""
+		from math import sqrt
+
+		sigma = sqrt(num * (size**2 - 1) / 12)
+		mean = num * (size + 1) / 2
+
+		return int(random.gauss(mean, sigma))
+
 	def trigger_dice(self, msg):
 		"Roll a die (or dice), using the <num>d<faces> syntax."
 
@@ -82,8 +91,9 @@ class Plugin:
 			self.bot.privmsg(msg.channel, '{:s}: {:s} (total {:d})'.format(msg.nick, numbers, sum(numbers)))
 
 		elif self.TYPE == self.SINGLE:
-			# Just give the total (not actually very accurate)
-			total = random.randint(die * self.F_LOWER_LIMIT, sides * die)
+			# Since random.* are expensive operations, treat the whole thing as one gargantuan die
+			# btw -- dice_random() gives a normal distribution, making the output more 'realistic'.
+			total = self.dice_random(die, sides)
 
 			# Give the results
 			self.bot.privmsg(msg.channel, '{:s}: [...] (total {:d})'.format(msg.nick, total))
