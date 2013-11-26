@@ -1,7 +1,7 @@
 import platform
 import time
 
-SOURCE = 'SOURCE https://github.com/ackwell/ninjabot'
+SOURCE = 'https://github.com/ackwell/ninjabot'
 
 
 class Plugin(object):
