@@ -2,7 +2,7 @@
 # Written by Cyphar
 # Do whatever you want with this.
 import random
-
+import math
 
 class Plugin:
 	# Modes
@@ -24,9 +24,7 @@ class Plugin:
 
 	def dice_random(self, num, size):
 		"""Gives a nice normal distribution for dice"""
-		from math import sqrt
-
-		sigma = sqrt(num * (size**2 - 1) / 12)
+		sigma = math.sqrt(num * (size**2 - 1) / 12)
 		mean = num * (size + 1) / 2
 
 		return int(random.gauss(mean, sigma))
