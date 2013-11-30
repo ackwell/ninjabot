@@ -47,6 +47,7 @@ class Plugin(object):
 					if title is None:
 						return
 					title = self.utils.tag_to_string(title)
+					title = ' '.join(title.split())
 					message = "Title: " + title
 
 				# Other resources
