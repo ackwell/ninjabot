@@ -178,7 +178,6 @@ class IRCConnection(asynchat.async_chat):
 			return
 
 		self.quit(message)
-
 		self.handle_close()
 
 	def handle_close(self):
@@ -188,6 +187,10 @@ class IRCConnection(asynchat.async_chat):
 			pass
 
 		self.connected = False
+
+	# Sanitises IRC messages so that they are not misinterpreted by the IRC server.
+	def irc_sanitise(self, message):
+		return re.sub("[\r\n\0]", "", message)
 
 	# Sends the message to the server. Queues by default.
 	def irc_send(self, message, now=False):
@@ -199,7 +202,11 @@ class IRCConnection(asynchat.async_chat):
 			# IRC messages are limited to 512 chars
 			if len(message) > 510:
 				message = message[:511]
+
+			# Sanitise any unruly characters in output and terminate the message
+			message = self.irc_sanitise(message)
 			message += '\r\n'
+
 			# Convert the message to a bytes buffer for the socket
 			message_bytes = bytes(message, 'UTF-8')
 			try:
