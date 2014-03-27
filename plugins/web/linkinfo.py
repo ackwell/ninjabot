@@ -5,6 +5,7 @@ Watches incoming channel messages for URLs, and posts information on those it fi
 import re
 import requests
 from bs4 import BeautifulSoup
+from requests.utils import get_encodings_from_content
 
 
 class Plugin(object):
@@ -39,6 +40,13 @@ class Plugin(object):
 					# TODO: Accept-Language header from config
 
 					req = requests.get(url, headers=req_headers, timeout=5)
+
+					if 'charset' not in content_type:
+						# requests only looks at headers to detect the encoding, we must find the charset ourselves
+						# we can't use req.content because regex doesn't work on bytestrings apparently
+						encodings = get_encodings_from_content(req.text)
+						if encodings:
+							req.encoding = encodings[0]
 
 					soup = BeautifulSoup(req.text)
 
