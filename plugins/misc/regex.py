@@ -104,7 +104,11 @@ class Plugin(object):
 					else:
 						# Was invalid, return without adding to last messages
 						return
-
+			their_messages = self.last_messages[msg.nick]
+			their_messages.appendleft(body)
+			if len(their_messages) > self.backlog:
+				their_messages.pop()
+			return
 		# Add it to the last messages dictionary
 		their_messages = self.last_messages[msg.nick]
 		their_messages.appendleft(msg.body)
