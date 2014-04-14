@@ -28,7 +28,7 @@ class Plugin(object):
 				while url.startswith('(') and url.endswith(')'):
 					url = url[1:-1]
 
-				head = requests.head(url)
+				head = requests.head(url, allow_redirects=True)
 
 				message = ""
 				content_type = head.headers['content-type']
