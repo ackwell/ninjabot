@@ -190,7 +190,9 @@ class IRCConnection(asynchat.async_chat):
 
 	# Sanitises IRC messages so that they are not misinterpreted by the IRC server.
 	def irc_sanitise(self, message):
-		return re.sub("[\r\n\0]", "", message)
+		message = re.sub("\r", "\\\\r", message)
+		message = re.sub("\n", "\\\\n", message)
+		return message.strip()
 
 	# Sends the message to the server. Queues by default.
 	def irc_send(self, message, now=False):
