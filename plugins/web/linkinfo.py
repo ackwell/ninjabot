@@ -29,6 +29,8 @@ class Plugin(object):
 					url = url[1:-1]
 
 				head = requests.head(url, allow_redirects=True)
+				# work on the URL we were redirected to, if any
+				url = head.url
 
 				message = ""
 				content_type = head.headers['content-type']
