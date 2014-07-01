@@ -68,5 +68,13 @@
        More will be added as I discover them. (They require different parameters)
      */
     "mode": "acc"
+  },
+
+  "core.ignore": {
+    /* List of nicks to ignore by default */
+    "ignorelist": [
+      "ignore1",
+      "ignore2"
+    ]
   }
 }
