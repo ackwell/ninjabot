@@ -188,6 +188,12 @@ class IRCConnection(asynchat.async_chat):
 
 		self.connected = False
 
+	# Sanitises IRC messages so that they are not misinterpreted by the IRC server.
+	def irc_sanitise(self, message):
+		message = re.sub("\r", "\\\\r", message)
+		message = re.sub("\n", "\\\\n", message)
+		return message.strip()
+
 	# Sends the message to the server. Queues by default.
 	def irc_send(self, message, now=False):
 		if not self.connected:
@@ -195,10 +201,16 @@ class IRCConnection(asynchat.async_chat):
 
 		# If it's important, or has already been queued
 		if now:
-			# Convert the message to a bytes buffer for the socket.
-			# This also sanitises escape sequences and truncates the message to 512 chars including the terminator.
-			message_bytes = message.encode('unicode-escape').strip()[:510] + b'\r\n'
-			
+			# IRC messages are limited to 512 chars
+			if len(message) > 510:
+				message = message[:511]
+
+			# Sanitise any unruly characters in output and terminate the message
+			message = self.irc_sanitise(message)
+			message += '\r\n'
+
+			# Convert the message to a bytes buffer for the socket
+			message_bytes = bytes(message, 'UTF-8')
 			try:
 				self.push(message_bytes)
 			except socket.error:
