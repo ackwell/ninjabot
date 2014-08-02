@@ -481,7 +481,10 @@ class Ninjabot(IRCConnection):
 
 		# Stop any running timers
 		for timer in self.timers:
-			self.scheduler.cancel(timer)
+			try:
+				self.scheduler.cancel(timer)
+			except ValueError:
+				pass
 		self.timers = []
 
 		# Write storage and reset list to be repopulated by plugins
