@@ -396,6 +396,11 @@ class Ninjabot(IRCConnection):
 		if msg.nick in self.ignored:
 			return
 
+		# If the channel is the bot's name, it's a private message. Change the channel
+		# to point to the sender
+		if msg.channel == self.config['server']['nickname']:
+			msg.channel = msg.nick
+
 		# Check if it's a command
 		if msg.body.startswith(self.command_prefix):
 			self.handle_command(msg)
