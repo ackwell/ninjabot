@@ -676,6 +676,8 @@ class Ninjabot(IRCConnection):
 			self.scheduler.cancel(task)
 		except ValueError:
 			pass
+		except AttributeError:
+			pass
 
 
 # Entry point
