@@ -86,7 +86,7 @@ class Plugin:
 				numbers += [num]
 
 			# Give the results
-			self.bot.privmsg(msg.channel, '{:s}: {:s} (total {:d})'.format(msg.nick, numbers, sum(numbers)))
+			self.bot.privmsg(msg.channel, '{:s}: {:s} (total {:d})'.format(msg.nick, str(numbers), sum(numbers)))
 
 		elif self.TYPE == self.SINGLE:
 			# Since random.* are expensive operations, treat the whole thing as one gargantuan die
