@@ -7,38 +7,25 @@ class Plugin:
 
 	def on_incoming(self, msg):
 		text = msg.body.split()
-		if not text or len(text) > 2:
-			return
-
-		# Space between ++ and word:
-		if len(text) == 2:
-			word = text[0]
-			incr = text[1]
-			if not incr.strip('+'):
-				amount = len(incr)/2
-			elif not incr.strip('-'):
-				amount = -len(incr)/2
-			else:
-				return
-
-		if len(text) == 1:
-			word = text[0]
+		
+		for word in text:
 			if word.endswith('++'):
-				amount = (len(word) - len(word.rstrip('+')))/2
-				word = word.rstrip('++')
+				word = word.rstrip('+')
+				amount = 1
 			elif word.endswith('--'):
-				amount = -(len(word) - len(word.rstrip('-')))/2
-				word = word.rstrip('--')
+				word = word.rstrip('-')
+				amount = -1
 			else:
-				return
+				continue
 
-		if not word:
-			return
+			# Use brackets to do things like (C++)++
+			if word[0] == '(' and word[-1] == ')':
+				word = word[1:-1]
 
-		if word not in self.store:
-			self.store[word] = 0
+			if not word:
+				continue
 
-		self.store[word] += amount
+			self.store[word] = self.store.get(word, 0) + amount
 
 		return
 
@@ -70,3 +57,47 @@ class Plugin:
 
 	def trigger_karma(self, msg):
 		self.trigger_rep(msg)
+
+	def trigger_mergerep(self, msg):
+		if not self.bot.is_admin(msg.nick):
+			return
+
+		words = set(msg.args)
+
+		if len(words) < 2:
+			self.bot.notice(msg.nick, 'You must choose at least 2 different words to merge')
+			return
+
+		notin = ', '.join(w for w in words if w not in self.store)
+		if notin:
+			self.bot.notice(msg.nick, 'I do not know the words {}'.format(notin))
+			return
+
+		key = msg.args[0]
+		self.store[key] = sum(self.store[w] for w in words)
+		for word in words - {key}:
+			del self.store[word]
+
+		successmsg = 'Successfully merged. {} now has a rep of {}'.format(key, self.store[key])
+		self.bot.notice(msg.nick, successmsg)
+
+	def trigger_setrep(self, msg):
+		if not self.bot.is_admin(msg.nick):
+			return
+
+		if len(msg.args) != 2:
+			self.bot.notice(msg.nick, 'Usage: setrep <word> <rep>')
+			return
+
+		try:
+			rep = int(msg.args[1])
+		except ValueError:
+			self.bot.notice(msg.nick, 'Rep must be an integer')
+			return
+
+		word = msg.args[0]
+		self.store[word] = rep
+
+		self.bot.notice(msg.nick, 'Successfully set rep of {} to {}'.format(word, rep))
+
+
