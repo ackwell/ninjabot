@@ -18,6 +18,9 @@ class Plugin:
 			else:
 				continue
 
+			if not word:
+				continue
+
 			# Use brackets to do things like (C++)++
 			if word[0] == '(' and word[-1] == ')':
 				word = word[1:-1]
