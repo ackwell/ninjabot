@@ -1,5 +1,4 @@
 import requests
-import json
 
 class Paste(object):
 	def write(self, string, private=True, expire=3600):
@@ -30,7 +29,7 @@ class Paste(object):
 			data['private'] = 'true'
 
 		res = requests.post(url, data=data)
-		j = json.loads(res.text)['result']
+		j = res.json()['result']
 
 		if 'error' in j:
 			return j['error']
