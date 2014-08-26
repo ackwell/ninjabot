@@ -1,6 +1,4 @@
-from urllib.request import urlopen
-from urllib.parse import urlencode
-import json
+import requests
 
 class Paste(object):
 	def write(self, string, private=True, expire=3600):
@@ -9,27 +7,38 @@ class Paste(object):
 		Returns kdepaste URL or error message
 		"""
 
-		url = 'http://paste.kde.org/'
-		args = {
-			'paste_data': string,
-			'paste_lang': 'text',
-			'api_submit': 'true',
-			'mode': 'json',
+		# There are only certain values that are valid expiry times
+		# This ensures the paste will stay for at least the specified time
+		# Uncomment the following two lines to get dynamic expire values
+		#expres = requests.get('http://paste.kde.org/api/json/parameter/expire')
+		#valid_expire = json.loads(expres.text)['result']['values']
+		valid_expire = [1800, 21600, 86400, 604800, 2592000, 31536000]
+		orig_expire = expire
+		expire = max(valid_expire)
+		for length in valid_expire:
+			if length >= orig_expire and length < expire:
+				expire = length
 
-			'paste_private': 'yes' if private else 'no',
-			'paste_expire': expire
+		url = 'http://paste.kde.org/api/json/create'
+		data = {
+			'data': string,
+			'language': 'text',
+			'expire': expire
 		}
-		post_data = urlencode(args).encode('utf-8')
+		if private:
+			data['private'] = 'true'
 
-		u = urlopen(url, post_data).read().decode('utf-8')
-		j = json.loads(u)['result']
+		res = requests.post(url, data=data)
+		j = res.json()['result']
 
-		if 'error' in j.keys():
+		if 'error' in j:
 			return j['error']
 
 		o = ''
 		if private:
-			o = 'http://pastebin.kde.org/{:s}/{:s}'.format(j['id'], j['hash'])
+			o = 'http://paste.kde.org/{:s}/{:s}'.format(j['id'], j['hash'])
+		else:
+			o = 'http://paste.kde.org/{:s}'.format(j['id'])
 
 		return o
 
