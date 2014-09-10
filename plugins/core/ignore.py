@@ -2,6 +2,8 @@ class Plugin(object):
 	def load(self, bot, config):
 		self.bot = bot
 		self.timeouts = {}
+		if 'ignorelist' in config:
+			self.bot.ignored += config['ignorelist']
 
 	def on_incoming(self, msg):
 		if msg.command == 'NICK':
