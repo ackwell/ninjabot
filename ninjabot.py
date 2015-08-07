@@ -3,15 +3,13 @@
 ###############
 # Imports
 ###############
-import asynchat
-import asyncore
-import imp
+import asyncio
+import importlib
 import json
 import kronos
 import logging
 import os
 import re
-import socket
 import subprocess
 import sys
 import traceback
@@ -120,17 +118,26 @@ class Message:
 ###############
 # IRC connection handler
 ###############
-class IRCConnection(asynchat.async_chat):
+class IRCConnection(object):
 	"""
 	Handles connection to the server, and all the wizz-bang stuff that
 	goes along with that.
 	"""
 
-	def __init__(self):
-		super().__init__()
+	def __init__(self, host, port, ssl, nickname, username='', realname='', password=''):
 		self.connected = False
+		self.host = host
+		self.port = port
+		self.ssl = ssl
 
-		self.set_terminator(b'\r\n')
+		self.nickname = nickname
+		self.username = username or self.nickname
+		self.realname = realname or self.username
+		self.password = password
+
+		self.buffer = ''
+		self.reader = None
+		self.writer = None
 
 		# Flood protection
 		self.queue_sched = kronos.ThreadedScheduler()
@@ -141,22 +148,11 @@ class IRCConnection(asynchat.async_chat):
 		self.logger = logger.getChild('IRCConnection')
 
 	# Connect to the IRC server
-	def connect(self, host, port, nickname, username='', realname='', password=''):
-		self.host = host
-		self.port = port
-
-		self.nickname = nickname
-		self.username = username or self.nickname
-		self.realname = realname or self.username
-		self.password = password
-
-		self.buffer = ''
-		self.connected = False
-
+	@asyncio.coroutine
+	def connect(self, loop=None):
 		# Attempt to connect
-		self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-		super().connect((self.host, self.port))
-		asyncore.loop(timeout=0.2)
+		self.reader,self.writer = yield from asyncio.open_connection(self.host, self.port, ssl=self.ssl, loop=loop)
+		yield from self.handle_connect()
 
 	# Called by superclass when the connection is established
 	def handle_connect(self):
@@ -165,11 +161,12 @@ class IRCConnection(asynchat.async_chat):
 		# Initiate the IRC protocol
 		if self.password:
 			self.pass_(self.password, now=True)
-
 		self.nick(self.nickname, now=True)
 		self.user(self.username, self.realname, now=True)
 
+
 	# Disconnect from the IRC server
+	@asyncio.coroutine
 	def disconnect(self, message):
 		self.logger.info('disconnect')
 
@@ -181,10 +178,9 @@ class IRCConnection(asynchat.async_chat):
 		self.handle_close()
 
 	def handle_close(self):
-		try:
-			self.close()
-		except socket.error:
-			pass
+		self.writer.close()
+		self.writer = None
+		self.reader = None
 
 		self.connected = False
 
@@ -212,10 +208,9 @@ class IRCConnection(asynchat.async_chat):
 			# Convert the message to a bytes buffer for the socket
 			message_bytes = bytes(message, 'UTF-8')
 			try:
-				self.push(message_bytes)
-			except socket.error:
+				self.writer.write(message_bytes)
+			except:
 				self.disconnect('Connection reset by peer.')
-
 			self.logger.debug('SENT: ' + message.encode('ascii', 'backslashreplace').decode())
 
 		# Else, queue it
@@ -234,12 +229,8 @@ class IRCConnection(asynchat.async_chat):
 			else:
 				break
 
-	# Called by superclass with data from the socket
-	def collect_incoming_data(self, data):
-		self.buffer += data.decode('UTF-8', 'ignore')
-
 	# Called by superclass when terminator (\r\n) found
-	def found_terminator(self):
+	def process_line(self):
 		line = self.buffer
 		self.buffer = ''
 
@@ -252,9 +243,9 @@ class IRCConnection(asynchat.async_chat):
 			self.pong(message.body)
 			return
 
-		self.message_recieved(message)
+		self.message_received(message)
 
-	def message_recieved(self, message):
+	def message_received(self, message):
 		raise NotImplementedError()
 
 	###############
@@ -328,20 +319,19 @@ class Ninjabot(IRCConnection):
 	VERSION = '2.0.0-dev.py3k'
 
 	def __init__(self, config_path, test_mode=False):
-		super().__init__()
-
 		# Work out out absolute directory path
 		self.dir = os.path.dirname(os.path.abspath(__file__))
 
 		self.config_path = config_path
 		self.load_config()
 		self.command_prefix = self.config['bot']['command_prefix']
+		super().__init__(**self.config['server'])
 
 		self.logger = logger.getChild('Ninjabot')
 		if self.config.get('bot', {}).get('debug', False):
-		 	logging_level = logging.DEBUG
+			logging_level = logging.DEBUG
 		else:
-	 		logging_level = logging.INFO
+			logging_level = logging.INFO
 		self.logger.setLevel(logging_level)
 
 		# List of errors n' stuff
@@ -366,8 +356,8 @@ class Ninjabot(IRCConnection):
 
 		self.load_plugins()
 
-	def start(self):
-		self.connect(**self.config['server'])
+	def start(self, loop=None):
+		yield from self.connect(loop=loop)
 		# The above call will return when the bot is shutting down
 		# Kill off the process with the right exit status
 		sys.exit(self.exit_status)
@@ -378,13 +368,17 @@ class Ninjabot(IRCConnection):
 		# Connect to channels specified in config
 		for channel in self.config['bot']['channels']:
 			self.join(channel)
+		while self.connected:
+			m = yield from self.reader.readline()
+			self.buffer += m.decode('UTF-8', 'ignore').rstrip()
+			self.process_line()
 
 	def handle_close(self):
 		self.write_storage()
 		return super().handle_close()
 
 	# Called by the connection class with messages from the server
-	def message_recieved(self, msg):
+	def message_received(self, msg):
 		# Catch any errors from the plugins
 		try:
 			self.on_incoming(msg)
@@ -528,7 +522,7 @@ class Ninjabot(IRCConnection):
 		try:
 			# Not pretty, but best I can be assed to do.
 			# Anything more requires tomfoolery with sys.modules
-			module = imp.reload(import_module(path))
+			module = importlib.reload(import_module(path))
 		except:
 			self.logger.info("Error while loading {0}. Skipping. Trace:".format(path))
 			self.report_error()
@@ -705,7 +699,7 @@ def ninjabot_main():
 		config_filename = os.path.join(os.path.expanduser('~'), '.ninjabot_config')
 
 	bot = Ninjabot(config_filename)
-	bot.start()
+	asyncio.get_event_loop().run_until_complete(bot.start())
 
 
 # Wrap another process of the bot to allow restarts

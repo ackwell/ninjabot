@@ -7,6 +7,7 @@
 	"server": {
     "host": "irc.example.com",
     "port": 6667,
+    "ssl": false,
     "nickname": "ninjabot",
     "username": "ninjabot_un",
     "realname": "ninjabot_rn"
