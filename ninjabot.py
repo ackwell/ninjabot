@@ -140,10 +140,10 @@ class IRCConnection(object):
 		self.writer = None
 
 		# Flood protection
+		self.message_queue = Queue()
 		self.queue_sched = kronos.ThreadedScheduler()
 		self.queue_sched.add_interval_task(self.send_queue, 'FLOOD_SEND_QUEUE', 0, 1, kronos.method.threaded, [], None)
 		self.queue_sched.start()
-		self.message_queue = Queue()
 
 		self.logger = logger.getChild('IRCConnection')
 
@@ -151,10 +151,10 @@ class IRCConnection(object):
 	@asyncio.coroutine
 	def connect(self, loop=None):
 		# Attempt to connect
-		self.reader,self.writer = yield from asyncio.open_connection(self.host, self.port, ssl=self.ssl, loop=loop)
+		self.reader, self.writer = yield from asyncio.open_connection(self.host, self.port, ssl=self.ssl, loop=loop)
 		yield from self.handle_connect()
 
-	# Called by superclass when the connection is established
+	# Called to complete connection
 	def handle_connect(self):
 		self.connected = True
 
@@ -164,9 +164,7 @@ class IRCConnection(object):
 		self.nick(self.nickname, now=True)
 		self.user(self.username, self.realname, now=True)
 
-
 	# Disconnect from the IRC server
-	@asyncio.coroutine
 	def disconnect(self, message):
 		self.logger.info('disconnect')
 
@@ -229,7 +227,7 @@ class IRCConnection(object):
 			else:
 				break
 
-	# Called by superclass when terminator (\r\n) found
+	# Called when a line is read
 	def process_line(self):
 		line = self.buffer
 		self.buffer = ''
@@ -619,7 +617,6 @@ class Ninjabot(IRCConnection):
 	def kill(self, msg):
 		if not self.is_admin(msg.nick):
 			return
-
 		message = self.config['bot']['quit_message']
 
 		if len(msg.args):
