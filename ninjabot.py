@@ -135,7 +135,6 @@ class IRCConnection(object):
 		self.password = password
 		self.ssl = ssl
 
-		self.buffer = ''
 		self.reader = None
 		self.writer = None
 
@@ -228,11 +227,8 @@ class IRCConnection(object):
 				break
 
 	# Called when a line is read
-	def process_line(self):
-		line = self.buffer
-		self.buffer = ''
-
-		self.logger.debug(line.encode('ascii', 'backslashreplace').decode())
+	def process_line(self, line):
+		self.logger.debug(line)
 
 		message = Message(line)
 
@@ -367,9 +363,8 @@ class Ninjabot(IRCConnection):
 		for channel in self.config['bot']['channels']:
 			self.join(channel)
 		while self.connected:
-			m = yield from self.reader.readline()
-			self.buffer += m.decode('UTF-8', 'ignore').rstrip()
-			self.process_line()
+			message = yield from self.reader.readline()
+			self.process_line(message.decode('utf-8'))
 
 	def handle_close(self):
 		self.write_storage()
