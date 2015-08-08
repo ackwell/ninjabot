@@ -364,7 +364,7 @@ class Ninjabot(IRCConnection):
 			self.join(channel)
 		while self.connected:
 			message = yield from self.reader.readline()
-			self.process_line(message.decode('utf-8'))
+			self.process_line(message.decode('utf-8', 'ignore').rstrip())
 
 	def handle_close(self):
 		self.write_storage()
