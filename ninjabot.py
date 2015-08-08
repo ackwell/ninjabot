@@ -124,16 +124,16 @@ class IRCConnection(object):
 	goes along with that.
 	"""
 
-	def __init__(self, host, port, ssl, nickname, username='', realname='', password=''):
+	def __init__(self, host, port, nickname, username='', realname='', password='', ssl=False):
 		self.connected = False
 		self.host = host
 		self.port = port
-		self.ssl = ssl
 
 		self.nickname = nickname
 		self.username = username or self.nickname
 		self.realname = realname or self.username
 		self.password = password
+		self.ssl = ssl
 
 		self.buffer = ''
 		self.reader = None
