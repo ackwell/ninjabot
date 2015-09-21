@@ -11,6 +11,7 @@
     "username": "ninjabot_un",
     "realname": "ninjabot_rn"
     /*"password": "server password"*/ /* Optional */
+    /*"ssl": false*/ /* Optional */
   },
 
   /* ninjabot settings */
